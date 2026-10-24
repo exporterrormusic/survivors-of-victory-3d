@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NIKKE MOBA · Visual quality investigation</title>
+<style>
+  :root{color-scheme:dark;font:16px/1.6 system-ui,sans-serif;background:#101821;color:#e5edf4}
+  body{max-width:1120px;margin:40px auto;padding:0 24px 60px}h1{font-size:clamp(28px,4vw,44px);line-height:1.15}h2{margin-top:36px;font-size:24px}
+  p{max-width:85ch}a{color:#91d5ff}small,.muted{color:#aabaca}button{font:inherit;padding:9px 16px;border:1px solid #70899d;background:#1b2b39;color:inherit;cursor:pointer;border-radius:5px}
+  button[aria-pressed=true]{background:#b6e4ff;color:#10202d;border-color:#b6e4ff}button:focus-visible{outline:3px solid #fff;outline-offset:3px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+  figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid #3f5262;border-radius:6px}figcaption{margin-top:9px;color:#b2c4d3;min-height:52px}
+  table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;border-bottom:1px solid #344756;padding:14px 12px;vertical-align:top}th{color:#b6e4ff}td:first-child{min-width:150px;font-weight:600}
+  .scroll{overflow-x:auto}.note{border-left:3px solid #87cce8;padding:8px 18px;background:#192734}.links{font-size:14px}summary{cursor:pointer;font-weight:600;padding:15px 0}
+</style>
+<header>
+  <small>24 October 2026 · Babylon.js 9.32 · Local prototype</small>
+  <h1>Sharper materials, readable combat</h1>
+  <p>The scene already has a directional sun, hemispheric fill, a 2048 PCF shadow map,
+  fog, selective glow, and a custom tiled terrain material. The next useful gains are
+  coherent material response and contact shading. The initial dark ACES trial was rejected.
+  Bright daylight now uses stronger illumination and character highlights, with no tone-mapping grade.</p>
+</header>
+<h2>Compare the lighting trials</h2>
+<p>In the game, open <strong>F10 → Lighting</strong>. Bright daylight is the new initial default;
+the selection is remembered. These
+screenshots use the same camera, unit positions and animation poses.</p>
+<div class="buttons" role="group" aria-label="Lighting comparison">
+  <button data-look="original" aria-pressed="true">Original</button>
+  <button data-look="daylight" aria-pressed="false">Bright daylight</button>
+  <button data-look="soft" aria-pressed="false">Bright daylight + soft shadows</button>
+</div>
+<figure>
+  <img id="look" src="../artifacts/ui/lighting-original.png" width="1440" height="900" alt="Original arena lighting with named allied and enemy units">
+  <figcaption id="look-caption">Original: the existing neutral light balance and PCF shadows, with no new fullscreen postprocess passes.</figcaption>
+</figure>
+<p>Bright daylight strengthens the sun and sky fill and adds one shared edge light restricted to
+characters. Lower material roughness gives units broad highlights. The dark tone mapping and
+contrast grade are removed. FXAA uses a single direct pass. The soft-shadow variant adds PCSS
+at the existing map resolution, using Babylon's
+<a href="https://doc.babylonjs.com/features/featuresDeepDive/lights/shadows/">shadow filtering options</a>.
+PCSS costs more than PCF, so it remains optional.</p>
+<p class="note">Both Bright daylight variants add one fullscreen pass. Six preset switches restored
+the original values exactly and kept mesh/material counts stable. Headless SwiftShader checks
+verify correctness; they do not establish frame rate on the player's GPU.</p>
+
+<h2>Recommended next experiments</h2>
+<p>These are recommendations from inspecting this game's materials and renderer. Effects below
+are not enabled by the lighting presets. Cost descriptions are relative estimates to profile.</p>
+<div class="scroll"><table>
+<thead><tr><th>Priority</th><th>Visible benefit</th><th>Implementation and cost</th></tr></thead>
+<tbody>
+<tr><td>1. Unit shading</td><td>Clearer silhouettes, readable armor and faces, closer to a stylized MOBA.</td><td>Test a soft lighting ramp and restrained rim light on the existing character materials. Keep thin instances, baked skinning, alpha cutouts, and shadows working. A shared fragment-material extension avoids a separate light per enemy.</td></tr>
+<tr><td>2. Surface detail</td><td>Stone seams and metal catch the light instead of relying entirely on painted color.</td><td>Author matching terrain normal/roughness maps, then test low-strength environment lighting for PBR units. The current Rapture exports use metallic 0 and roughness 1; their original toon shader is only approximated. Extra texture sampling and memory need measurement.</td></tr>
+<tr><td>3. Contact shading</td><td>Feet, foliage, and ruins feel attached to the ground.</td><td>Start with static AO/lightmap data for ruins and subtle instanced contact decals. Compare optional SSAO2 at reduced resolution only after checking its depth/normal passes against baked crowd animation. Avoid a separate shadow-casting light per unit.</td></tr>
+<tr><td>4. Combat effects</td><td>Distinct hit sparks, muzzle bursts, dust and short trails make attacks easier to read.</td><td>Use shared, bounded GPU particle emitters with an offscreen budget. Keep the existing selective glow. Large transparent smoke clouds can still be expensive because they shade overlapping pixels.</td></tr>
+<tr><td>Later / optional</td><td>Reflections or cinematic presentation for showcase views.</td><td>SSR, global illumination, depth of field and motion blur need a separate visual/performance case. For regular MOBA play, prioritize sharp targets and unobscured telegraphs.</td></tr>
+</tbody></table></div>
+<p class="links">Primary references:
+<a href="https://doc.babylonjs.com/typedoc/classes/BABYLON.MaterialPluginBase">MaterialPluginBase API</a> ·
+<a href="https://doc.babylonjs.com/features/featuresDeepDive/materials/using/masterPBR/">PBR materials</a> ·
+<a href="https://doc.babylonjs.com/typedoc/classes/BABYLON.SSAO2RenderingPipeline">SSAO2 API</a> ·
+<a href="https://doc.babylonjs.com/features/featuresDeepDive/particles/">Babylon particles and Node Particle Editor</a>.
+The installed Babylon source was also checked for the APIs used in the trials.</p>
+
+<h2>The enemies' leg animation</h2>
+<p><strong>Pelican</strong> is the red enemy that fires three bullets in a spread. Its imported
+SD bundle contains idle and firing clips, but no walk. It previously moved using idle.</p>
+<p>Pelican now borrows <strong>Crawler's compatible lower-body walk</strong>. Joint names,
+parent relationships and rest transforms are checked before the clip is baked. Pelican retains
+its own upper body and firing pose. This is reused Crawler animation, not a newly discovered
+native Pelican clip.</p>
+<p><strong>Crawler</strong> has clear native leg stepping. <strong>Lure</strong> has a much
+subtler native cycle that can look like gliding. The actual rendered skin was checked, not
+just the animation names: all three advance their walk frames during movement, and all original
+clips match fresh source imports within 0.001 world units. The cycles remain above ground.
+Names now appear above minion health bars using cached canvas labels.</p>
+<details>
+  <summary>Inspect four poses from the enemy walk cycles</summary>
+  <div class="buttons" role="group" aria-label="Walk cycle sample">
+    <button data-phase="0" aria-pressed="true">Start</button>
+    <button data-phase="0.25" aria-pressed="false">¼ cycle</button>
+    <button data-phase="0.5" aria-pressed="false">½ cycle</button>
+    <button data-phase="0.75" aria-pressed="false">¾ cycle</button>
+  </div>
+  <img id="walk" src="../artifacts/ui/rapture-walk-0.png" width="1440" height="900" alt="Lure, Pelican and Crawler in the selected walk pose">
+</details>
+<p class="links">Local verification:
+<a href="../artifacts/ui/rapture-walk-audit.json">animation/source comparison</a> ·
+<a href="../artifacts/ui/lighting-verification.json">lighting restoration checks</a> ·
+<a href="../artifacts/visual-quality-build.log">production build log</a>.</p>
+<script>
+const descriptions={
+  original:'Original: the existing neutral light balance and PCF shadows, with no new fullscreen postprocess passes.',
+  daylight:'Bright daylight: stronger sun and sky fill, a shared character edge light, broad material highlights and FXAA. No dark grade; one fullscreen pass.',
+  soft:'Bright daylight + soft shadows: the same lighting with PCSS shadows. Optional because shadow filtering costs more GPU time.'
+};
+for(const button of document.querySelectorAll('[data-look]'))button.addEventListener('click',()=>{
+  for(const other of document.querySelectorAll('[data-look]'))other.setAttribute('aria-pressed',String(other===button));
+  document.getElementById('look').src='../artifacts/ui/lighting-'+button.dataset.look+'.png';
+  document.getElementById('look').alt=button.textContent+' arena comparison';
+  document.getElementById('look-caption').textContent=descriptions[button.dataset.look];
+});
+for(const button of document.querySelectorAll('[data-phase]'))button.addEventListener('click',()=>{
+  for(const other of document.querySelectorAll('[data-phase]'))other.setAttribute('aria-pressed',String(other===button));
+  document.getElementById('walk').src='../artifacts/ui/rapture-walk-'+button.dataset.phase+'.png';
+});
+</script>
+</html>

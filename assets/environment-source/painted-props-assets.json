@@ -1,0 +1,48 @@
+{
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "name": "paving-tile",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16cd4-37d5-7dd1-8694-946afd09f826\\exec-22c97de7-43b5-43be-870e-50a63607fb5f.png",
+      "original": "assets/environment-source/paving-tile.png",
+      "runtime": "public/environment/paving-tile.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 616800,
+      "alpha": null
+    },
+    {
+      "name": "forest-floor-tile",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16cd4-37d5-7dd1-8694-946afd09f826\\exec-0d17a9e3-a627-4e9f-a06a-e4e46c383d7f.png",
+      "original": "assets/environment-source/forest-floor-tile.png",
+      "runtime": "public/environment/forest-floor-tile.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 553856,
+      "alpha": null
+    },
+    {
+      "name": "foliage-atlas",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16cd4-37d5-7dd1-8694-946afd09f826\\exec-eeceff1f-d2ce-45c9-933b-2e1516fc067c.png",
+      "original": "assets/environment-source/foliage-atlas.png",
+      "runtime": "public/environment/foliage-atlas.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 693724,
+      "alpha": [
+        0,
+        255
+      ]
+    },
+    {
+      "name": "prop-material-atlas",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16cd4-37d5-7dd1-8694-946afd09f826\\exec-222a7a3a-6ee3-4105-baa1-f5749236323c.png",
+      "original": "assets/environment-source/prop-material-atlas.png",
+      "runtime": "public/environment/prop-material-atlas.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 346608,
+      "alpha": null
+    }
+  ]
+}

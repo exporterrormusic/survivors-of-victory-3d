@@ -1,0 +1,53 @@
+{
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "name": "defenses",
+      "source": "assets\\environment-source\\paintover-v1\\defenses-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\defenses.webp",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 329462
+    },
+    {
+      "name": "mechanisms",
+      "source": "assets\\environment-source\\paintover-v1\\mechanisms-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\mechanisms.webp",
+      "width": 1774,
+      "height": 887,
+      "bytes": 176828
+    },
+    {
+      "name": "environment",
+      "source": "assets\\environment-source\\paintover-v1\\environment-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\environment.webp",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 381822
+    },
+    {
+      "name": "barriers",
+      "source": "assets\\environment-source\\paintover-v1\\barriers-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\barriers.webp",
+      "width": 1774,
+      "height": 887,
+      "bytes": 218434
+    },
+    {
+      "name": "paving",
+      "source": "assets\\environment-source\\paintover-v1\\paving-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\paving.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 705160
+    },
+    {
+      "name": "woodland",
+      "source": "assets\\environment-source\\paintover-v1\\woodland-painted.png",
+      "runtime": "public\\environment\\paintover-v1\\woodland.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 636416
+    }
+  ]
+}

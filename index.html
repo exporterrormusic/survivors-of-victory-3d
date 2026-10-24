@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NIKKE · Tactical Simulation</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <!-- Desktop/landscape aspect lock; narrow portrait screens use the full viewport. -->
+    <div id="frame">
+      <canvas id="game"></canvas>
+
+      <div id="hud">
+        <div id="unit-frames"></div>
+
+        <div id="topbar">
+          <div class="team blue" aria-label="Allied squad">
+            <div class="slot" id="top-slot"><img id="top-icon" alt="" /><div class="slot-hp"><i id="top-hp"></i><b id="top-shield" class="shield-fill" aria-hidden="true"></b></div></div>
+            <div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div>
+          </div>
+          <div class="score">
+            <div class="team-level blue" aria-label="Allied team level">
+              <b id="level-blue">1</b>
+              <div class="team-xp blue" id="xp-blue" role="progressbar" aria-label="Allied team experience" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0"><i></i></div>
+            </div>
+            <div class="match-clock"><span id="timer">00:00</span></div>
+            <div class="team-level red" aria-label="Enemy team level">
+              <b id="level-red">1</b>
+              <div class="team-xp red" id="xp-red" role="progressbar" aria-label="Enemy team experience" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0"><i></i></div>
+            </div>
+          </div>
+          <div class="team red" aria-label="Opposing squad">
+            <div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div><div class="slot empty" aria-label="Empty slot"></div>
+          </div>
+        </div>
+
+        <div id="portrait">
+          <div class="portrait-picture">
+            <span class="portrait-fallback" aria-hidden="true">N</span>
+            <img id="portrait-art" alt="" />
+          </div>
+          <div class="hero-data">
+            <div id="hero-name"></div>
+            <div class="bars">
+              <div class="bar hp" aria-label="Health"><i id="hp-fill"></i><b id="hp-shield" class="shield-fill" aria-hidden="true"></b><span id="hp-text"></span></div>
+              <div class="bar mana" aria-label="Mana"><i id="mana-fill"></i><span id="mana-text"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="ability-dock"><div id="bar" role="group" aria-label="Abilities"></div></div>
+        <div id="channel" class="hidden"><div id="channel-fill"></div><span></span></div>
+        <div id="tooltip" class="hidden" role="tooltip"></div>
+        <div id="map-panel"><canvas id="minimap" aria-label="Minimap: left-click to look, right-click to move"></canvas></div>
+
+        <button id="menu-btn" title="Settings and controls (F10)" aria-label="Settings and controls" aria-controls="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+
+        <div id="menu" class="hidden" role="dialog" aria-label="Simulation settings">
+          <div class="menu-head"><div>Settings</div><button id="menu-close" aria-label="Close settings">&#215;</button></div>
+          <div class="menu-cols">
+            <section>
+              <h3>Gameplay</h3>
+              <label>Controls
+                <select id="controls">
+                  <option value="hots">Heroes of the Storm</option>
+                  <option value="wasd">WASD + mouse aim (twin-stick)</option>
+                </select>
+              </label>
+              <label>Cast mode
+                <select id="cast">
+                  <option value="quick">Quick cast</option>
+                  <option value="release">Quick cast on release</option>
+                  <option value="normal">Normal (click to fire)</option>
+                </select>
+              </label>
+              <label>Heroics
+                <select id="heroics">
+                  <option value="practice">Choose from the start (practice)</option>
+                  <option value="level">Unlock at team level 10</option>
+                </select>
+              </label>
+              <label>Camera <select id="camera"></select></label>
+              <label>Lighting &amp; color <select id="visuals"></select></label>
+              <label>Ambient shadows <select id="ambient-shadows"><option value="on">On</option><option value="off">Off</option></select></label>
+              <p class="sub">Ambient shadows add depth around objects. Turn them off for better performance.</p>
+              <h3>Audio</h3>
+              <div id="audio-settings"></div>
+              <button id="leave-match">Return to lobby</button>
+              <h3>Controls</h3>
+              <div id="help"></div>
+            </section>
+            <section>
+              <h3>Hero</h3>
+              <label>Character / outfit <select id="variant"></select></label>
+              <label>Facing
+                <select id="facing">
+                  <option value="auto">auto (head / gun forward)</option>
+                  <option value="none">raw (as authored)</option>
+                </select>
+              </label>
+              <details class="debug-tools">
+                <summary>Animation &amp; debug</summary>
+                <div class="sub">Play animation</div>
+                <div id="clips"></div>
+                <button id="inspector">Babylon Inspector</button>
+                <div id="stats"></div>
+              </details>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="loading">INITIALIZING / OPERATIVE</div>
+    <!-- src/app.ts shows the Survivors-derived menus (#front-end), then starts the match (src/main.ts). -->
+    <script type="module" src="/src/app.ts"></script>
+  </body>
+</html>

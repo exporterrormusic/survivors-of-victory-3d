@@ -1,0 +1,101 @@
+{
+  "bma002": {
+    "name": "Lure",
+    "file": "bma002.glb",
+    "bones": 12,
+    "vertices": 744,
+    "triangles": 1144,
+    "clips": {
+      "walk": {
+        "duration": 2.3333334922790527,
+        "frames": 71,
+        "channels": 75,
+        "sourceChannels": 45,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 75,
+        "sourceChannels": 40,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.3333333432674408,
+        "frames": 11,
+        "channels": 75,
+        "sourceChannels": 39,
+        "unboundSourceChannels": []
+      }
+    },
+    "bytes": 241088
+  },
+  "bmg001": {
+    "name": "Pelican",
+    "file": "bmg001.glb",
+    "bones": 56,
+    "vertices": 1724,
+    "triangles": 2076,
+    "clips": {
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 273,
+        "sourceChannels": 237,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 2573115629,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2573115629,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2573115629,
+            "property": "scale"
+          }
+        ]
+      },
+      "shot": {
+        "duration": 0.30000001192092896,
+        "frames": 10,
+        "channels": 273,
+        "sourceChannels": 144,
+        "unboundSourceChannels": []
+      }
+    },
+    "bytes": 451988
+  },
+  "mmg005": {
+    "name": "Crawler",
+    "file": "mmg005.glb",
+    "bones": 22,
+    "vertices": 2092,
+    "triangles": 1899,
+    "clips": {
+      "walk": {
+        "duration": 1.6000001430511475,
+        "frames": 49,
+        "channels": 168,
+        "sourceChannels": 126,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 168,
+        "sourceChannels": 123,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 168,
+        "sourceChannels": 117,
+        "unboundSourceChannels": []
+      }
+    },
+    "bytes": 413044
+  }
+}

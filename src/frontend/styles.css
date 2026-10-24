@@ -1,0 +1,29 @@
+/* Survivors of Victory front end. Pretendard ships in public/assets/fonts. */
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/Pretendard-Medium.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/Pretendard-Bold.otf") format("opentype");
+}
+
+#front-end {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #11151b;
+}
+
+#front-end canvas {
+  display: block;
+  image-rendering: auto;
+}

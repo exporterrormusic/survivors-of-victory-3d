@@ -1,0 +1,12 @@
+node_modules/
+dist/
+# Raw downloads and generated evidence are preserved in the dated archive release.
+# Converted public/chibi and public/raptures assets MUST stay versioned so a clone runs.
+raw/
+artifacts/
+archives/
+_REF/
+.claude/
+debug.log
+__pycache__/
+*.pyc

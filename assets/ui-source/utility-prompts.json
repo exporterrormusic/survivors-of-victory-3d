@@ -1,0 +1,20 @@
+{
+  "mode": "built-in image_gen.imagegen",
+  "created_for": "NIKKE MOBA HUD utility skills",
+  "assets": [
+    {
+      "file": "hoverboard.png",
+      "slot": "Z",
+      "prompt": "Use case: stylized-concept. Asset type: one square full-bleed game ability illustration for a MOBA hoverboard/mount button, 1024 by 1024 composition, designed to stay readable when cropped into a hexagon and displayed at 48 to 112 pixels. Primary request: a single futuristic white-and-gray antigravity hoverboard angled from lower left toward upper right, with bright cyan engine jets and a few broad soft-blue speed streaks. NIKKE-inspired anime military science-fiction equipment painting, hand-painted cel shading, crisp dark contours, deliberate broad highlights, rich but controlled colors. The board is the one central subject, fills about 75 percent of the square, and has a bold simple recognizable silhouette. Deep navy background extends to every edge, with darker uncluttered corners. Materials: white painted armor plates, dark graphite underside, restrained steel edging, luminous cyan thrusters. Camera is a dramatic three-quarter view, not a diagram. No rider, no humans or faces, no additional objects. No text, letters, numbers, logos, watermark, UI frame, button rim, border, or checkerboard. Opaque image, not transparent. Avoid fine decorative clutter, photorealistic rendering, and miniature components that disappear at icon size.",
+      "source": "C:/Users/rmdou/.codex/generated_images/01a16ce4-fcf1-7191-aae7-e4eaa4307ecd/exec-5dd0ae01-0f02-4807-b60a-9e51cb38d2fc.png",
+      "transparent_background": false
+    },
+    {
+      "file": "recall.png",
+      "slot": "B",
+      "prompt": "Use case: stylized-concept. Asset type: one square full-bleed game ability illustration for a MOBA recall-to-base button, 1024 by 1024 composition, designed to stay readable when cropped into a hexagon and displayed at 48 to 112 pixels. Primary request: one compact white-steel futuristic base teleporter beacon on a broad geometric platform, projecting a large luminous cyan circular return portal ring. NIKKE-inspired anime military science-fiction equipment painting, hand-painted cel shading, crisp dark contours, deliberate broad highlights, rich but controlled colors. The ring and its central beacon form one strong, simple recognizable silhouette, fill about 75 percent of the square, and remain fully visible in a central hexagonal crop. Show a small sturdy angular tower emerging from the platform inside the glowing portal ring, conveying a home-base return destination without any text. Deep navy background extends to every edge, with darker uncluttered corners. Materials: white painted armor plates, graphite base, restrained steel edging, cyan energy light. Three-quarter view with readable depth, not photorealistic. No people, faces, vehicles, surrounding buildings, or additional decorative objects. No text, letters, numbers, logos, watermark, UI frame, button rim, border, or checkerboard. Opaque image, not transparent. Avoid fine clutter and miniature components that disappear at icon size.",
+      "source": "C:/Users/rmdou/.codex/generated_images/01a16ce4-fcf1-7191-aae7-e4eaa4307ecd/exec-98bc8fb1-6488-4164-879a-ff88f005e496.png",
+      "transparent_background": false
+    }
+  ]
+}

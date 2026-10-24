@@ -1,0 +1,367 @@
+GENRE SWITCH: DESIGN BRIEF FOR IMAGE MOCKUPS
+NIKKE fan game (Babylon.js prototype)
+Date: 2026-10-24
+
+================================================================================
+0. WHAT I NEED FROM YOU
+================================================================================
+
+This game is currently a MOBA. We are switching it to a SINGLE-PLAYER genre, because
+building multiplayer is too much work. Three directions are under consideration (sections 3-5).
+Please produce in-game screenshot mockups for each one, so we can compare them and choose.
+
+- Make each image look like a real in-game screenshot, not concept art or a poster.
+- Size: 16:9, 1920x1080.
+- All three options should look like the same game. Keep the shared look in section 1
+  and change only what the option needs.
+- Each option has a numbered shot list. Make one image per shot. If you can only make a
+  few, do shot A of each option first.
+- After the images, write one short paragraph per option: what read well and what didn't.
+
+
+================================================================================
+1. THE SHARED LOOK (keep this in every mockup)
+================================================================================
+
+1.1 Characters
+- The heroes are "Nikkes": the girls from SHIFT UP's game GODDESS OF VICTORY: NIKKE,
+  drawn as 3D chibi models. The heads are big (roughly 1/3 of body height) and the
+  bodies small, with anime faces and cel-ish shading. Their weapons are oversized
+  compared with their bodies.
+- At gameplay zoom a hero is about 1/12 of the screen tall. The hairstyle and the weapon
+  are what identify each one.
+- Playable heroes and their weapons:
+    Snow White ..... silver-white hair, dark visor goggles, huge sniper/railgun
+    Crown .......... blonde, blue eyes, small crown/tiara, rapid-fire minigun
+    Rapunzel ....... blonde, rocket launcher carried sideways (explosive rockets)
+    Scarlet ........ sword user (wide sweeping slashes)
+    Marian ......... (Modernia form) continuous energy beam weapon
+    Kilo ........... shotgun (5-pellet spread)
+    Nayuta ......... a floating ring weapon that hovers behind her (no gun barrel)
+    Sin ............ submachine guns
+    Wells .......... sniper (uses the "Product 08" mass-produced Nikke body)
+  If you don't know a character's exact look, use the hair and weapon above on a
+  generic chibi soldier girl. Do not invent a different weapon.
+- Rank-and-file allies are mass-produced chibi Nikkes: Soldier EG, Soldier FA,
+  Soldier OW, Product 08, Product 12, Product 23, iDoll Flower, iDoll Ocean, iDoll Sun.
+  They look uniform and military, and are less ornate than the heroes.
+
+1.2 Enemies: Raptures
+Raptures are mechanical alien machines, the series' main enemy. They are pale bone-white
+and gunmetal plating with red glowing cores and eyes, and look insect-like or
+walker-like. The game currently has three:
+    Lure ...... small, fires single red bolts
+    Pelican ... medium, bulky, fires a fan of bolts
+    Crawler ... low and wide, fires arcing mortar shells
+Raptures come in CROWDS. The engine draws hundreds on screen at once, and the mockups
+should show that scale where the shot calls for it.
+
+1.3 Camera
+- High three-quarter overhead view, like League of Legends, Heroes of the Storm or
+  Diablo. Pitch is about 55-60 degrees down, with a narrow field of view (about 40
+  degrees), so perspective distortion is low.
+- The player's hero is near screen center.
+
+1.4 Environment art
+- The style is hand-painted, like a painted miniature diorama: painterly textures on
+  fairly simple geometry, with readable shapes and no photo-realism.
+- Ground: large painted stone paving slabs with moss in the cracks and yellow dashed
+  lane markings. Lush painted grass and woodland next to the paving, with ferns, broad
+  leafy trees, mossy boulders and ruined concrete blocks.
+- Military structures:
+    - ivory armor panels, blue-gray recessed panels, ochre/yellow trim, vents, wear
+    - twin-barrel gun towers
+    - gate walls
+    - blocky bunker-style Forts and Keeps
+    - a Core with a mostly transparent energy shield dome
+- Team energy color: player side BLUE/cyan glow, enemy side RED glow. It shows on
+  towers, gates and light strips.
+- Lighting: "painted daylight". A warm sun at a lowish angle gives soft directional
+  shadows, there is a cool sky fill and ambient occlusion, and glow is used sparingly.
+  Avoid washed-out bloom.
+
+1.5 HUD (laid out like Heroes of the Storm, colored like NIKKE)
+Colors:
+    panel background  #111B27 at ~93% opacity (dark navy glass)
+    panel edge        #8EA5B6 (cool steel)
+    text              #F5F8FC
+    muted text        #BDCBD6
+    accent / player   #43C6F3 (cyan)
+    headings / gold   #FFBD4C
+    enemy             #EF6C69 (red)
+Fonts: Rajdhani (or a similar squared sci-fi sans) for headings and numbers, and Segoe UI
+style for body text. Headings are gold uppercase, for example "CHOOSE A HEROIC".
+Frames are beveled chrome/steel with hexagon shapes throughout.
+
+Current layout (keep it unless an option says otherwise):
+- Bottom-left: a large hexagonal hero portrait in a chrome bevel. Next to it:
+    - hero name
+    - ammo pips (small yellow slashes plus a count, for example 7/7)
+    - a GREEN health bar with numbers ("1450/1450")
+    - a BLUE resource bar beneath it ("500/500")
+- Bottom-center: a row of large hexagonal ability buttons Q W E R D. They have painted
+  icons and metal bevel frames, and the key letter sits under each. Smaller
+  parallelogram buttons sit at each end: Z (left) and B (right).
+- Bottom-right: a square minimap in a dark navy frame, with blue and red structure
+  icons. A thin music player strip sits on top of it: track name, previous, pause,
+  next, mute.
+- Top-center: currently the MOBA scoreboard. It has a blue/red score, a match timer,
+  five portrait slots per team, and a "Core Health" strip under it. Each option below
+  replaces this.
+- Top-right: a small square hamburger menu button.
+- Choice popups use the "heroic picker" look: a dark metal-framed tray, a gold
+  uppercase heading, cards with beveled borders, hexagonal icon sockets, number-key
+  badges (1, 2, 3) in the corners, and cyan hover states.
+
+1.6 In-world UI rules (strict)
+- ONLY heroes get a name above their head. Minions, Raptures, summons and buildings get
+  health bars only, with no name labels.
+- Above a hero: the name, a segmented green health bar, and a thin blue resource bar
+  under it, high enough to clear the head.
+- A cyan selection ring sits under the player's hero, and enemies being targeted get a
+  red ring.
+- NO status text anywhere in the world: no "STUNNED", "SLOWED", "HASTE" and so on.
+  Show statuses as effects on the model instead:
+    stun = spinning sparks or electric crackle above the head
+    slow = icy blue frost
+    burn = small flames
+    shield = translucent bubble
+    haste = speed streaks
+    vulnerable = red target-mark glow
+- Ability telegraphs are flat decals on the ground:
+    line skillshot = a long translucent rectangle
+    area = a circle
+    cone = a wedge
+  Cyan means the player's, red means the enemy's.
+
+
+================================================================================
+2. RULES FOR ALL THREE OPTIONS
+================================================================================
+
+- Single-player only. Show no other human players and no 5v5 team bars. "Allies" are AI.
+- Keep the hero ability bar (Q W E R D, health and resource). Each hero's kit carries
+  over unchanged.
+- Keep the painted environment, structure style and Rapture enemies.
+- The Survivors-style front end (main menu, Character Select, Stage Select, Shop,
+  Records, Achievements) still exists. Mock up a menu screen only if a shot asks for one.
+
+
+================================================================================
+3. OPTION 1: "HOLD THE ARK" (hero defense)
+================================================================================
+
+Pitch
+  The Ark is humanity's last city. Raptures push down the lanes in waves of hundreds,
+  and you defend the gates, towers and Core with one Nikke hero, supported by a thin
+  line of mass-produced Nikke troops and turrets you place. The lane maps and
+  structures we already have stay. The player is simply always the defending side.
+
+Loop
+  Wave phase: fight the Raptures pushing down one to three lanes, using your abilities
+  and your towers.
+  Build phase (about 30 seconds between waves): place or upgrade turrets on build pads,
+  repair gates, spend credits in the Shop, and pick a talent.
+  Every few waves a boss Rapture leads the wave.
+  You win by surviving the final wave. You lose if the Core is destroyed.
+
+HUD changes
+- Top-center: replace the scoreboard with a wave panel showing "WAVE 7 / 20", a
+  countdown to the next wave during the build phase, and the Core health strip
+  underneath (one bar, ours only).
+- Next to the wave panel, a credits counter (gold coin-like icon plus a number).
+- Build phase only: a build bar above the ability bar, with four or five turret cards
+  in the heroic-picker style. Each card shows an icon, a credit cost and a hotkey.
+- Minimap: red chevrons show which lanes the next wave enters.
+
+Shot list
+  1A  WAVE DEFENSE AT THE GATE
+      A stone lane runs from upper right to lower left, toward a blue-lit Fort gate
+      flanked by two twin-barrel towers firing blue tracers. A crowd of 150+ Raptures
+      (mostly Lures, some Pelicans and Crawlers) packs the lane, with red mortar arcs
+      overhead. Snow White stands just in front of the gate firing a long cyan
+      line-skillshot that pierces a column of Raptures. A burn zone smolders on the
+      ground. Four or five mass-produced Nikke troops hold the line beside her. The HUD
+      shows "WAVE 7 / 20" top-center and the Core strip at full health. The mood is
+      frantic but readable.
+
+  1B  BUILD PHASE
+      The same area, calm, with wreckage of the last wave scattered on the paving. A
+      ghost turret (translucent cyan) hovers over a hexagonal build pad, with a cyan
+      range ring on the ground. Two turrets already placed sit on nearby pads. The build
+      bar shows turret cards with costs. Top-center reads "NEXT WAVE IN 0:24", and the
+      credits show 1,250. Crown idles near the pads.
+
+  1C  BOSS WAVE BREACH
+      A huge Rapture boss (several times a Pelican's size: bone-white plating, glowing
+      red core, insectoid legs) is smashing through a destroyed gate, with rubble and
+      sparks around it. A long boss health bar runs across the top-center under the
+      wave panel, with the boss name in gold uppercase. The Core's shield dome is
+      visible in the background. Rapunzel is firing rockets while backing up, and red
+      danger circles on the ground mark incoming mortar impacts.
+
+  1D  MAP OVERVIEW (optional)
+      A zoomed-out tactical view of a three-lane map. The Ark base is on the left, blue
+      glowing. The Rapture spawn on the right is red and organic-mechanical. Wave arrows
+      show red streams entering two lanes. This could serve as a pre-wave camera or a
+      Stage Select image.
+
+
+================================================================================
+4. OPTION 2: "SURFACE RUN" (action roguelite, Hades/Diablo-like)
+================================================================================
+
+Pitch
+  Each run is one Nikke's expedition onto the Rapture-held Surface. You fight through
+  a chain of arena rooms, pick an upgrade after each room, face a boss at the end of
+  each sector, and when you die you return to the Ark to spend permanent upgrades. The
+  hero kits become the starting build, and each hero's talent tree (already written)
+  becomes the pool of upgrades offered during a run.
+
+Loop
+  Enter a room. Rapture crowds spawn in waves. Clear it, then choose one of three
+  rewards: a talent, a heroic, credits or a heal. Choose an exit door (each door shows
+  the reward behind it). A boss waits at the end of each sector. The Shop in the Ark
+  hub sells permanent upgrades between runs.
+
+Look
+  The rooms are enclosed arenas built from the same painted assets: ruined concrete,
+  cliffs, overgrown paving and woodland, plus military wreckage. The areas are smaller
+  and more enclosed than the lanes, with walls and cover inside the room. Sectors vary
+  in lighting: painted daylight, warm dusk, cool woodland.
+
+HUD changes
+- Top-center: a run progress strip replaces the scoreboard. It shows the sector name in
+  gold uppercase (for example "SECTOR 2: OVERGROWN OUTPOST") and a row of small room
+  pips. Cleared pips are cyan, the current one is outlined, and the boss is a red
+  skull-hex at the end.
+- Top-left: the run's collected upgrades as a row of small hex icons.
+- Credits counter near the top-center.
+- The minimap is optional, either smaller or removed, since rooms are small.
+
+Shot list
+  2A  ARENA COMBAT
+      An enclosed ruined plaza with broken pillars and moss. Scarlet is center-screen
+      mid-slash: a wide cyan cone telegraph on the ground and a bright sword arc. A ring
+      of 40-60 Raptures closes in from all sides. Several Raptures in front of her are
+      knocked back, and a few show frost (slow) and flames (burn). Pelicans in the back
+      show red fan telegraphs. The collected upgrade icons run along the top-left.
+
+  2B  REWARD PICK
+      The cleared room is dimmed behind a centered heroic-picker-style tray headed
+      "CHOOSE A TALENT", holding three tall cards. Each card has a hex icon socket, a
+      talent name, a tier label, a short description and a 1/2/3 badge. Example card:
+      "Weak Point: Bullet hits mark the target; it takes extra damage from all sources."
+      One card is in the cyan hover state.
+
+  2C  BOSS ROOM
+      A large circular arena. A giant Rapture boss is in the upper half, and the floor
+      is covered in red telegraph patterns (expanding rings, radial lines, mortar
+      circles) that the player has to dodge. Marian fires her continuous cyan beam
+      into the boss. The boss health bar spans the top-center. Shell casings and debris
+      are scattered around.
+
+  2D  EXIT DOORS
+      The far wall of a cleared room has two or three exit gateways (military blast
+      doors set in ruins). Each has a glowing hex reward icon floating above it: talent,
+      credits, heal, heroic. Kilo walks toward them.
+
+
+================================================================================
+5. OPTION 3: "SQUAD OF FIVE" (real-time squad tactics with pause)
+================================================================================
+
+Pitch
+  This is closest to how NIKKE itself plays. You command a squad of five Nikkes on
+  missions across the Surface, using cover and timing their Burst skills in a chain:
+  Burst I, then Burst II, then Burst III, ending in a FULL BURST damage window. The
+  play is real-time, but you can slow or pause time to give orders. The same
+  click-to-move controls and cover system already exist. Allied Nikkes are AI-driven
+  when you aren't directly controlling them.
+
+Loop
+  Pick a mission and a five-Nikke squad. In the field: move the squad between cover,
+  focus targets and use abilities. A squad Burst gauge fills as you deal damage, and
+  when it's full you chain Burst I, II and III for a Full Burst. Mission types are
+  hold, escort, clear and extract. Raptures attack in crowds from several directions.
+
+HUD changes
+- Bottom-left: the single portrait becomes FIVE smaller hexagonal squad portraits in a
+  row. Each has its own health and resource bars, a small Burst tier badge (I, II or
+  III), and a dimmed overlay when that Nikke's burst is on cooldown. The selected
+  Nikkes get a cyan outline.
+- Bottom-center: the ability bar shows the selected Nikke's Q W E, slightly smaller.
+- Above the ability bar sits the squad Burst gauge, a wide segmented bar with three
+  chain slots labelled I, II and III. Slots light up gold as the chain progresses.
+- Top-left: an objective tracker in a navy panel, for example "HOLD THE RELAY 1:42" or
+  "EXTRACT: 3/5 ALIVE".
+- Top-center: the mission timer. There is no scoreboard.
+- Minimap stays bottom-right.
+
+In-world additions
+- Cover markers: small shield icons on cover objects. Full cover is a solid icon and
+  half cover is a half icon. They appear when a unit is selected.
+- Move-order markers on the ground: cyan chevrons or rings, with dotted paths from
+  each Nikke.
+- Every squad member gets a name over the head, because they are all heroes.
+
+Shot list
+  3A  SQUAD IN COVER
+      Five Nikkes (for example Snow White, Crown, Rapunzel, Kilo and Nayuta) spread
+      behind ruined concrete barricades and a wrecked vehicle, with cover shield icons
+      visible. Two are selected (cyan rings), and a cyan move-order marker with dotted
+      paths leads to a forward position. A large mixed Rapture group advances across an
+      open overgrown plaza toward them, with incoming red bolts. The objective tracker
+      sits top-left.
+
+  3B  FULL BURST
+      The climax. The Burst gauge's three slots (I, II, III) are all lit gold, and a
+      "FULL BURST" banner in gold uppercase appears with a brief screen-edge flash. All
+      five Nikkes fire at once: the sniper line, the minigun stream, rocket explosions,
+      the shotgun spread, Nayuta's ring glowing. A dense Rapture cluster takes the hits.
+      The image should feel cinematic, but the HUD must stay visible.
+
+  3C  TACTICAL PAUSE
+      The same battlefield, desaturated with a cool blue tint, with "PAUSED" or a slow-mo
+      indicator top-center. Queued orders are drawn as numbered dotted paths and ability
+      previews, such as a cyan circle where Rapunzel's rockets will land and a line
+      where Snow White will fire. Enemy intent appears as faint red arrows.
+
+  3D  SQUAD SELECT (optional, front-end menu)
+      A menu screen with five empty hex slots across the top and a grid of nine Nikke
+      portraits below. Each portrait has a Burst tier badge (I/II/III) and a weapon
+      icon. A warning appears if the squad lacks a Burst I, II or III. Use the dark navy
+      and gold palette.
+
+
+================================================================================
+6. REFERENCE IMAGES (attach these if your tool accepts images)
+================================================================================
+
+Paths are relative to the project folder.
+
+Current gameplay (camera, HUD, environment, structures):
+  artifacts/ui/lighting-pass-1/daylight-defenses.png   towers, gate, Fort, full HUD, minimap
+  artifacts/ui/weapons/crown.png                       hero vs Pelican/Lure, towers both colors
+  artifacts/ui/heroic-picker/desktop.png               the choice-card tray style, ability bar
+  artifacts/ui/paintover-v1/core.png                   the Core and its shield
+  artifacts/ui/battlegrounds/three-lane-overview.png   whole-map view
+Hero portraits:
+  public/assets/menus/character-select/<hero>/portrait.png
+  (snow-white, crown, rapunzel, scarlet, marian, kilo, nayuta, sin, wells)
+
+Note: some current screenshots show name labels over towers and Raptures. That is
+outdated. Follow rule 1.6: names over heroes only.
+
+
+================================================================================
+7. DON'T
+================================================================================
+
+- Don't make realistic or non-chibi characters.
+- Don't add other human players, chat boxes, a K/D scoreboard or 5v5 team bars.
+- Don't put status words over units.
+- Don't use neon cyberpunk colors or purple-heavy palettes. Stay with navy, steel, cyan,
+  gold and red, on painted natural greens and stone.
+- Don't draw tiny or cluttered UI. It should read big and clear, like Heroes of the
+  Storm.

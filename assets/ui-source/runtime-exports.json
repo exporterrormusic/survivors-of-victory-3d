@@ -1,0 +1,68 @@
+{
+  "operation": "Resize and WebP encoding only; generated artwork unchanged.",
+  "assets": [
+    {
+      "name": "panel",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "512x512",
+      "bytes": 11246
+    },
+    {
+      "name": "skill-socket",
+      "original": "1254x1254",
+      "alpha": true,
+      "output": "256x256",
+      "bytes": 12794
+    },
+    {
+      "name": "piercing-shot",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 23898
+    },
+    {
+      "name": "snow-drift",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 30632
+    },
+    {
+      "name": "frag-grenade",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 27916
+    },
+    {
+      "name": "seven-dwarves",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 24210
+    },
+    {
+      "name": "equipment",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 28596
+    },
+    {
+      "name": "hoverboard",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 16046
+    },
+    {
+      "name": "recall",
+      "original": "1254x1254",
+      "alpha": false,
+      "output": "256x256",
+      "bytes": 20528
+    }
+  ]
+}
