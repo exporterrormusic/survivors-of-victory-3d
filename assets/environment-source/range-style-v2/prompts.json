@@ -1,0 +1,7 @@
+{
+  "mode": "built-in image_gen",
+  "asset": "pine-boughs.png",
+  "runtime": "public/environment/range-style-v2/pine-boughs.webp",
+  "prompt": "Game foliage texture atlas for the existing painted NIKKE-style ruined environment, detailed but painterly, NOT low-poly or flat cel shaded. Transparent RGBA background. Two separate evergreen pine bough sprays side by side in a strict two-column atlas, with wide empty transparent gutters between them. LEFT HALF: a broad dense spreading dark evergreen pine branch with layered clusters of short needles, natural ragged needle silhouette, subtle painted value changes, muted forest green and blue green, brown branch glimpses, enough body to build a tree crown using crossed cards. RIGHT HALF: the same kind of broad evergreen pine bough carrying irregular soft snow deposits, dark green needles visible below the snow, pale blue-gray shaded snow, subtle off-white highlights. Each spray must stay entirely in its own half, at least 8 percent transparent padding from its cell boundary. Flat orthographic botanical asset sprays; neither a whole tree nor a scene. Match hand-painted woodland and weathered concrete game textures, soft diffuse lighting, restrained contrast, no hard ink outline, no simplistic cones, no glow, no text, no border, no ground or cast shadows. Genuine transparency around every needle group. Wide landscape format.",
+  "otherAssets": "Existing painted concrete, bark/metal atlas and foliage atlas reused. Detailed sakura original re-encoded without modification as blossoms-painted.webp."
+}

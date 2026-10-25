@@ -1,0 +1,44 @@
+#weather-lab { position:absolute;top:92px;right:14px;z-index:8;width:164px;pointer-events:auto;background:#11191eea;border:1px solid #bcc8cf80;box-shadow:0 4px 16px #0007;font:600 14px Rajdhani,sans-serif; }
+#weather-lab[hidden] { display:none; }
+#weather-lab[open] { width:300px;max-width:calc(100% - 28px); }
+#weather-lab summary { min-height:40px;padding:11px 14px;color:#f5d28a;cursor:pointer;letter-spacing:.08em; }
+.weather-lab-body { padding:0 12px 10px;max-height:calc(100cqh - 160px);overflow-y:auto; }
+.range-dressing-controls { border-bottom:1px solid #9aa8ae44;margin-bottom:10px; }
+#weather-lab section[hidden] { display:none; }
+.lab-sections { display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px; }
+#weather-lab .lab-sections button[aria-pressed="true"] { background:#4a4230;border-color:#f5d28a;color:#ffe3a7; }
+#weather-lab :is(button,select,summary):focus-visible { outline:2px solid #f5d28a;outline-offset:2px; }
+.lab-enemies { border-top:1px solid #9aa8ae44;margin-top:10px;padding-top:2px; }
+#weather-lab .lab-enemies p { margin-bottom:0; }
+#weather-lab label { display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0; }
+#weather-lab select { width:150px;min-height:36px;background:#233139;color:#f2f3ee;border:1px solid #9aa8ae66;padding:5px;font:inherit; }
+#weather-lab select:disabled { opacity:.6; }
+#weather-lab button { min-height:38px;background:#28353d;color:#f4f2e9;border:1px solid #a1aeb56b;padding:6px;font:inherit;cursor:pointer; }
+#weather-lab button:hover { background:#3a4a52; }
+#weather-lab p { margin:8px 0 12px;color:#b6c3cb;font-size:12px;line-height:1.3; }
+.weather-presets { display:grid;grid-template-columns:1fr 1fr;gap:6px; }
+#lab-lightning { width:100%;border-color:#d9b66e99!important; }
+#weather-lab hr { border:0;border-top:1px solid #9aa8ae44;margin:14px 0; }
+#lab-ground-snow { width:160px!important; }
+#lab-snow-status { display:block;color:#c9e6f4;font-size:13px; }
+#lab-reset-snow { width:100%; }
+#lab-ground-water { width:160px!important; }
+#lab-water-status { display:block;color:#b9dfe8;font-size:13px; }
+#lab-drain-water { width:100%; }
+.snow-key { display:flex;gap:6px;margin-top:10px;font-size:11px;color:#c4d2dc; }
+.snow-key span::before { content:'';display:inline-block;width:8px;height:8px;margin-right:4px;background:#e4edf4; }
+.snow-key span:nth-child(2)::before { background:#a1c4db; }
+.snow-key span:nth-child(3)::before { background:#648fb3; }
+@media (max-height:600px) {
+  #weather-lab { top:80px; }
+  #weather-lab summary { min-height:32px;padding:7px 12px; }
+  #weather-lab :is(button,select) { min-height:28px;padding:3px 5px; }
+  #weather-lab label { margin:5px 0; }
+  #weather-lab p { margin:6px 0; }
+}
+/* Keep every control reachable on unusually short windows. Normal sizes need no scroll. */
+@media (max-height:480px) { .weather-lab-body { max-height:calc(100dvh - 130px);overflow-y:auto; } }
+
+#weather-lab [hidden] { display:none!important; }
+#weather-lab .lab-enemies summary { min-height:32px;padding:8px 0;font-size:12px;color:#b6c3cb;letter-spacing:.03em; }
+#lab-wet { width:18px;height:18px;accent-color:#f5d28a; }

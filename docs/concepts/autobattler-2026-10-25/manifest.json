@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-25",
+  "status": "Partial study; user redirected discussion toward top-down action after the formation mockup. Do not automatically resume other shots.",
+  "generator": "Built-in image_gen.imagegen",
+  "images": [
+    {
+      "id": "A01",
+      "title": "Arrange the squad",
+      "file": "A01-formation-v2.png",
+      "stage": "Formation",
+      "references": [
+        "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-f9e8566c-4833-4251-a3a0-8477520a0930.png"
+      ],
+      "prompt": "Edit this supplied autobattler formation screenshot with ONLY three precise corrections, preserving composition, camera, characters, labels, UI panels, palette and all other content.\n1. In the SUPPRESSION 2/2 panel at lower left, the two small portraits must be CROWN and MARIAN. Keep Crown on the left. Replace the currently incorrect Scarlet portrait on the right with the exact Marian portrait shown in the FOURTH bottom squad card: long gray hair, black headgear, red eyes. Not the purple conical-hat Scarlet. The synergy is Crown + Marian.\n2. Remove numerical HP text from all FIVE small green health bars along the bottom. Keep those bars full green, without any numbers. Keep the hero names and portraits. The selected Snow White inspector at left MUST still read HP 1450 / 1450, which is correct.\n3. The scout list says Lure ×4, Pelican ×1, Crawler ×1, but only three small Lures are visible. Add exactly ONE fourth small Lure machine with red HP bar and red ground ring, on the open upper stone ground just left and behind the large Pelican, separated from the existing upper-left Lure. Match the other small Lures' model scale and design. Total on battlefield: four small Lures, one large Pelican, one low wide Crawler, and five heroes. Do not remove or duplicate anything else.\nEverything else must remain unchanged. Single full-screen image, same dimensions.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-1d112dc2-a83f-4733-b07f-3c10df9e7391.png",
+      "revisionOf": "A01-formation.png",
+      "savedPath": "A01-formation-v2.png"
+    }
+  ],
+  "iterations": [
+    {
+      "id": "A01",
+      "title": "Arrange the squad",
+      "file": "A01-formation.png",
+      "stage": "Formation",
+      "references": [
+        "C:\\Users\\rmdou\\Desktop\\GAME DEV\\NIKKE MOBA\\artifacts\\ui\\perf-pass-1\\screens\\three-lane-battle-lane-painted-ao-on-after.webp",
+        "C:\\Users\\rmdou\\Desktop\\GAME DEV\\NIKKE MOBA\\artifacts\\ui\\flat-redesign\\desktop.png",
+        "C:\\Users\\rmdou\\Desktop\\GAME DEV\\NIKKE MOBA\\docs\\concepts\\hybrid-tactics-2026-10-24\\G01-grid-movement.png",
+        "C:\\Users\\rmdou\\Desktop\\GAME DEV\\NIKKE MOBA\\artifacts\\ui\\weapons\\marian.png",
+        "C:\\Users\\rmdou\\Desktop\\GAME DEV\\NIKKE MOBA\\artifacts\\ui\\weapons\\rapunzel.png"
+      ],
+      "prompt": "Use case: ui-mockup. Make one polished 16:9 full-bleed in-game screenshot mockup of a SINGLE-PLAYER SQUAD-BUILDING ROGUELITE AUTOBATTLER using this existing 3D game's assets and UI style. Treat actual screenshot references as authoritative for painted stone/moss/trees, pale military gate architecture, practical low-poly chibi asset quality, dark navy panels, steel thin bevels, cyan highlights, gold headings and hex portrait framing. An overhead three-quarter camera makes the world a readable miniature battlefield. No photorealism and no ornate fantasy UI. No multiplayer lobby, opponents list, purchase with real money, stars/duplicate merging, MOBA scoreboard, manually controlled hero, QWER hotbar, giant bottom action buttons, JRPG command menu or turn-by-turn prompts. Only small squad portrait cards and contextual planning buttons.\nRecurring squad of EXACTLY FIVE characters, ONE model each when all are deployed: Crown (blonde, small tiara, oversized MINIGUN, frontline), Scarlet (lavender hair, broad conical hat, SWORD, melee flank), Snow White (silver-white hair, black goggles, white cloak, giant SNIPER RIFLE, backline), Marian (long silver-gray hair, dark headgear and black outfit, ENERGY BEAM weapon, ranged), Rapunzel (blonde in navy/gold nun hood, carries a ROCKET LAUNCHER sideways, support). Never change their weapon type. Never substitute staff for Rapunzel, shield/sword for Crown, or a rifle for Scarlet. Small chibi proportions with heads around one-third of height, each full unit about one-tenth to one-twelfth of image height in arena shots.\nBattlefield: one compact mossy paved courtyard with yellow worn lane markings, broken ivy walls around perimeter, left cyan gate, right red gate, a few low rectangular cover blocks but an open combat center. Enemies are existing mechanical Raptures: small Lures, larger shoulder-cannon Pelican, low wide mortar Crawler. Plain white/bone and dark steel armor, red eyes/cores. Six enemies at encounter start: four Lures, one Pelican, one Crawler. Enemy HP bars only, no names above machines; hero names and green bars allowed. Cyan friendly rings, red enemy rings. No humans as enemies.\nProposed autobattler hook: Crown and Marian provide SUPPRESSION, their repeated hits mark a target; Snow White exploits marked targets for +25% damage. This is shown as a small clear team synergy, not heaps of unexplained trait counters. Arrange squad before combat; movement, targeting, skills and bursts happen automatically during combat. All gameplay, economy and balance values shown are design proposals, not existing functionality.\nShot 1: PRE-BATTLE FORMATION. Input 1 actual world materials/architecture; input 2 actual flat HUD; input 3 prior grid mockup for camera and chibi readability ONLY; inputs 4-5 actual Marian/Rapunzel silhouettes and weapons. Do not copy the previous concept's turn-based menus.\nMain view is a wide open arena, 60%+ of screen, with a restrained 4-column by 3-row cyan DEPLOYMENT GRID overlay on only the player half, left/near side. The five heroes are placed clearly: Crown and Scarlet nearer the enemy edge, Snow White and Rapunzel in the rear, Marian in between. Opposite half has exactly six enemy machines in a visible preview: four small Lures forward, Pelican and wide Crawler behind. Gray-white enemy units are real visible units, not transparent phantoms. No shots yet.\nTop small title \"SURFACE EXPEDITION\" and \"ENCOUNTER 03 / 08\"; top center gold \"PREPARE\"; top right \"CREDITS 200\". Thin progress line with encounter nodes below title.\nLeft narrow planning panel ~260px wide: small tabs \"FORMATION\", \"EQUIPMENT\", \"SQUAD\", stacked vertically with FORMATION highlighted cyan, echoing the compact previous JRPG menu aesthetic rather than oversized bottom buttons. Under tabs, selected hero portrait and \"SNOW WHITE\", role \"SNIPER\"; two neat options \"Position: Backline\", \"Target: Highest armor\". Below, small synergy strip \"SUPPRESSION 2 / 2\" with tiny Crown and Marian portraits and simple text \"Marks targets for Snow White\".\nSnow White is selected with cyan outline and one thin dashed sightline toward Pelican, clarifying targeting priority. No manual attack button. Right upper modest enemy preview panel says \"ENEMY SCOUT\" and just three readable rows: \"Lure ×4\", \"Pelican ×1\", \"Crawler ×1\", then \"Watch the rear mortar\". Three small matching enemy icons.\nBottom center is a horizontal strip of FIVE COMPACT squad cards with hex portraits and exact labels in order CROWN, SCARLET, SNOW WHITE, MARIAN, RAPUNZEL. Each shows a full green HP bar; Snow White's card outlined cyan. Beneath them modest text \"Drag a unit to reposition\". Bottom right one medium gold outlined rectangular button \"START BATTLE\". Bottom left small \"DEPLOYED 5 / 5\". The formation overlay and preview of opposing units must read immediately as planning before an automatic battle, no round turns. Sharp legible UI, no oversize panels obscuring units.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-f9e8566c-4833-4251-a3a0-8477520a0930.png",
+      "savedPath": "iterations/A01-formation.png"
+    }
+  ],
+  "plannedButNotGenerated": [
+    "Automatic battle",
+    "Combat result",
+    "Reward choice",
+    "Equipment synergy",
+    "Recruitment"
+  ]
+}

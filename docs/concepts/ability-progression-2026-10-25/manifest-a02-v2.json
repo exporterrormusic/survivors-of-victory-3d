@@ -1,0 +1,32 @@
+{
+  "created": "2026-10-25",
+  "tool": "Built-in image_gen",
+  "status": "Visual proposal; gameplay unchanged",
+  "version": 2,
+  "images": [
+    {
+      "id": "A02-v2-21x9",
+      "file": "A02-v2-rank-roadmap-21x9.png",
+      "ratio": "21:9",
+      "version": 2,
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-0d08985f-2fed-4d37-a231-6b7f62b4eb04.png",
+      "width": 1915,
+      "height": 821,
+      "bytes": 2089047,
+      "sha256": "83bec9fd0236164c7399cf180b2ded77c6b1c600355325c74ccd8415af6a342f",
+      "promptFile": "prompts-a02-v2.json"
+    },
+    {
+      "id": "A02-v2-16x9",
+      "file": "A02-v2-rank-roadmap-16x9.png",
+      "ratio": "16:9",
+      "version": 2,
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-d9327276-cdff-4964-8b23-bb1aa2167bb4.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2063367,
+      "sha256": "8d1c04b96aa088d705678ac5b2f92421c38f4569dafe94ef0c668a572d9287f2",
+      "promptFile": "prompts-a02-v2.json"
+    }
+  ]
+}

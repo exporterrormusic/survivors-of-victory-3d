@@ -1,0 +1,18 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-25",
+  "prompts": [
+    {
+      "key": "weapon",
+      "prompt": "Use case: stylized-concept. Create one production game talent-tree banner illustration, wide 3:1 landscape. Reference image is original Snow White from NIKKE; preserve her adult identity, silver-white hair, golden eyes, graphite angular forehead visor, weathered white cloak and black mechanical gloves. Show a close side view of her aiming her compact white and graphite assault rifle (Seven Dwarves II), with squared white receiver, dark barrel and small yellow industrial accents. NOT the enormous anti-ship rifle. Face on left, rifle spans center toward right. Dark smoky battlefield background, restrained warm muzzle flash, crisp premium anime game rendering, readable at 300x110. Main face and weapon inside middle 70% height for cropping. No text, lettering, logos, frames, UI or magic symbols."
+    },
+    {
+      "key": "launcher",
+      "prompt": "Use case: stylized-concept. Create one production game talent-tree banner illustration, wide 3:1 landscape. Use ONLY the missile launcher on the LEFT of the supplied original Snow White NIKKE character reference as design reference. Close three-quarter front view of paired angular white armored missile pods, exactly three dark red circular loaded launch cells per pod (six total), central graphite spine with a narrow yellow vertical light, two split hanging white armored shield panels with dark inset borders, exposed dark support hardware below. Adapt to compact ground deployed support weapon, same design as reference. No character, no twin gun barrels, no generic tripod cannon. Dark smoky battlefield, a small orange missile exhaust streak in background. Premium anime mechanical illustration, chipped ivory paint, charcoal machinery, subtle yellow accents. Center full launcher silhouette inside middle 75% image height for banner cropping. No typography, logos, border, UI or blue magical effects."
+    },
+    {
+      "key": "burst",
+      "prompt": "Use case: stylized-concept. Create one production game talent-tree banner illustration, wide 3:1 landscape. Supporting references: first is original NIKKE Snow White identity and arsenal, second is her armored face and enormous white gun visual. Snow White firing Seven Dwarves I, her enormous anti-ship rifle, dynamic low side view. Silver-white hair and battered white cloak, graphite angular combat face visor closed with narrow amber light seams, dark armored gloves. The huge long rectangular white rifle dominates center and right, with dark mechanical underside and bulky rectangular top optical unit. A single powerful straight white-hot shot with warm gold muzzle flare exits to right, recoil smoke and flying dust. Physical weapon firing, not a magical blue triangle, not a spell, not seven tiny rifles. Dark desaturated battlefield, cinematic premium anime illustration. Keep helmet and gun inside central 70% image height so it reads as a thin banner. No text, labels, logos, borders or UI."
+    }
+  ]
+}

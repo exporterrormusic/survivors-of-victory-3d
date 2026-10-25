@@ -4,6 +4,8 @@ Seven screenshot-based mockups exploring the user's proposed hybrid. Open [the g
 
 The command menu is exactly **Attack, Skill, Burst, Item**. There is no Defend command. The attack interaction uses one line moving back and forth across a horizontal bar; click while the line is inside the highlighted interval for extra damage. Each offensive action can define its own interval.
 
+**Latest user feedback:** prefer the earlier JRPG layout's compact vertical command menu on the left over this study's large bottom buttons. Keep Attack, Skill, Burst and Item, plus the aim-window mechanic. The images below document the initial study and have not been regenerated. Other genres are still being explored.
+
 | Grid positioning | Character command view |
 | --- | --- |
 | [![Grid movement](G01-grid-movement.png)](G01-grid-movement.png) | [![Four commands](G03-character-commands.png)](G03-character-commands.png) |
@@ -33,7 +35,7 @@ After the result, the intended flow returns to the grid for the next character. 
 - The section can change with the selected skill.
 - Successful timing grants extra damage.
 - No defensive reactive dodging or parrying.
-- Keep the current flat navy, cyan and gold UI, hex portraits and bottom action dock.
+- Keep the current flat navy, cyan and gold UI and hex portraits. Latest preference: use the earlier JRPG vertical command menu on the left instead of the pictured bottom action dock.
 - Continue exploring through visuals before implementing a genre conversion.
 
 ## Proposed details, still open to tuning

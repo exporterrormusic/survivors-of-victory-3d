@@ -2,7 +2,7 @@
 import { Color3, Mesh, MeshBuilder, Scene, ShadowGenerator, StandardMaterial, Texture, TransformNode, Vector3, VertexData } from '@babylonjs/core';
 import { createFoliage } from './foliage';
 import type { Obstacle } from './world';
-import { LANES, MAP_EXTENT, MAP_BOUNDARY, COMPOUNDS, SPAWN_POINTS, pathLength, pathPoint, onRoad } from './battleground';
+import { LANES, MAP_EXTENT, MAP_BOUNDARY, COMPOUNDS, SPAWN_POINTS, pathLength, pathPoint, onRoad, onPlantingRoad } from './battleground';
 import { insideBoundary } from './navigation';
 import { applyPaintover, paintBounds } from './paintover';
 
@@ -11,7 +11,8 @@ const BASE = `${import.meta.env.BASE_URL}environment/`;
 export function dressOutpost(scene: Scene, shadows: ShadowGenerator, obstacles: Obstacle[]): void {
   let seed = 4817;
   const random = () => ((seed = seed * 16807 % 2147483647) / 2147483647);
-  const plants = createFoliage(scene, shadows);
+  const plants = createFoliage(scene, shadows,(at,radius,height)=>
+    (radius<=.3&&height<=.3)||!onPlantingRoad(at,radius));
   const stone = new StandardMaterial('painted-ruin-concrete', scene);
   stone.diffuseTexture = new Texture(`${BASE}ruin-concrete.webp`, scene);
   stone.diffuseColor = new Color3(.78, .84, .83);

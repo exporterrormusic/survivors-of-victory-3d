@@ -1,0 +1,32 @@
+{
+  "created": "2026-10-25",
+  "tool": "Built-in image_gen",
+  "status": "Visual proposal; gameplay unchanged",
+  "version": 3,
+  "images": [
+    {
+      "id": "A02-v3-21x9",
+      "file": "A02-v3-hud-theme-21x9.png",
+      "ratio": "21:9",
+      "version": 3,
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-0113f1dc-0820-44e5-ba78-9d6e94a5c8bf.png",
+      "width": 1916,
+      "height": 821,
+      "bytes": 2008140,
+      "sha256": "affad326a96d6c47a49010f7d2c402987391f03ae63ea986aad93d901c281785",
+      "promptFile": "prompts-a02-v3.json"
+    },
+    {
+      "id": "A02-v3-16x9",
+      "file": "A02-v3-hud-theme-16x9.png",
+      "ratio": "16:9",
+      "version": 3,
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-5c26430b-1b29-4f48-af25-01889b5d7b28.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1967561,
+      "sha256": "03a67a8777f6efb38f217790c60ebea3adc524b9aba6328de19cde32c8678c87",
+      "promptFile": "prompts-a02-v3.json"
+    }
+  ]
+}

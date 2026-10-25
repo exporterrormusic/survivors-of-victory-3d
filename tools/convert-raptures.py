@@ -1,7 +1,8 @@
 """Convert the verified local Outpost UnityFS bundles to self-contained animated GLBs.
 
 Requires UnityPy 1.25.4 (also looks in artifacts/tooling/unitypy). No game files are
-modified. Input: raw/outpost-research/sdmonster_assets_<id>_*.bundle.
+modified. Input: raw/outpost-research/sdmonster_assets_<id>_*.bundle, copied out of the
+install by tools/extract-raptures.py.
 Streamed-curve layout reference:
 https://github.com/Perfare/AssetStudio/blob/master/AssetStudio/Classes/AnimationClip.cs
 Exports native transform curves sampled at their original rate, including streamed
@@ -11,6 +12,7 @@ from pathlib import Path
 import bisect
 import io
 import json
+import re
 import struct
 import sys
 import zlib
@@ -20,10 +22,25 @@ sys.path.insert(0, str(ROOT / 'artifacts/tooling/unitypy'))
 import numpy as np
 import UnityPy
 from UnityPy.helpers.MeshHelper import MeshHandler
+from rapture_walks import WALKS, add_walk
 
-MODELS = {'bma002': 'Lure', 'bmg001': 'Pelican', 'mmg005': 'Crawler'}
+# Every SDMonster bundle in the install. Names follow the NKAS bestiary (nkas.pages.dev/bestiary).
+MODELS = {
+    'bma002': 'Lure', 'bmg001': 'Pelican', 'mmg005': 'Crawler',
+    'bca001': 'Cocytus', 'bcg001': 'Cucumber', 'bea001': 'Tail Bone', 'beg003': 'Capra',
+    'eca001': 'Obelisk', 'ecg001': 'Loud Mouth', 'eea002': 'Tripod', 'eeg003': 'Sentry',
+    'ema002': 'Squid', 'emg003': 'Cube', 'mca001': 'Sinister', 'mcg002': 'Thermite',
+    'mea001': 'Penetrator', 'meg006': 'Twin Tail', 'mma001': 'Hard Hat', 'xea003': 'Hanged Man',
+    'xeg006': 'Solaris', 'xma003': 'Seahorse', 'xmg001': 'Phalanx',
+}
 WIDTHS = {1: 3, 2: 4, 3: 3}
 PATHS = {1: 'translation', 2: 'rotation', 3: 'scale'}
+
+
+def clip_label(name):
+    """Unify clip numbering across species: idle_01 and shot01 become idle and shot, shot_02 shot2."""
+    m = re.fullmatch(r'([a-z]+)_?(\d+)', name)
+    return name if not m else m[1] if int(m[2]) == 1 else m[1] + m[2].lstrip('0')
 
 
 def vector(v):
@@ -116,6 +133,7 @@ def sample_clip(clip):
 
 
 def export_model(model_id, label, outdir):
+    # Seahorse and Phalanx bundles are named <id>_sd_var; their assets still use <id>_sd.
     files = sorted((ROOT / 'raw/outpost-research').glob(f'sdmonster_assets_{model_id}_*.bundle'))
     assert len(files) == 1, f'Expected one extracted bundle for {model_id}'
     env = UnityPy.load(str(files[0]))
@@ -201,21 +219,25 @@ def export_model(model_id, label, outdir):
                 del node['children']
     glb.doc['scenes'][0]['nodes'].append(mesh_node)
 
-    texture = next(o.read() for o in objects.values()
-                   if o.type.name == 'Texture2D' and o.read().m_Name == f'{model_id}_sd')
+    # The material's _MainTex, not a name guess: Solaris uses xeg006_1sd.
+    material = objects[renderer['m_Materials'][0]['m_PathID']].read_typetree()
+    main = dict(material['m_SavedProperties']['m_TexEnvs'])['_MainTex']['m_Texture']['m_PathID']
+    texture = objects[main].read()
     png = io.BytesIO()
     texture.image.save(png, format='PNG')
     glb.doc['images'] = [{'name': texture.m_Name, 'bufferView': glb.view(png.getvalue()), 'mimeType': 'image/png'}]
     glb.doc['samplers'] = [{'magFilter': 9729, 'minFilter': 9987, 'wrapS': 10497, 'wrapT': 10497}]
     glb.doc['textures'] = [{'source': 0, 'sampler': 0}]
-    glb.doc['materials'] = [{'name': f'{model_id}_sd', 'pbrMetallicRoughness': {
+    glb.doc['materials'] = [{'name': material['m_Name'], 'pbrMetallicRoughness': {
         'baseColorTexture': {'index': 0}, 'metallicFactor': 0, 'roughnessFactor': 1}}]
     clips = {}
     for pid, obj in objects.items():
         if obj.type.name != 'AnimationClip' or not trees[pid]['m_Name'].startswith(f'{model_id}_sd_'):
             continue
         clip = trees[pid]
-        clip_name = clip['m_Name'].removeprefix(f'{model_id}_sd_')
+        source_name = clip['m_Name'].removeprefix(f'{model_id}_sd_')
+        clip_name = clip_label(source_name)
+        assert clip_name not in clips, f'Two clips named {clip_name}'
         times, values, bindings = sample_clip(clip)
         anim = {'name': clip_name, 'channels': [], 'samplers': []}
         time_acc = glb.accessor(times, 'SCALAR', bounds=True)
@@ -228,10 +250,12 @@ def export_model(model_id, label, outdir):
             track = convert(values[:, offset:offset + width], attribute)
             offset += width
             node = hashes.get(binding['path'])
-            if node is None:
+            if node is None or node == mesh_node:
                 # Pelican idle retains tracks for a removed child named bmg001.
                 # Matching that name to the prefab root incorrectly tips the entire
                 # rig by 90 degrees. Unity leaves nonexistent relative paths unbound.
+                # Squid and Hard Hat animate their skinned mesh's own node, which
+                # Unity and glTF ignore but Babylon would apply (tipping them over).
                 unbound.append({'pathHash': binding['path'], 'property': PATHS[attribute]})
                 continue
             if attribute == 2:
@@ -263,13 +287,19 @@ def export_model(model_id, label, outdir):
         clips[clip_name] = {'duration': float(times[-1]), 'frames': len(times),
                            'channels': len(anim['channels']), 'sourceChannels': len(bindings),
                            'unboundSourceChannels': unbound}
-    assert 'idle' in clips and 'shot' in clips
+        if clip_name != source_name:
+            clips[clip_name]['source'] = clip['m_Name']
+    assert 'idle' in clips  # Solaris has no shot clip
+    if model_id in WALKS:  # borrowed or generated; MODELS lists Crawler before its borrowers
+        clips['walk'] = add_walk(glb, model_id, mesh_node, ROOT / 'public')
     glb.doc['asset']['extras'] = {'source': files[0].name, 'character': label,
                                   'copyright': 'SHIFT UP / Proxima Beta'}
     path = outdir / f'{model_id}.glb'
     glb.write(path)
     meta = {'name': label, 'file': path.name, 'bones': len(bone_nodes), 'vertices': len(vertices),
-            'triangles': len(triangles) // 3, 'clips': clips, 'bytes': path.stat().st_size}
+            'triangles': len(triangles) // 3, 'clips': clips,
+            'muzzles': sorted(n['name'] for n in glb.doc['nodes'] if n['name'].startswith('socket_muzzle_fire_')),
+            'bytes': path.stat().st_size}
     print(json.dumps(meta))
     return meta
 

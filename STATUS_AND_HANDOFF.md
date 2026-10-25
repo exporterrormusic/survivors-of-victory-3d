@@ -1,4 +1,725 @@
+## Lighting & color is always Anime (user rule, 2026-10-25)
+
+The user's darker look turned out to be the "Painted daylight" preset (about half Anime's brightness). The user
+said: "Lighting and color should ALWAYS be anime." The survivor runtime (`src/survivor/main.ts`) now always applies
+`anime`, hides the Lighting & color selector and ignores saved choices. Other presets remain in `visuals.ts` for
+dev A/B scripts only. Don't reintroduce a preset choice. The archived MOBA keeps its own selector.
+
+## Brightening pass: "everything looks darker" (2026-10-25, ~18:30)
+
+The user reported that every weather/time combination in the Test Range looked darker than before, and asked
+Claude to brighten it toward the earlier anime look. Measured against the 06:18 reference
+`docs/concepts/game-plan-2026-10-25/references/current-game-dusk.jpg`: lit ground was unchanged, but the whole
+frame was 22–38% darker. Causes found:
+- the lift and tower in the middle of the view: opted out of Anime, near-black frame, and the tall mast's shadow
+- the camera starting at 18 instead of 13
+- darker themed-ground multipliers
+- Anime contact shadows (AO)
+- night/cloud darkening (snow counts as cloud)
+
+Changes (keep them unless the user asks otherwise):
+- **Lift** (`arrival-elevator.ts`): atlas-painted structure and trim use `softEnvironment` (the Anime shader's
+  soft painted-scenery path) instead of `anime:false`. Recess and rubber colors are lighter. The
+  `elevator-fixed-mast` group no longer casts shadows. The shaft lining and cyan/amber lamps are unchanged.
+  Edited byte-safely: the file still has three Windows-1252 bytes in an HTML label.
+- **Camera** (`main.ts`): the Test Range no longer starts at `setDistance(18)`.
+- **Themed ground** (`arena.ts`): soil and asphalt now use the plain range's multipliers; Storm and Hollow are
+  lifted proportionally.
+- **Anime look** (`visuals.ts`, `toon.ts`): **reverted at the user's request.** The pass briefly raised
+  exposure, lifted the toon shade, halved AO and softened night/cloud dimming. All of those values are back
+  to their originals: exposure 1.20, AO .30, shade 0.70/0.77/0.91, cloud .6/.08/.12, night .28, vignette .45.
+  The real cause of "too dark" was the preset (see above). Only the Lift, Camera and Themed ground changes remain.
+
+## Elevator collision and shaft lining (2026-10-25)
+
+Elevator sides, rear cage, gates and mast now use shared navigation and projectile cover. Exposed shaft blocks actors. Passenger transport/control lock verified. Shaft has textured lining with depth-darkened courses and reinforcement. Elevator bloom removed to prevent glow showing over the player or through walls; lenses remain depth-tested emissive geometry. No global lighting shader changes. TypeScript, motion and browser collision/ride assertions pass.
+
 # Status and handoff (read this first)
+
+## Lift departure: deeper shaft, blast seal, passenger and end screen (2026-10-25)
+
+User requested closer S06 deck texture, removal of clipping grey footings, and a deeper departure
+that seals the shaft and hides the character. Deck now uses `deck-steel-v4.png` (flat warm-grey steel,
+fine physical seams; prompt saved in `assets/environment-source/arrival-elevator-v2/deck-prompts.json`).
+Fixed mast is offset 0.95 m behind the cage; measured closest footing z=3.53 m clears the widened
+3.5 m shaft half-width. Shaft is 13.5 m deep, cage travel 12 m. Two blast shutters park below the
+surrounding ground and start closing only below 3.4 m clearance; fully reopen before ascent.
+
+`elevator-motion.ts` owns motion/interlocks. `range-lift-ride.ts` captures an aboard player, locks
+movement/firing and damage during transport, moves the character with the deck, hides model and
+overhead HP bar under the sealed hatch, then freezes the test range with Extraction Complete.
+Weather Lab → Restored lift tower → **Extract & seal**; Replay elevator raises the passenger again.
+Preview full cycle returns without ending the range. Empty-lift tests do not hide an off-platform player.
+Small hooks added to Player, HUD and main; sortie rewards/extraction remain their separate existing flow.
+
+Passed final typecheck, `tools/test-elevator-motion.mjs`, sortie logic tests, `verify-elevator.mjs`
+(passenger Y, hidden model, stopped clock, replay, clearance, controls, 16:9/21:9), and full
+`verify-sortie.mjs` regression. No browser errors. Review `/elevator-review.html`; captures include
+`08-blast-doors-closing.png` and `09-sealed-extraction.png` under `artifacts/ui/ART-1/`.
+
+## Lift art preview: S06 restored tower at range center (2026-10-25)
+
+The user clarified that the desired elevator is **S06-boarding.png**, including its extremely tall
+lattice mast, not S01's low arrival platform. Rebuilt the range preview with a 6 m deck at (0,0),
+20 m mast plus crown, I-section columns, diagonal bracing, hoist cables/pulleys, counterweight,
+ladder, sparse ivy, broad hazard panels, amber beacons, cyan rails and segmented ground ring.
+Primary reference is S06; supporting official NIKKE elevator art and exact ImageGen texture prompts
+are recorded in `assets/environment-source/arrival-elevator-v2/`.
+
+Sources: `src/survivor/arrival-elevator.ts` (materials/animations), `lift-tower-geometry.ts` (model).
+The test range mounts it through narrow hooks in `main.ts`; sortie placeholders remain unchanged.
+Weather Lab → Restored lift tower offers Open/Close, Lower/Raise, Full cycle. Gates fold along
+the sides, close before travel, and cannot open underground. Motion and lamps pause with the game.
+The rotated shaft is a real mesh opening in `arena.ts`, replacing the material-only discard after
+the reported striped floor artifact. Initial range framing is 18 m; wheel zoom remains available.
+
+Review: `/elevator-review.html`, or `?run=test-range&environment=outskirts&time=day&weather=clear`.
+`artifacts/verify-elevator.mjs` passed center, endpoints, full cycle, interlock, interrupted command,
+UI controls, 16:9/21:9 and anime checks with no page errors. Captures include a full-height view in
+`artifacts/ui/ART-1/`. Sortie logic and browser regressions passed. Final typecheck passed after
+the concurrent results-screen wiring finished.
+Visual approval remains open. Passenger transport/collision, dormant restoration states, and sortie
+integration are still separate work. No audio added and no commit made.
+
+## ART-RANGE: Test Range themes and painted material correction (2026-10-25)
+
+Contact refinement: shared NavigationMap.slide uses obstacle surface normals and a
+small outward cushion for player/dash/knockback and AI steering. Sweeps remain safe,
+speed stays bounded, and idle input does not drift. Rotated-wall sliding regressions
+pass at 20/60/120 FPS alongside the existing navigation and scenery checks.
+
+
+Latest user-requested gameplay addition: `range-collision.ts` supplies stable scaled/rotated
+solid proxies for all structural scenery and trunks; soft foliage/loose pebbles stay passable.
+Player movement/dash/separation, AI paths/knockback, both sides' shots, melee and blast
+visibility share cover. Hover enemies avoid solids but ignore snow slowdown. Theme switches
+replace obstacles and invalidate routes. Cylinder/capsule proxies, not mesh physics or
+destructible scenery. All five themes/three body sizes, dash, shot heights and cleanup pass
+`artifacts/verify-range-collision.mjs`; TypeScript and navigation/snow/enemy/sortie checks pass.
+
+
+Latest placement correction: Outskirts/Storm grove clusters and perimeter trees
+now clear both world-space roads, including feathered edges, roots and sway margin.
+`RANGE_ROADS` is shared by ground shader and placement; regression checks cover every tree.
+
+The user asked to stage the kit assets in the **Test Range**, using the game-plan gallery
+and worksheet. `?run=test-range&environment=outskirts` and **Weather Lab -> Environment**
+select Ark Outskirts, Frozen North, Dead City, Stormbringer, The Hollow, or undressed range.
+Solid scenery now blocks movement/shots and feeds shared AI navigation.
+MAP-1/2/3/8 remain separate full-sector tasks. The sortie and archived MOBA are not automatically dressed.
+
+**Important user correction:** the first flat low-poly kit pass was rejected as too cel shaded
+and mismatched with the characters and existing ground. Do not treat those flat materials as
+the approved environment look. The user also rejected the misprojected ruin texture.
+- `range-materials.ts` uses painted concrete/bark/metal/foliage. Latest correction: conventional
+  lighting was too dark and mismatched. `softEnvironment` now shares the AnimeToon palette
+  with smooth light transitions, no posterization, and lighter tints. Character/ground
+  behavior stays unchanged; no emissive fill or new AO.
+- Vegetation has independent ground-pivot sway, pause and reduced-motion support.
+  Per-plant batching keeps shadows aligned (112 outskirts meshes). Whole plants sway,
+  not individual flexible branches. Visual approval pending; wind/browser checks pass.
+- Ruin projection from unrelated geometry was removed; corrected per-face UVs tile concrete
+  and keep atlas panels in bounds. The ruin is now a wall/doorway corner with exposed steel.
+- Painted foliage replaces leaf diamonds and solid bushes. Rocks have softened normals.
+- The detailed sakura original is used in the range; new painted snow pine boughs replace cones.
+  Built-in image_gen source/prompt: `assets/environment-source/range-style-v2/`.
+- Placement is deterministic and biome-specific. No puddle props/water planes or new sounds.
+- Existing exported kit-v1 GLBs are unchanged; this material pass is applied in the Test Range.
+
+**Verification:** TypeScript, sortie Node tests, theme-placement tests, browser theme switching
+and full browser sortie regression passed. All 12 training targets remain. No page errors.
+Material verification found zero nonfinite/out-of-panel UVs and zero collapsed nondegenerate
+UV triangles; all rendered dressing materials have textures ready and zero emissive fill.
+Screenshots + before/after/reference gallery: `artifacts/ui/art-range/style-comparison.html`.
+See [Test Range environment notes](docs/TEST_RANGE_ENVIRONMENTS.md). ART-RANGE is **review**.
+Preview server: port 5184, HMR disabled (`artifacts/serve-range-environments.mjs`).
+
+
+## Build worksheet; LOOP-1–3: menus deploy into the sortie, progress is saved (2026-10-25)
+
+Work toward the game-plan mockups is split into tasks in [docs/BUILD_WORKSHEET.md](docs/BUILD_WORKSHEET.md).
+Several agents work from it at once: claim a row in its tracker before starting.
+
+LOOP-3 is done:
+- **Stage Select:** has a SALVAGE RUN mission (first, selected by default) beside TEST RANGE. It deploys
+  `?run=test-range&mission=salvage_run&zone=…`. The menu no longer sends `mode=`; `?mode=sortie` still works.
+- **Zones:** every zone runs on the plaza with its own weather; the arrival banner names the zone. A run with
+  `zone=` now takes its time and weather from the zone, not from the saved Environment preference. Before,
+  a saved Night, for example from a Test Range theme switch, overrode "Ark Outskirts · DAY". `?time=` and
+  `?weather=` still win.
+- **Leaving:** user decision: quitting mid-sortie counts as dying. The pause menu's button reads "Abandon
+  sortie" and calls `Sortie.abandon()`, which shows a "Sortie abandoned" defeat (XP kept, carried loot lost).
+  On the plain test range the button reads "Return to Ark". `app.ts` no longer wires that button for runs.
+- **Returning:** Continue on the results screen and the test range's Leave go to `?preview=stage-select`.
+  Stage Select then uses the last selected NIKKE from the roster save.
+- **Checks:** `npm run test:sortie` covers `abandon()`. `artifacts/verify-deploy-flow.mjs` drives the real
+  menus (captures in `artifacts/ui/loop-3/`); `verify-sortie.mjs` still passes. Headless Stage Select
+  needs about 12 s before it accepts clicks.
+
+LOOP-1 and LOOP-2 are done (the NIKKE's progress is saved):
+- **Saved:** a new profile section `progress` (`src/frontend/profile/PlayerProgress.ts`) holds per-NIKKE level,
+  XP, unspent SP and Weapon/Special/Burst ranks, plus the account bank (credits, Core Dust, unresolved modules).
+  Salvage banks as Core Dust 1:1. Pristine Cores go into the roster section the Shop spends. "Reset progress"
+  clears it.
+- **When:** `src/survivor/mode/progress.ts` loads it when a sortie starts, replaying ranks through
+  `RunTalents.purchase`. It saves when the trip ends: XP, levels and ranks always (extract, death or
+  abandon); loot only on extraction. Closing the page mid-trip saves nothing from that trip.
+- **Test range:** user decision: it is a sandbox that neither loads nor saves. Progress is keyed by the NIKKE
+  whose kit runs (`snow-white`; every deploy uses her kit for now).
+- **Banked totals:** not shown anywhere yet. That is LOOP-5 (the loadout screen).
+- **Checks:** `npm run test:progress`; `artifacts/verify-progress.mjs` (extract, reload, defeat, abandon,
+  sandbox; captures in `artifacts/ui/loop-2/`).
+
+**Parked by the user:** the loadout screen (LOOP-5) and account upgrades (META-2). The user wants to revisit
+the upgrade/loadout concept. Don't build them.
+
+**No NIPMH in the first version (user, 2026-10-25).** It may come back, so nothing was deleted.
+- `src/features.ts` has `FEATURES.nipmh = false`, which hides the Shop's NIPMHS tab (the Shop sells character
+  unlocks only) and keeps module cases off the sortie layout.
+- The `module` site kind, `Purse.modules`, the bank's `modules` and the results tile stay dormant at 0.
+- GAME_PLAN.md, WORLD_OPTIONS.md and the worksheet mark every NIPMH line as not in the first version.
+
+FIGHT-1 is done: enemy behaviors are one file per role in `src/survivor/mode/behaviors/`, registered in
+`behaviors/index.ts`. Behavior is unchanged: `verify-sortie.mjs` and `verify-results.mjs` pass.
+
+LOOP-4 is built and awaiting the user's review: the results screen follows mockup S07.
+- **Files:** `src/survivor/mode/results-screen.ts` and `results.css`. The old results card was removed from
+  `sortie-hud.ts`, which now exports `KIT_ICONS` and `clock` for it.
+- **Sections:**
+  - BANKED, or LOST on a defeat: salvage → Core Dust only when banked; credits; module and Pristine Core
+    tiles only if found
+  - JOB: progress, tick and reward
+  - The NIKKE: Burst eye art, "LV 07 → LV 09", XP bar, +SP
+  - TRIP: time, kills, peak Alert as pips
+  - FIELD KITS: all six greyed with ×counts, "Last one trip"
+  - a gold Continue, using the HUD's cut-corner card frame
+- **Style:** menu style (cyan lines, gold progress). Large panels stay square with detached corner brackets,
+  per the user's corner rule, though the mockup cut them. Sized with the HUD's `--k`.
+- **While it's open:** the rest of the HUD hides (`#hud.sr-open`). The frozen 3D view stays on the left.
+  `SurvivorCamera.hold()` frames the NIKKE at the middle of the space left of the panel (`ResultsScreen.standX`).
+  On extraction, `Horde.clear()` removes the horde and its telegraphs from the shot; a defeat keeps them.
+- **Results data:** `SortieResults` gained `jobProgress` and `jobTarget`. `SortieModeInit` gained `nikke`
+  (name, art).
+- **Check:** `artifacts/verify-results.mjs` covers extraction and defeat at 16:9, 21:9 and 1280×720, contents,
+  the hidden HUD, the camera hold and Continue. Captures are in `artifacts/ui/loop-4/`. The deploy-flow,
+  progress and sortie checks still pass.
+
+## Game-mode foundation: `src/survivor/mode/` (2026-10-25)
+
+The user asked for the building blocks of the real game mode, whatever the final world structure
+turns out to be (design: [docs/GAME_PLAN.md](docs/GAME_PLAN.md), options:
+[docs/WORLD_OPTIONS.md](docs/WORLD_OPTIONS.md)). Play it with **`?run=test-range&mode=sortie`**. Optional values:
+`alert=<seconds per level>` (default 90), `grace=<arrival seconds>` (10), `seed=<n>`. Plain `?run=test-range` is unchanged.
+
+**Engine-free systems** (tested by `npm run test:sortie`; `tools/ts-hooks.mjs` lets Node load extensionless imports):
+- `roster.ts`: all 22 Raptures with tier, role, mobility, first-pass stats and measured radius/lift/height.
+- `alert.ts`: Alert 1–5. It rises with time only; `lower()` keeps partial progress.
+- `director.ts`: a budget per second plus 30 s pulses buy whole groups within per-type caps, the shared heavy cap
+  and an alive limit. `pickSpawnPoint` stays off screen, with extra distance on the south side.
+- `sites.ts`: stand in a ring to work a site. Progress pauses outside, never resets; one site at a time.
+- `exits.ts`: an 8 s gate cycle that pauses when you step off. The arrival lift arms only after you've left it.
+- `ledger.ts` and `field-kits.ts`: carried versus banked loot; field kits stack to 3 and end with the trip.
+- `sortie.ts`: phases (arrival → search → extracted/defeated), the job (`SalvageRunJob`), Hunters every 150 s
+  at Alert 5, loot events and results.
+
+**Runtime:**
+- `telegraph.ts`: procedural ground tells (a filling circle, a chevron lane) in the GAME_PLAN §6 colours.
+- `behaviors/` (one file per role since FIGHT-1, registered in `behaviors/index.ts`): Lure zap, Pelican pounce,
+  Capra charge (stuns on walls, tramples), Solaris fuse plus a dropped charge. Every other role uses
+  `EnemyLaserAttack` (`behaviors/fallback.ts`) until it gets its own behavior.
+- `horde.ts`: spawns roster types into the shared `TargetField`.
+- `site-view.ts`: box placeholder props (crates, lift platform with sliding gates, tower whose lights come on).
+- `sortie-hud.ts` and `sortie.css`: ALERT pips replace WAVE, carried salvage, field kits, banner, edge markers,
+  results screen. It doesn't change `hud.ts`.
+- `sortie-mode.ts`: wires it together on the plaza.
+
+**Hooks outside `mode/`:**
+- `targets.ts`: `Target.respawns/removed/pursues`, `TargetField.ensureTypes()`, `spawn()`, pruning, `load({ training })`.
+- `run.ts`: `damageScale` (Hot Loads).
+- `main.ts`: `?mode=sortie`, `visuals.refreshUnits()` after the mode loads its models (without that, an early
+  `scene.isReady()` compiled them before the enemy material plugins attached), `window.game.sortie`.
+
+**Verification:** `artifacts/verify-sortie.mjs` drives the real loop at fixed 50 ms frames. It checks arrival, spawning,
+tells, sites, the job, Extended Mag (+2 rounds), restoring the tower, paused/complete boarding, banking with the job
+reward, defeat losing carried loot, and the unchanged test range, with no page errors. Captures are in
+`artifacts/ui/sortie/`. Point it at a Vite server with HMR off (`BASE=...`) while other sessions are editing files.
+
+**Not done yet:**
+- Bespoke behaviors for the other 18 roles. Phalanx's shield also needs a projectile-blocking hook in the kit.
+- Per-type kill XP (Run awards a flat 40).
+- Turret Parts (the turret's charge count isn't exposed).
+- Nests, persistence of banked loot and levels, real maps and props, and prop collision.
+
+## Cleanup and optimization pass (2026-10-25)
+
+The user asked for this pass. It is behavior-preserving: the same browser scenario on builds from before and after matched
+(query and saved settings, HUD, menus, Tab ranks, snow unstick, petals, MOBA letterboxing), with no console errors.
+- **Shared modules:** `src/settings-store.ts` (`loadSetting`/`saveSetting`), `src/frame-layout.ts` (`fitFrame`),
+  `src/audio/positional.ts` (`positionalSound`), and `playPlaylist()` in `audio/music-control.ts`. The survivor
+  and MOBA entries plus `match-audio.ts` use them instead of their own copies.
+- **`src/survivor/math.ts`:** `clamp`, `smoothstep`, `wrapAngle`, `turnToward` (rig's `wrap` and the
+  local `smooth`/`turnToward` copies are gone). The files the Node tests load as source (`snow-field`, `enemy-attack`,
+  `talents`, `capstone-loadout`, `snow-navigation`) must not gain new runtime imports, so they keep their own helpers.
+- **survivor `main.ts`:** `preferred()` handles ?query-or-saved settings; `pause()` is shared by Esc and Tab;
+  `Player.unstick()` holds the snow-bank escape; `WeatherLab` takes a named options object; the dev
+  `?shader-compare` panel is in `shader-compare.ts`; the dead `Arena.clamp` is removed.
+- **Performance:** petals write state without temporary arrays (frame CPU under sakura weather 5.0–5.3 ms →
+  3.2–3.4 ms, interleaved A/B). The VFX quad pool uses a free list (`vfx.quads` still lists every quad for the
+  artifacts/ scripts; a double `release` is ignored). The HUD skips unchanged style and attribute writes. Atmosphere
+  and target steering no longer allocate per frame.
+
+## Continuous wet ground; puddles/lakes removed (2026-10-25)
+
+The user rejected the puddles approach, including deep unwalkable water. `water.ts` now applies
+a subtle reflection directly in the floor shader, with broad, smoothly varying intensity across
+the whole environment. There are no separate pool shapes, shorelines, opaque centers, depth
+texture or water collision/navigation. Walking and dashing across former lakes is unrestricted.
+Do not restore the lake/puddle presets or barriers. Old saved/query modes map to Wet ground preview.
+The user still wants visible reflections in selected areas: wetter patches now give mirrored
+characters/enemies a stronger blend than the subtle sky coat. Keep these recognizable at maximum
+zoom while preserving smooth transitions and visible floor texture.
+Latest correction: reflections should be intense, especially on stone. Paving now supplies a
+material mask for strong mirrored silhouettes and sky reflections; moss/soil stay less reflective.
+Do not reduce this back to the barely visible sheen rejected by the user.
+
+The floor retains normal lighting, fog and grading. The reflected sky uses the same lightning
+pulse as the atmosphere, and mirrored actors refresh every frame during strikes. The baseline
+`surface-wetness.ts` still slightly darkens ground/armor and adds restrained glossy highlights.
+Weather-driven reflections fade in and dry slowly; their spatial pattern stays fixed.
+
+Weather Lab prevents conflicting ground effects: rain clears/locks snow, snowfall clears/locks
+water, and selecting either ground effect in clear weather disables the other. Saved/query
+settings are guarded too. The user's earlier icy snow tint request was undone; do not restore it.
+See [docs/LIGHTING.md](docs/LIGHTING.md), `artifacts/verify-ground-reflections.mjs` and
+`artifacts/ui/ground-reflections/` for implementation and rendered verification.
+
+## Ground snow and footprints (2026-10-25)
+
+Grounded Survivor enemies now route around snow banks with body-sized clearance, crowd
+steering, and deep-snow slowdown. **WEATHER LAB → Enemies → Pursue player** or
+`&enemies=pursue` enables pursuit; the saved/default Hold positions mode also routes returns
+around banks. Ranged targets seek a clear line before stopping at standoff range. Hovering
+Lure ignores ground banks. Crawler and Pelican walk and stamp their claw trails. Knockback,
+respawns, and snow changes preserve bank clearance. No enemy attacks are introduced.
+`snow-navigation.ts` adapts the existing shared navigation system; terrain revisions reset
+cached routes, while footprint changes do not. `npm run test:snow-navigation` and
+`artifacts/verify-snow-navigation.mjs` cover routing, size, moving goals, controls, and pause.
+
+Snow hills now block live Survivor attacks. `SnowField.traceSegment()` sweeps through the
+world-space snow surface (including floor elevation), stopping rifle rounds and exploding
+homing rockets at the first contact. Rockets resolve terrain versus target impacts in order.
+Burst damage, its shader cone, lances, edge arc and residue stop at hills; afterburn and
+explosion splash respect snow cover. Shots above the crest can clear it. Disabled snow does
+not collide. `KitContext.snow` shares the field with weapons; new projectile types should use
+the same sweep before damage. `artifacts/verify-snow-projectiles.mjs` and its
+`artifacts/ui/snow-projectiles/` report cover these paths, charged Burst and cleanup.
+
+`?run=test-range&snow=drifts&weather=snow&time=day` opens the snow prototype.
+**WEATHER LAB → Ground snow** offers Off / Light powder / Deep snow / Mixed drifts + banks
+and Reset footprints. A separate displaced overlay preserves the floor material and accepts
+a height sampler for other static heightfield floors. See [docs/SNOW.md](docs/SNOW.md).
+
+User corrections: footprints must be separate, not a drawn line; grounded Raptures need their
+own claw silhouettes, hovering enemies leave none; falling snow refills the prints; hills and
+deep snow need clear shading. Implemented alternating boot soles, Crawler pointed feet,
+Pelican hooked claws, and no Lure prints. Targets stamp their stance and knockback/return
+movement. Contact shapes/gaits are procedural, not extracted from live bone contacts.
+Snowfall raises the depressions and fades their packed shading over approximately 47–58 s.
+Clear weather preserves them, and pause freezes recovery. No continuous trench stamp remains.
+
+Deep snow slows the player; banks at 95 cm fresh depth block walking/dashing with swept
+body collision and edge sliding. Snow uses pale powder, cooler deep drifts, shaded blue bank
+faces, pale caps, and wind ridges. Independent ground depth remains after precipitation changes.
+
+Files: `src/survivor/snow-field.ts`, `snow.ts`, plus hooks in player, targets, atmosphere, main,
+and Weather Lab. `npm run test:snow` passes. Browser checks in
+`artifacts/verify-ground-snow.mjs` cover real movement, Rapture profiles, refill/pause, all five
+art presets, floor adaptation and disposal; reports/captures are in `artifacts/ui/ground-snow/`.
+Ground coverage does not increase automatically beyond refilling existing impressions.
+TypeScript and production build pass; existing dependency bundling warnings remain.
+
+**Game plan (2026-10-25, proposal for review):** [docs/GAME_PLAN.md](docs/GAME_PLAN.md) covers the
+operation/sortie loop (surface search, lift extraction), zones, all 22 Raptures' roles and attacks,
+boss classes (Obelisk, Cocytus, Sinister) and a build order. Not implemented; open decisions at its end.
+
+## A02 ability roadmap implemented in test-range (2026-10-25, latest)
+
+Tab and the HUD upgrade button open the implemented three-row Weapon / Special / Burst
+roadmap. All five ranks and each free capstone are visible and inspectable, with a shared
+bottom preview and purchase action. Rank 1 is free; ranks 2–5 cost 1/2/3/4 SP. Rank 5 grants
+Unyielding / Detonation / A Goddess Who Cannot Yield automatically. Costs remain initial
+playtest tuning. Kill XP and one SP per level are unchanged; no sortie SP bonus was added.
+
+The user requested simpler live-HUD styling: square main panels, restrained amber, existing
+equipment art, small rank controls with detached corner brackets, and the actual HUD portrait
+trim with only a small top-left cut. Preserve those geometry rules below.
+
+**Overflow correction:** the modal sizes and scales against the actual `#frame` game container
+using cqw/cqh and container queries, including compact layouts. It stays inside the letterboxed
+16:9 or 21:9 game frame and needs no internal scrolling. Do not return to browser-viewport sizing.
+
+Files: `src/survivor/ability-ranks.ts` authors the bundles; `talents.ts` handles sequential
+purchases and grants the existing combat flags; `talent-menu.ts`, `talent-menu.css` and
+`talent-icons.ts` implement the view. The live HUD upgrade button now says Ability ranks.
+Progression currently lives in the existing `Run` state. Permanent character saves, Ark respec
+and the operation loop described in `docs/GAME_PLAN.md` are separate work, not implemented here.
+
+TypeScript and production build passed after implementation. A later final typecheck found
+concurrent weather API errors in `main.ts` / `weather-lab.ts` (water presets, update arguments
+and `WaterLayer.field`); those unrelated edits were preserved. The menu verification passed:
+`artifacts/verify-survivor-talents.mjs` verifies real Tab/HUD controls, pause/focus, keyboard
+navigation, purchase guards, all rank bundles and capstones, and all 18 previews across six
+frame sizes with no clipping or scrolling. Report and screenshots:
+`artifacts/ui/ability-roadmap/verification.json` and adjacent JPGs.
+
+## A02 roadmap layout approved; current-HUD visual variation (2026-10-25, design history)
+
+**Latest user correction — corner rules:** large panels, row art, header and preview must be
+square-cornered. Portraits may have only one SMALL top-left cut, with the other three corners
+square, like the real HUD portrait. Paired top-left / bottom-right cuts belong only on small
+controls; BOTH cut corners need detached L-brackets reconstructing the missing rectangular
+corners, so their overall silhouette still reads as a complete square. Bare paired cuts and
+chamfers applied to every panel are wrong. Preserve this rule in future UI work.
+`A02-v4-square-frames-*.png` is the corrected mockup pair; `a02-theme.html` compares v4 with v3.
+Exact prompts/provenance are saved alongside the images. This section records the mockup pass;
+the implementation above supersedes its runtime and pacing status.
+
+The user preferred A02, asked for visible capstones and pacing review against Claude's game
+plan, then called the revised layout **perfect**. Preserve its three rows, five rank columns,
+separate capstone endpoint, illustrated row headers and bottom preview/action strip.
+The newest request is a visual variation matching the actual current HUD's shapes, details
+and motifs, explicitly **not excessive yellow**.
+
+Review `docs/concepts/ability-progression-2026-10-25/a02-theme.html`: switches between the
+new HUD treatment and the previous treatment, with 21:9 and 16:9 versions of both.
+`A02-v3-hud-theme-*.png` uses charcoal, fine ivory frames, small clipped corners, inset lines,
+short corner marks and compact keycaps; preserves the illustrated art. References are the
+approved survivor HUD and its card-detail capture, checked against survivor.css/hud-frames.ts.
+The user has approved the layout, not yet this latest visual variation. Runtime is unchanged.
+
+Current pacing PROPOSAL shown: Rank 1 free, ranks 2-5 cost 1/2/3/4 SP. Rank 5 also grants its
+free capstone: Unyielding / Detonation / A Goddess Who Cannot Yield. Preview state: level 14,
+Weapon 4 / Special 3 / Burst 1, 9 SP spent and 4 available. Costs are not approved balance.
+At one SP/level, focused first capstone is possible at level 11, all three at 31. The user
+raised sortie-awarded SP as a possibility; source of points is still open. Mockups retain XP.
+Claude's plan targets levels 8/14/22 after first/second sortie/by final boss. Its "roughly two
+masteries" claim at 22 does not match current live costs (all three at 19) or original A02 (13).
+
+Generated with built-in ImageGen; exact prompts, paths, hashes and dimensions are saved in
+the concept directory. `a02-revised.html` keeps the approved v2 layout; index.html links to the
+latest comparison. Earlier recommendations below are historical and superseded by A02.
+
+## Ability levels are now the main progression direction (2026-10-25, earlier)
+
+The user rejected the plain HTML tree mockups as unattractive relative to the illustrated
+reference gallery in `docs/concepts/survivors-2026-10-24/index.html`. They explicitly clarified
+that the game is **landscape only, 16:9 or 21:9**; stop designing portrait phone variants.
+They also explicitly support removing the tree entirely: each ability can simply gain levels
+with upgrades bundled into a fixed order. Earlier requirements to preserve all talent
+prerequisites are no longer constraints on design proposals.
+
+New art-led mockups and an inspected local-file gallery are in
+`docs/concepts/ability-progression-2026-10-25/index.html`:
+
+- **A01 Ability ranks:** three illustrated Weapon / Special / Burst cards. Spend points to
+  advance an ability through five authored ranks; show the next change before purchase.
+- **A02 Rank roadmap:** the same system, with all three five-rank tracks visible. Suggested
+  as A01's optional plan view, not a separate progression system.
+- **A03 Automatic milestones:** all three abilities upgrade automatically at character
+  levels 1 / 5 / 10 / 15 / 20. No points or purchasing; removes investment decisions.
+- **T01 Illustrated hex tree:** a polished comparison retaining the existing prerequisite
+  rules, illustrated nodes, and a large selected-ability vignette.
+
+The recommended proposal is A01 + A02. The README and gallery contain a concrete grouping
+of every existing Snow White effect into five ranks. Rank 1 is free; ranks 2-5 bundle the
+six former purchases and fold mastery effects into the final rank. Costs and timing need
+balancing. **No new progression model has been implemented or selected by the user yet.**
+The live menu still uses its original tree implementation. These latest images supersede
+the earlier HTML concepts as visual references for this task.
+
+Built-in ImageGen generated the four images from the user's hex-tree reference and an actual
+test-range capture. PNGs, prompts, original paths, hashes, dimensions and gallery checks are
+saved beside the gallery. `artifacts/verify-ability-gallery.mjs` passes local-file image loads,
+whole-image display, filters, lightbox sizing, arrow navigation, Escape, and no page errors.
+
+## Test-range upgrades and redesign concepts (2026-10-25, earlier)
+
+Latest direction: the user rejected the Bottom tray and Side panel concepts because they hide
+prerequisites. The tree should occupy **most**, not all, of the screen. The revised mockup is
+`artifacts/mockups/talent-tree-overlay.html` (editable fragment) and
+`artifacts/mockups/talent-tree-overlay-preview.html` (standalone preview). It uses a large
+inset charcoal overlay, visible battlefield/HUD margins, gold selection, seven nodes arranged
+with parents above their children, arrowed prerequisite paths, and a separate automatic
+mastery bar. Selecting a locked talent highlights its ancestry and offers a named prerequisite
+link. The detail panel moves below the tree in portrait orientation. All 24 talent descriptions
+and all three branches fit without scrolling in desktop, phone portrait, narrow phone, and
+phone landscape checks. `artifacts/verify-tree-overlay.mjs` records screenshots/results under
+`artifacts/ui/talent-menu/tree-redesign/`. This is a revised mockup; the live menu has not yet
+been restyled to it. The older tray/list concepts below are superseded.
+
+Tab now opens `src/survivor/talent-menu.ts`; the HUD Upgrades label is also a button.
+The menu pauses simulation, clears held inputs, and resumes through Tab, Esc, or close.
+`Run.skillPoints` awards one point per level; `RunTalents` enforces prerequisites, free base
+abilities, purchases, and automatic branch masteries using the existing Snow White definitions.
+The Snow White runtime now reads these ranks for weapon trails/marks/charge, turret upgrades,
+and Burst upgrades. Progress lasts for the current run. This work is only in `?run=test-range`.
+
+The user rejected the large white-sidebar/full-tree presentation as inconsistent with the
+current HUD and too large/scroll-heavy for a possible phone game. **The redesign is at the
+options stage; no final concept has been selected.** Three interactive concepts are in
+`artifacts/mockups/upgrade-menu-options.html`: Bottom tray, Side panel, and Compact tree.
+They use the test-range background, charcoal panels, thin ivory corner brackets, Rajdhani,
+and gold accents. The Phone preview reflows without internal scrolling. Tray/list concepts
+page through additional available upgrades; the compact tree exposes the full branch.
+`upgrade-menu-preview.html` is the standalone QA wrapper, not the editable source fragment.
+
+Verification: `artifacts/verify-survivor-talents.mjs` passes real Tab/HUD clicks, pause/resume,
+point spending, prerequisites, duplicate prevention, mastery, and settings exclusion.
+`artifacts/verify-upgrade-mockups.mjs` passes all three concepts at 1024, 390, and 320 widths,
+plus local selection/unlock/category/close/reopen interactions. Captures and reports are under
+`artifacts/ui/talent-menu/`. TypeScript and production build pass (existing upstream bundling
+warnings remain). Combat upgrades still need a dedicated balance/gameplay pass.
+
+## Survivors of Victory 3D: test range (2026-10-25, current)
+
+The user chose the Survivors direction. A new runtime lives in `src/survivor/`; the MOBA code is
+untouched and still opens with `?hero=<id>&map=…`. Play → Stage Select (now a single TEST RANGE
+card) → Mission Start opens `?run=test-range` (routing in `src/app.ts`).
+
+- `main.ts` entry; `arena.ts` painted plaza; `targets.ts` training Raptures (baked crowds).
+- `rig.ts` twin-stick animation: masked lower (legs) / upper (spine subtree) clip layers; the spine
+  is twisted after animation until the gun (Prop1 → muzzle) points at the cursor. Aiming, leg clips
+  use hip facing (NIKKE's run turns the hips ~55° from the head). Backpedal plays run reversed.
+- `player.ts` WASD, cursor aim (always), dash, magazine/reload, Special, Burst; shots and Burst are
+  released after the rig aims, from the real gun tip. `camera.ts` follow camera + angle presets.
+- `kit.ts` character contract; `snow-white/` her Survivors kit rebuilt in 3D (sniper lance, Auto-
+  Turret with homing missiles, Seven Dwarves cold-fire cone, palette from SnowWhiteVisualTheme).
+- `vfx.ts` effect toolkit (additive shader quads, streaks, decals, particles, one flash light).
+- `hud.ts` / `survivor.css`: the user's own HUD mockup (flat panels, gold Burst card).
+
+### 3D atmosphere and weather (2026-10-25)
+
+The test range has a live **WEATHER LAB** panel with Night storm / Golden hour / Snowfall /
+Clear day presets and **Strike lightning + thunder**. **Esc → Environment** has the same
+time/weather/intensity selectors plus **Preview in test range**. Controls synchronize and persist.
+Weather is Clear, Thunderstorm, Snow or Drifting petals; all rain is a thunderstorm and forces
+Night. Old `rain` links/preferences migrate to `storm`. Clear nights add fireflies.
+**Light +** is the default, just above **Light**; Heavy/Extreme were rejected and removed.
+Direct preview: `?run=test-range&weather=storm&intensity=moderate`.
+
+These are new Babylon shaders, using the original Phaser `WorldEnvironment.ts` only as a mood
+and behavior reference. `src/survivor/atmosphere.ts` draws a fixed batch of world-space ribbons,
+billboard flakes/motes/petals and horizontal ground ripples. Normal depth testing lets enemies
+occlude weather; the volume wraps around the camera focus without dragging particles along.
+Snow now uses smaller tumbling flakes, varied downward speeds and gentle independent flutter;
+the earlier slow lateral drift looked stationary while running. Its time uniform stops with
+gameplay, including when the talent menu is open. No weather is drawn over the HUD.
+
+`visuals.ts` composes atmosphere with every existing art preset. `toon.ts` accepts an atmosphere
+lit/shadow color uniforms after computing its cel bands/rim, retaining ink, palette treatment, skinning
+and emissive accents. Returning to Day/Clear restores the preset; changing presets preserves
+the atmosphere. Night has darker ambient fill, cool directional moonlight, deeper cel shadows,
+and a subtle vignette through the existing grading pass. Dusk retains soft golden light and long
+shadows; avoid the rejected harsh orange/violet saturation, especially with Anime enabled.
+The player now has a soft character-only night fill, applied inside Anime's lighting shader
+(ordinary point lights alone do not affect that shader's custom cel lighting). Other presets
+use a scoped hemispheric fill. The fill is now 30% stronger. `night-aura.ts` adds a soft local
+glow with slow expanding/fading pulses, rendered on actual surfaces (including displaced snow)
+within 3.5 metres. It follows the player, switches off in daylight, pauses with gameplay, and
+becomes steady under reduced motion. It adds no mesh or rendering pass.
+
+Enemy readability: `src/enemy-metal.ts` adds restrained directional/sky reflections to armor
+after Anime lighting, compatible with all art presets and atmosphere changes. Painted red
+details and dark markings are mostly excluded from the sheen. `enemy-glow.ts` now uses a
+dedicated narrow `enemy-red-glow` layer (blur 8, intensity .32), keeping bright red surface
+emission while reducing halo spread. The combat glow layer keeps its existing blur/settings.
+This adds one half-resolution enemy glow target; crowd materials and animation remain shared.
+`artifacts/verify-readability.mjs` and `artifacts/ui/readability/` cover rendered sheen, aura
+falloff/pulsing on plaza and snow, player following, pause, daylight, reduced motion and glow scope.
+`lightning.ts` adds visible branched 3D bolts, brief world-light pulses and delayed thunder every
+4–7 seconds. Reduced motion suppresses bolts/pulses. Original rain and thunder SFX run through
+the shared SFX bus, with fading rain ambience, pause/resume and scene-disposal cleanup.
+Lightning now lights surfaces much more clearly: stronger white directional/ambient light,
+matching Anime lit/shadow contributions, a small exposure lift and a smooth 0.85-second fade.
+Rain remains Light +. `artifacts/verify-night-lighting.mjs` checks actual pixel illumination,
+character-only fill, unchanged daylight, restoration after a strike and reduced-motion behavior;
+evidence is in `artifacts/ui/night-lighting/`.
+
+Evidence: `artifacts/verify-atmosphere.mjs`, `verify-weather-lab.mjs`, `verify-snow-motion.mjs`
+and matching folders under `artifacts/ui/`. Checks pass for live controls, lightning/audio,
+pause/disposal, all art presets, reduced motion, WASD movement, daylight restoration and GPU
+flake positions independent of camera translation. TypeScript and production build pass.
+Snowfall refills the ground overlay's footprints (see Ground snow above); rain does not create reflective puddles. The archived MOBA keeps
+its existing environment controls and neutral atmosphere.
+
+### Enemy death burst (2026-10-25)
+
+The test-range Raptures now use a compact mechanical explosion from the shared `Run.onKill`
+hook. `src/survivor/enemy-death.ts` places a textured orange/white fireburst immediately on the
+kill frame, with eight outward sparks and a brief dark puff underneath. The user rejected the
+first large, bland smoke cloud; keep this effect tight and fast, without an expanding ground ring.
+
+Targets hold their last pose for 40 ms, collapse over 80 ms under opaque cover, and stop drawing
+at zero scale. The fire cools to orange and eases out over 540 ms; sparks slow, thin and fade on
+staggered lifetimes, with all leases released by 680 ms. This longer, faint ending addresses the
+user's report that the 420 ms version switched off abruptly. Its compact size is unchanged and
+smoke clears earlier than the ember tail. Knockback is cleared on death; training
+targets still return to their marks after 2.5 seconds. Death rewards remain; the Rapture death
+sound is removed at the user's request to avoid repetitive audio during mass kills.
+`vfx.ts` supports alpha-blended smoke/fire textures as well as additive weapon effects, resetting
+the blend mode on each pooled lease. All pieces use game time, including sparks.
+
+`artifacts/verify-enemy-death.mjs` checks all three enemy types, immediate cover, one kill award,
+frozen poses, cleanup, pooled blend-mode reset, pause, and repeated 12-target kills/respawns at
+20/60/120 simulated FPS. Captures include multiple camera angles and clustered kills; evidence
+lives in `artifacts/ui/enemy-death/`.
+
+Turret audio preference: deployment and landing are silent. Removed the UI select/confirm beep
+from `deploy()` and the rocket explosion cue from `land()` in `snow-white/turret.ts`. Rocket launch
+audio remains on actual volleys, and missile impacts retain their explosion sound. A runtime check
+confirmed silent normal/perimeter deployment without targets and launch cues only with missiles.
+
+Snow White's Burst now plays her existing `voice/characters/snow-white/burst.wav` voice line,
+replacing both the generic beam and layered explosion sounds. `SFX.snowWhiteBurst` uses the
+existing voice mix (+1.1 dB at 0.5 base volume), one voice, and the normal SFX preload path.
+Normal and fully charged Bursts were checked to emit only this cue; the audio asset decodes.
+
+Burst movement/alignment correction: all active flame layers, lances, opening flash/light and
+front arc share the current muzzle origin and height. The previous ground cone started at the
+feet (about 1.4 m behind and 1 m below the muzzle), and the arc used another height; following
+movement alone did not fix their doubled silhouettes. Removed the active ground cone and the
+small vertical offsets between flame layers. The ground afterglow and ambient embers now begin
+only after the active cone ends, at its final muzzle-projected footprint. Enemy impact effects
+stay on their actual targets. VFX update after animation/aiming so attached layers use this
+frame's gun position; damage retains a snapshot of the cast origin.
+`artifacts/verify-survivor-burst-motion.mjs` checks real strafing, common origins/heights, front
+arc radius, normal/charged casts in four directions, residue and cleanup. Reports are under
+`artifacts/ui/survivor-burst-motion/`. Matched before/after front, side, diagonal and charged
+captures are under `artifacts/ui/survivor-burst-alignment/`.
+
+### Survivor posture correction (2026-10-25)
+
+The upper clips now evaluate their own root/pelvis transforms on a hidden transform-only chain.
+`rig.ts` converts the upper spine rotation into the visible legs' coordinate frame before aiming,
+keeping the waist attached to locomotion. The upper
+layer also normalizes its own facing, including the differently oriented reload clip. The previous
+14-degree camera-facing model lean is now zero; use the camera presets for character visibility.
+
+The user explicitly wants **no forward torso lean**. `uprightTorso()` now aligns the waist-to-neck
+axis with world up before yaw steering. It rotates the whole upper subtree, preserving hand/gun
+attachment and the feet/pelvis. This applies to aiming, movement, shots and reloads, fading with
+the aim blend; relaxed/full-body clips retain their animation. Do not restore a partial lean.
+
+The head's separate animated downward tilt is also removed. `levelHead()` levels the head after
+torso steering, retaining its horizontal look direction. This applies to normal idle, relaxed,
+movement, aim, shot and reload poses; full-body reactions retain their animation. The head resets
+before animation evaluation so this correction cannot accumulate or move the weapon/feet.
+
+`artifacts/verify-survivor-posture.mjs` checks 58 idle/run/strafe/backpedal/dash/shot/reload and
+relaxed poses, compares against independently sampled source clips, and checks cursor aim,
+stationary feet/pelvis/hands/gun and hand-to-weapon distances. Current reports and matching
+before/after captures are in `artifacts/ui/survivor-head-level/`; `survivor-upright/` retains the
+torso correction evidence and `survivor-posture/` holds the earlier join fix.
+
+Reload facing follow-up: reload now steers from the animated chest each frame, retaining its
+aim-relative heading through both crossfades while allowing the hands and rifle to reload.
+Returning to barrel aiming eases over 0.1 seconds; firing immediately restores barrel alignment.
+The last round renders its shot pose before entering the automatic reload pose on the next frame.
+`artifacts/verify-survivor-reload.mjs` covers six complete reload/transition cycles (stationary,
+moving, backpedaling and changing cursor direction), plus manual/automatic reloads and immediate
+follow-up shots through the player loop. It also checks head leveling on every reload/crossfade
+frame. Captures/reports are in `artifacts/ui/survivor-reload/`.
+
+### Survivors HUD completion (2026-10-25)
+
+The approved flat NIKKE combat mockup is implemented in the survivors runtime. This direction
+applies to `?run=test-range`; the archived MOBA keeps its separate HotS presentation.
+
+- The music player is in the **top right, immediately left of Pause**, with matching charcoal
+  fill, ivory corner brackets, white controls, and a neutral playback progress line.
+  Its desktop width is now 18vw (230-340px), about a quarter shorter for typical desktop sizes;
+  long titles ellipsize while all controls retain their size. Compact layouts use 220-230px.
+- The operator panel groups the existing Snow White artwork, health, magazine, and reload.
+  Dash, Weapon, Special, and Burst cards now activate the existing queued input actions when
+  clicked; their keyboard/mouse bindings still work. Special/Burst disable when unavailable.
+- The layout scales with both frame dimensions. Compact screens put the dock on a separate row;
+  portrait screens stack Burst below the three action cards. The radar has no music strip.
+- Pause updates its actual button's accessibility state; Escape also works from a focused
+  music control. Health, XP and Burst expose live progress values. Reduced motion skips meter
+  transitions. Upgrades is still the existing indicator, not an implemented talent screen.
+
+#### Mockup detail correction (2026-10-25)
+
+Burst artwork follow-up: the user explicitly preferred the mockup's extreme golden-eye close-up.
+`public/ui/survivor/snow-white-burst-eye.png` is now used only for Snow White's Survivors Burst card,
+with a centered crop and natural gold saturation. It was generated with the built-in image tool
+from the user's character sheet after online artwork research. The master image, exact prompt
+and reference sources are in `assets/ui-source/survivor-hud/snow-white-burst-eye.*`.
+The profile portrait and simple equipment icons remain unchanged. Charging/ready screenshots at
+reference, laptop and portrait sizes are in `artifacts/ui/survivor-burst-eye/`; typecheck passes.
+
+The user clarified that fidelity means the subtle panel geometry and finish, especially corner
+cuts; new weapon illustrations were not the priority. The 1771 × 888 approved reference is saved
+at `assets/ui-source/survivor-hud/approved-mockup.png`. Keep the current profile portrait and the
+later-requested top-right music player.
+
+- `hud-frames.ts` draws asymmetric 45-degree card cuts (15px above, 20px below at reference size),
+  fine inset strokes and detached L marks outside the cuts. Burst has its own upper pennant and
+  slash, nested upper-right brackets, lower-left index tab, and broad lower-right slash/heel.
+  Its E key has four cut corners and white lettering; other keycaps have rounded nested edges.
+- Burst's gauge has a dark recessed casing and black diagonal end stripes. The XP rail has an
+  outlined 8px track; ammo uses pale rectangular cartridges with separated triangular tips.
+- Desktop layout scales the complete 1771 x 888 reference composition uniformly. The earlier
+  height-based scale squeezed health and Burst at 16:9; both columns now retain their measured
+  widths and gaps. Ultrawide screens center the composition; compact screens retain the reflow.
+  Card labels are explicitly positioned, so native button centering cannot shift the layout.
+- Matched all four registration marks around the card cuts, the portrait frame's small corner cut,
+  taller reload key, label/icon baselines, and health/ammo typography. The radar's larger rings
+  and dotted full-width crosshair follow the reference; dots scale with the canvas.
+- A separate detail pass follows the user's emphasis on flourishes: the objective now has a
+  stepped lower rule, return bracket and faint endpoint etching. Radar has three inset brackets
+  and a double outline. Card surfaces have a muted charcoal wash, reducing terrain distraction.
+  Burst's recessed gauge joins the divider and ends in three slashes. No artwork was generated.
+- Portrait clarification: the reference's hatching belongs to its source artwork, not a HUD
+  overlay. Removed the procedural hatch and oversized image mask. Keep only the 20px top-left
+  cut shared by the frame and image, scaled with the portrait; do not add hatch treatments.
+- Bottom separation now combines a HUD-sized dark fade, a feathered shadow behind the operator
+  stats, and soft contact shadows under the portrait, action dock and radar. Compact layouts
+  adjust the fade's height with their reflow. Before/after captures use `backdrop-*.png`.
+- Top-left objective shading has a continuous dark core behind both the yellow marker and text,
+  with blurred outer edges and a fade on the right. Do not use a centered ellipse here: it leaves
+  the marker over unshaded terrain. The panel itself has no hard rectangular fill. Timer/wave
+  retains its own centered soft shadow around both text lines and the flanking rules.
+- Removed the continuous Burst pulse. White/amber detail and readiness state provide emphasis.
+  Existing HP, ammo, charge and XP values remain live; the mockup's six pips at 7/7 are not copied.
+- The user rejected the generated weapon/turret illustrations and explicitly prefers the
+  previous simple white SVG silhouettes. Those original icons are restored in `hud.ts`; do not
+  reintroduce the unused PNGs in `public/ui/survivor/`. The corner/frame refinements remain.
+
+Fidelity captures, geometry measurements, build log, and 13-size browser/interaction checks are
+under `artifacts/ui/survivor-hud-fidelity/`. Desktop panel widths, positions, heights and baselines
+are checked against measurements from the approved image at every aspect ratio. Frame closure,
+inset geometry and vector icons are checked alongside control, accessibility and overlap checks.
+`detail-review.mjs` renders enlarged reference/implementation comparisons for the cards, Burst,
+objective, radar, portrait frame and keycap (`detail-after-*.png`) to inspect the small details.
+
+Validation: `artifacts/ui/survivor-hud/verify.mjs` and `verification.json` cover 13 viewport sizes,
+panel bounds/overlap, loaded art, music alignment/colors and all four music controls, pause,
+reload/health/ammo, Special, Burst, Dash and reduced motion. PNGs include the ready and reload
+states. TypeScript and the production build pass; existing third-party directive warnings remain.
+
+Not built yet: the talent tree (Tab / "Upgrades"), enemies that fight back, other characters'
+survivor kits (every deploy uses Snow White).
+
+## Latest direction discussion: top-down action (2026-10-25)
+
+The user feels direct top-down action best suits the models and wants to use the
+existing WASD-style movement. They are concerned the authored talent trees are too
+complex for a basic Survivors clone and are considering action formats that give
+those builds more room. No final genre or progression model has been selected.
+The autobattler exploration stopped after its formation mockup; see
+`docs/concepts/autobattler-2026-10-25/README.md`. Do not automatically finish that
+shot list. Continue design discussion before implementing a transition.
 
 ## Current visual exploration: grid tactics + focused turns (2026-10-24)
 
@@ -7,6 +728,12 @@ and JRPG hybrid. Move and choose a target on the grid, then move the camera behi
 the acting character to choose **Attack, Skill, Burst or Item**. No Defend command.
 For attacks, a line oscillates across a bar; click inside a skill-specific highlighted
 window to gain bonus damage. No defensive reactive dodge/parry or spatial weakpoint aim.
+
+Latest UI preference: the user prefers the earlier JRPG command layout (compact
+vertical menu on the left, from the previous JRPG concept) over the large bottom
+hex command buttons in this hybrid study. Keep Attack, Skill, Burst and Item and
+the timing-window mechanic when revisiting it. Existing mockup images are unchanged.
+The user is also exploring additional genres; this remains a candidate direction.
 
 Read [the hybrid concept notes](docs/concepts/hybrid-tactics-2026-10-24/README.md)
 and open `docs/concepts/hybrid-tactics-2026-10-24/index.html` for seven screenshot-based

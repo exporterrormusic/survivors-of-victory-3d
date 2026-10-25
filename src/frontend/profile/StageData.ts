@@ -3,7 +3,7 @@ import {
   writeProfileSection,
 } from "../persistence/ProfileStorage";
 
-export type MissionModeId = "stage_1" | "stage_3";
+export type MissionModeId = "salvage_run" | "stage_1" | "stage_3";
 
 export interface MissionModeDefinition {
   readonly description: string;
@@ -34,20 +34,24 @@ export interface StageSelection {
   readonly zoneId: string;
 }
 
+// Salvage Run is the sortie loop (src/survivor/mode/). It runs on the test-range plaza until the
+// first sector map exists; the zone only sets the weather and time of day for now.
+// The archived MOBA battlegrounds still open from ?hero=<id>&map=three-lane|single-lane.
 export const MISSION_MODES: readonly MissionModeDefinition[] = [
   {
     description:
-      "Outpost Hollow: three lanes and jungle paths. Destroy the enemy Core.",
+      "Search the surface, recover the priority crates and get back to a lift.",
     endless: false,
-    id: "stage_1",
-    name: "THREE LANES",
+    id: "salvage_run",
+    name: "SALVAGE RUN",
     unlockAfter: null,
   },
   {
-    description: "Lost Outpost: one lane with side pockets. Push through to the enemy Core.",
-    endless: false,
-    id: "stage_3",
-    name: "ONE LANE",
+    description:
+      "Open plaza with training Raptures. Tune the camera, controls and kits.",
+    endless: true,
+    id: "stage_1",
+    name: "TEST RANGE",
     unlockAfter: null,
   },
 ] as const;
@@ -56,8 +60,8 @@ const preview = (file: string): string => `assets/menus/stage-select/${file}`;
 
 export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
   {
-    biome: "sakura_grove",
-    id: "sakura_day",
+    biome: "ark_outskirts",
+    id: "outskirts_day",
     mapScale: "standard",
     matchDurationSeconds: 600,
     name: "ARK OUTSKIRTS",
@@ -68,10 +72,21 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
   },
   {
     biome: "sakura_grove",
+    id: "sakura_day",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "SAKURA GROVE",
+    previewPath: preview("forest.jpg"),
+    subtitle: "DAY",
+    time: "day",
+    worldSize: 4000,
+  },
+  {
+    biome: "sakura_grove",
     id: "sakura_night",
     mapScale: "large",
     matchDurationSeconds: 600,
-    name: "ARK OUTSKIRTS",
+    name: "SAKURA GROVE",
     previewPath: preview("rapturefield2.jpg"),
     subtitle: "NIGHT",
     time: "night",

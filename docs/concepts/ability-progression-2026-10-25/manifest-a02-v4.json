@@ -1,0 +1,31 @@
+{
+  "created": "2026-10-25",
+  "tool": "Built-in image_gen",
+  "status": "Visual mockup; geometry correction; no runtime changes",
+  "images": [
+    {
+      "id": "A02-v4-21x9",
+      "file": "A02-v4-square-frames-21x9.png",
+      "ratio": "21:9",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-8a9ea398-4d90-4298-bb39-12c548300a06.png",
+      "initialSource": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-683af538-5c2d-4c9b-bd54-86f64fcb9579.png",
+      "promptFile": "prompts-a02-v4.json",
+      "width": 1916,
+      "height": 821,
+      "bytes": 1957612,
+      "sha256": "4ff63169182d99861660903061fd0c239c15ab3505b7e3c7fd61cb3d6e16cdd0"
+    },
+    {
+      "id": "A02-v4-16x9",
+      "file": "A02-v4-square-frames-16x9.png",
+      "ratio": "16:9",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-db2e33c0-7623-4d47-ad53-37e600d11e9f.png",
+      "initialSource": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-2f00d926-1a6e-4a11-9964-91eff3a70866.png",
+      "promptFile": "prompts-a02-v4.json",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1942758,
+      "sha256": "8b1d1e55e410004092284656309ab13a54d1c6776dc6355b8178d98cbb069404"
+    }
+  ]
+}

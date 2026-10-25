@@ -9,7 +9,11 @@ import {
 } from "../audio/GameAudio";
 import { captureDevelopmentPreview } from "../dev/capturePreview";
 import { deployMatch } from "../handoff";
-import { CHARACTERS, type CharacterDefinition } from "../profile/CharacterRoster";
+import {
+  CHARACTERS,
+  loadRosterState,
+  type CharacterDefinition,
+} from "../profile/CharacterRoster";
 import type { CharacterId } from "../profile/Ids";
 import {
   MISSION_MODES,
@@ -56,7 +60,7 @@ export class StageSelectScene extends Phaser.Scene {
   private hazardLayer?: Phaser.GameObjects.Container;
   private leaving = false;
   private mapLabelLayer?: Phaser.GameObjects.Container;
-  private modeId: MissionModeId = "stage_1";
+  private modeId: MissionModeId = MISSION_MODES[0]!.id;
   private modeLayer?: Phaser.GameObjects.Container;
   private startActionLayer?: Phaser.GameObjects.Container;
   private previousScene?: string;
@@ -70,15 +74,17 @@ export class StageSelectScene extends Phaser.Scene {
   }
 
   public init(data: StageSelectSceneData = {}): void {
+    // Returning from a run (?preview=stage-select) passes no data: use the last selected NIKKE.
+    const characterId = data.characterId ?? loadRosterState().selectedCharacterId;
     this.character =
-      CHARACTERS.find((character) => character.id === data.characterId) ??
+      CHARACTERS.find((character) => character.id === characterId) ??
       CHARACTERS[0]!;
     this.previousScene = data.previousScene;
     this.revealTransition = data.revealTransition ?? false;
     this.transitionProfile = data.transitionProfile;
     this.goddessFall = false;
     this.leaving = false;
-    this.modeId = "stage_1";
+    this.modeId = MISSION_MODES[0]!.id;
     this.zoneIndex = Phaser.Math.Between(0, OPERATION_ZONES.length - 1);
   }
 

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { FEATURES } from "../../features";
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
 import { bindButtonInteraction } from "../ui/interaction/ButtonInteraction";
 import {
@@ -106,6 +107,7 @@ export class ShopScene extends Phaser.Scene {
     this.leaving = false;
     this.message = "";
     if (this.activeTab === "upgrades") this.activeTab = "characters";
+    if (this.activeTab === "nipmhs" && !FEATURES.nipmh) this.activeTab = "characters";
   }
 
   public preload(): void {
@@ -178,7 +180,7 @@ export class ShopScene extends Phaser.Scene {
       fontStyle: "bold",
       letterSpacing: 2.4,
     });
-    this.add.text(430, 80, "UNLOCK OPERATORS AND SUPPLY AUTHORIZATIONS", {
+    this.add.text(430, 80, FEATURES.nipmh ? "UNLOCK OPERATORS AND SUPPLY AUTHORIZATIONS" : "UNLOCK OPERATORS", {
       color: "#aeb7c1",
       fontFamily: "Rajdhani",
       fontSize: "19px",
@@ -213,7 +215,8 @@ export class ShopScene extends Phaser.Scene {
   private createTabs(): void {
     this.tabRedraws.length = 0;
     this.createTabButton(58, 158, 300, "characters", "CHARACTERS");
-    this.createTabButton(374, 158, 300, "nipmhs", "NIPMHS");
+    // NIPMH is switched off for the first version (src/features.ts); the Shop sells characters only.
+    if (FEATURES.nipmh) this.createTabButton(374, 158, 300, "nipmhs", "NIPMHS");
   }
 
   private createTabButton(

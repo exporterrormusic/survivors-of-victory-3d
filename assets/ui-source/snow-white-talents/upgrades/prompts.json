@@ -1,0 +1,133 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-25",
+  "reference": "assets/weapons-source/snow-white/reference-character.webp",
+  "assets": [
+    {
+      "id": "basic_attack",
+      "name": "Seven Dwarves II",
+      "source": "basic_attack.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/basic_attack.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Snow White shoulders her compact white assault rifle, crisp side view of its squared receiver and her golden focused eye, firing a single ordinary round.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "weak_point",
+      "name": "Marked Rounds",
+      "source": "weak_point.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/weak_point.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Close-up of a white assault rifle firing armor-piercing rounds into a dark robot; amber target mark at the impact point and small explosive fragments.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "afterburn",
+      "name": "Afterburn",
+      "source": "afterburn.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/afterburn.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Low battlefield view along a straight bullet trajectory leaving a continuous orange burning trail across cracked ground, Snow White firing in background.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "burning",
+      "name": "Burning + Slow",
+      "source": "burning.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/burning.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Heavy enemy robots trapped walking through a broad persistent orange fire trail, scorched feet and thick heat haze communicating slowed movement.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "charging",
+      "name": "Charging",
+      "source": "charging.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/charging.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Snow White bracing her white assault rifle as a concentrated gold-white charge builds at its muzzle, widening luminous pressure rings and drifting dust.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "unyielding",
+      "name": "Unyielding",
+      "source": "unyielding.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/unyielding.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Close-up of determined golden-eyed Snow White behind her assault rifle after destroying a robot, subtle mint green healing motes rising around her battered white cloak.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "special",
+      "name": "Missile Emplacement",
+      "source": "special.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/special.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: One deployed white six-cell missile pod emplacement in three-quarter close view, dark red tube caps, narrow yellow central slit, split hanging shields, launching one missile.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "special_capacity",
+      "name": "Expanded Arsenal",
+      "source": "special_capacity.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/special_capacity.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Four matching white paired missile-pod emplacements ready together in a staggered formation, foreground reserve missiles and open ammunition magazine, clear repeating arsenal.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "defensive_line",
+      "name": "Defensive Line",
+      "source": "defensive_line.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/defensive_line.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Two white missile pod emplacements defending a line, red circular damaging ground aura around each base, approaching robots caught at the glowing boundary.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "incendiary_ammo",
+      "name": "Incendiary Arsenal",
+      "source": "incendiary_ammo.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/incendiary_ammo.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: White dark-nosed missile with yellow band striking armored robot in intense orange fire, glowing target mark visible through the explosion, a white missile pod behind.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "permanent_emplacement",
+      "name": "Permanent Emplacement",
+      "source": "permanent_emplacement.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/permanent_emplacement.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Close mechanical view of a firmly anchored white missile-pod emplacement reloading, exposed feed mechanism lifting fresh missiles into six circular launch tubes, yellow status slit.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "detonation",
+      "name": "Detonation",
+      "source": "detonation.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/detonation.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Destroyed white missile emplacement detonating into a large orange fireball and expanding shockwave, recognizable split white shield fragments thrown outward, robots at blast edge.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "burst",
+      "name": "Seven Dwarves I",
+      "source": "burst.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/burst.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Snow White with closed graphite combat face visor braced behind her enormous long rectangular white anti-ship rifle, firing one overwhelming straight white-gold shot.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "burst_burn",
+      "name": "Fully Active",
+      "source": "burst_burn.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/burst_burn.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Snow White firing her huge anti-ship rifle into a cluster of burning robots, successive golden energy pulses returning toward her weapon conveying recharged burst.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "focused_fire",
+      "name": "Focused Fire",
+      "source": "focused_fire.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/focused_fire.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Tight view down the massive white anti-ship rifle and rectangular top optic, a very narrow concentrated white-gold beam piercing distant armor, controlled precise aim.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "pierce_through",
+      "name": "Pierce + Stun",
+      "source": "pierce_through.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/pierce_through.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: One straight gold-white anti-ship shot piercing three aligned dark armored robots, gold impact holes and brief white electric stun arcs freezing their limbs.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "century_prep",
+      "name": "A Century of Prep Time",
+      "source": "century_prep.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/century_prep.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Elevated tactical battlefield scene: Snow White at center firing her oversized anti-ship rifle, exactly four white six-cell missile pod emplacements deployed around her perimeter.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    },
+    {
+      "id": "goddess_no_yield",
+      "name": "A Goddess Who Cannot Yield",
+      "source": "goddess_no_yield.png",
+      "runtime": "public/ui/survivor/snow-white-talents/upgrades/goddess_no_yield.webp",
+      "prompt": "Use case: stylized-concept. Generate ONE individual game upgrade detail illustration, landscape 3:2 composition, no collage. Premium anime mechanical illustration matching original NIKKE Snow White: adult woman with silver-white hair, gold eyes, graphite angular forehead visor, battered white cloak, dark mechanical gloves, ivory/charcoal weapons with restrained yellow industrial accents. When closed visor requested cover face with angular graphite armor and amber seams. Missile pods have paired banks with THREE circular cells EACH, central yellow slit and split white hanging shields. Depict this specific custom gameplay upgrade clearly: Heroic close-up of Snow White standing resolute with enormous white anti-ship rifle still charged after firing, battered white cloak sweeping in wind, warm gold light and sparks, no crown or divine costume.. Keep key subject centered with crop-safe margins for a wide detail viewport. Dark smoky battlefield, clear focal point. No text, UI, borders, watermark. Reference is identity and equipment only; invent the requested composition."
+    }
+  ]
+}

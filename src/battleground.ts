@@ -70,6 +70,13 @@ export function onRoad(p:GroundPoint,margin=0):boolean {
     || Object.values(BASE_POINTS).some(b=>Math.hypot(p.x-b.x,p.z-b.z)<10+margin)
     || Object.values(SPAWN_POINTS).some(b=>Math.hypot(p.x-b.x,p.z-b.z)<5+margin);
 }
+/** All painted paving, including feathered/noisy shoulders, base approaches and courts. */
+export function onPlantingRoad(p:GroundPoint,radius=0):boolean {
+  const margin=radius+2.2;
+  return onRoad(p,margin)
+    || COMPOUNDS.some(c=>Math.hypot(p.x-c.building.x,p.z-c.building.z)<4.5+margin)
+    || (['blue','red'] as const).some(team=>distanceToPath(p,[SPAWN_POINTS[team],BASE_POINTS[team]])<4.5+margin);
+}
 const coverPoints = single ? trace(cavern,[[575,202],[630,205],[560,287],[620,295],[450,180],[752,307]])
   : trace(hollow,[[540,550],[590,570],[610,355],[680,350],[750,335],[690,485],[755,540],[800,545],[865,450],[915,280],[1085,285],[1135,325],[1100,385],[1055,445],[1190,560],[1240,575],[1280,580],[1340,520],[565,810],[620,775],[685,785],[720,820],[805,865],[785,930],[680,945],[640,1000],[720,1060],[800,1090],[900,1080],[885,955],[1000,920],[1030,815],[1100,805],[1225,870],[1240,960],[1165,1005]]);
 export const MAP_COVER:readonly GroundObstacle[] = coverPoints.map((p,i)=>({...p,r:single?2.6:3.3+(i%3)*.4}));

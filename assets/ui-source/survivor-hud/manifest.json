@@ -1,0 +1,21 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-10-25",
+  "reference": "Approved HUD mockup, 1776 x 888; no portrait changes",
+  "assets": [
+    {
+      "key": "rifle",
+      "prompt": "Use case: precise-object-edit / game UI texture. The attached image is the APPROVED visual reference. Extract and faithfully recreate ONLY the white illustrated science-fiction rifle visible in the small bottom-centre WEAPON tile. Deliver a standalone high-resolution transparent-background equipment cutout, no panel and no other objects. Preserve the reference weapon's left-facing side profile: long narrow barrel and white forward housing on the LEFT, long white/light-silver angular receiver in the middle with black mechanical recesses and fine gray panel lines, a small top-mounted sight, downward pistol grip and magazine, and a compact stock on the RIGHT. Nearly orthographic side view, extremely slight three-quarter dimension like the reference. Ivory white painted metal, dark gray joints, small silver highlights, detailed professional painted/3D-rendered game inventory artwork. Broad overall horizontal silhouette about 3.1 to 1 width/height, fill the canvas snugly with only 3 percent transparent safety margin. Lighting from upper left. Show the entire rifle with no clipping, crisp edges. Precisely reproduce the reference's restrained white weapon illustration rather than a flat symbol. No glow, no blue accents, no beam, no text, no numbers, no keycaps, no framing, no background, no ground or drop shadow. This asset will be rendered 138px wide over a charcoal HUD.",
+      "source": "rifle.png",
+      "runtime": "public/ui/survivor/rifle.png",
+      "transparent_background": true
+    },
+    {
+      "key": "turret",
+      "prompt": "Use case: precise-object-edit / game UI texture. The attached image is the APPROVED visual reference. Extract and faithfully recreate ONLY the small white illustrated sentry turret in the bottom-centre SPECIAL tile, to the left of the number 2. Deliver a standalone high-resolution transparent-background equipment cutout, no panel, no numbers or other objects. Match that reference: compact off-white and light-silver horizontal rectangular cannon housing with subtly rounded industrial corners and dark inset front openings; a short hollow muzzle points LEFT and slightly toward the viewer. The weapon head sits on a short articulated metal pedestal with collar rings and a broad low tripod-like base with three short feet. Three-quarter side view from slightly above, strongly recognizable at 60px high. Restrained detailed professional painted/3D-rendered game inventory artwork, neutral white enamel surfaces, dark graphite recesses, small gray panel lines and edge highlights. Entire silhouette almost square, fills the canvas snugly with only 3 percent transparent safety margin. Lighting from upper left. No stylized stick-figure tripod, no giant long legs, no machine-gun ammo belts, no blue or neon accents, no glow, no ground plane or drop shadow, no text, no number 2, no keycap, no surrounding frame, no background.",
+      "source": "turret.png",
+      "runtime": "public/ui/survivor/turret.png",
+      "transparent_background": true
+    }
+  ]
+}

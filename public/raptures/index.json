@@ -28,6 +28,10 @@
         "unboundSourceChannels": []
       }
     },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
     "bytes": 241088
   },
   "bmg001": {
@@ -65,6 +69,9 @@
         "unboundSourceChannels": []
       }
     },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
     "bytes": 451988
   },
   "mmg005": {
@@ -96,6 +103,1068 @@
         "unboundSourceChannels": []
       }
     },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
     "bytes": 413044
+  },
+  "bca001": {
+    "name": "Cocytus",
+    "file": "bca001.glb",
+    "bones": 31,
+    "vertices": 4390,
+    "triangles": 5684,
+    "clips": {
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 111,
+        "sourceChannels": 96,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 3.8333334922790527,
+        "frames": 116,
+        "channels": 111,
+        "sourceChannels": 93,
+        "unboundSourceChannels": []
+      }
+    },
+    "muzzles": [],
+    "bytes": 812492
+  },
+  "bcg001": {
+    "name": "Cucumber",
+    "file": "bcg001.glb",
+    "bones": 60,
+    "vertices": 6416,
+    "triangles": 7616,
+    "clips": {
+      "idle": {
+        "duration": 5.333333492279053,
+        "frames": 161,
+        "channels": 423,
+        "sourceChannels": 327,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 423,
+        "sourceChannels": 285,
+        "unboundSourceChannels": []
+      },
+      "walk": {
+        "duration": 2.033323567352273,
+        "frames": 49,
+        "channels": 423,
+        "source": "Crawler walk (foot paths + leg IK, legs x1.62)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02",
+      "socket_muzzle_fire_03",
+      "socket_muzzle_fire_04",
+      "socket_muzzle_fire_05",
+      "socket_muzzle_fire_06"
+    ],
+    "bytes": 1336308
+  },
+  "bea001": {
+    "name": "Tail Bone",
+    "file": "bea001.glb",
+    "bones": 26,
+    "vertices": 1641,
+    "triangles": 2156,
+    "clips": {
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 171,
+        "sourceChannels": 102,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 171,
+        "sourceChannels": 90,
+        "unboundSourceChannels": []
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 385864
+  },
+  "beg003": {
+    "name": "Capra",
+    "file": "beg003.glb",
+    "bones": 30,
+    "vertices": 1263,
+    "triangles": 1696,
+    "clips": {
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 180,
+        "sourceChannels": 123,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 180,
+        "sourceChannels": 123,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 571543194,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4045778920,
+            "property": "translation"
+          },
+          {
+            "pathHash": 571543194,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4045778920,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 571543194,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4045778920,
+            "property": "scale"
+          }
+        ]
+      },
+      "walk": {
+        "duration": 1.573738335388507,
+        "frames": 49,
+        "channels": 180,
+        "source": "Crawler walk (foot paths + leg IK, legs x0.97)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
+    "bytes": 371992
+  },
+  "eca001": {
+    "name": "Obelisk",
+    "file": "eca001.glb",
+    "bones": 12,
+    "vertices": 2966,
+    "triangles": 4060,
+    "clips": {
+      "idle": {
+        "duration": 4.0,
+        "frames": 121,
+        "channels": 63,
+        "sourceChannels": 42,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 466138380,
+            "property": "translation"
+          },
+          {
+            "pathHash": 466138380,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 466138380,
+            "property": "scale"
+          }
+        ]
+      },
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 63,
+        "sourceChannels": 42,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 466138380,
+            "property": "translation"
+          },
+          {
+            "pathHash": 466138380,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 466138380,
+            "property": "scale"
+          }
+        ]
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
+    "bytes": 529972
+  },
+  "ecg001": {
+    "name": "Loud Mouth",
+    "file": "ecg001.glb",
+    "bones": 64,
+    "vertices": 5604,
+    "triangles": 4740,
+    "clips": {
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 351,
+        "sourceChannels": 336,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 5.333333492279053,
+        "frames": 161,
+        "channels": 351,
+        "sourceChannels": 260,
+        "unboundSourceChannels": []
+      },
+      "walk": {
+        "duration": 2.0333229599673897,
+        "frames": 49,
+        "channels": 351,
+        "source": "Crawler walk (foot paths + leg IK, legs x1.62)"
+      }
+    },
+    "muzzles": [],
+    "bytes": 1295308
+  },
+  "eea002": {
+    "name": "Tripod",
+    "file": "eea002.glb",
+    "bones": 10,
+    "vertices": 1170,
+    "triangles": 1276,
+    "clips": {
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 111,
+        "sourceChannels": 41,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 111,
+        "sourceChannels": 41,
+        "unboundSourceChannels": []
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 284756
+  },
+  "eeg003": {
+    "name": "Sentry",
+    "file": "eeg003.glb",
+    "bones": 24,
+    "vertices": 1772,
+    "triangles": 2064,
+    "clips": {
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 156,
+        "sourceChannels": 117,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 156,
+        "sourceChannels": 117,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 4014992681,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2793827503,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4014992681,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2793827503,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4014992681,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2793827503,
+            "property": "scale"
+          }
+        ]
+      },
+      "walk": {
+        "duration": 1.6260762520885916,
+        "frames": 49,
+        "channels": 156,
+        "source": "Crawler walk (foot paths + leg IK, legs x1.03)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 349564
+  },
+  "ema002": {
+    "name": "Squid",
+    "file": "ema002.glb",
+    "bones": 14,
+    "vertices": 2247,
+    "triangles": 2350,
+    "clips": {
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 78,
+        "sourceChannels": 44,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 78,
+        "sourceChannels": 52,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 1082542982,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1082542982,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1082542982,
+            "property": "scale"
+          }
+        ]
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 327252
+  },
+  "emg003": {
+    "name": "Cube",
+    "file": "emg003.glb",
+    "bones": 24,
+    "vertices": 4631,
+    "triangles": 2100,
+    "clips": {
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 177,
+        "sourceChannels": 104,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 1784017273,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1784017273,
+            "property": "scale"
+          }
+        ]
+      },
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 177,
+        "sourceChannels": 131,
+        "unboundSourceChannels": [],
+        "source": "emg003_sd_shot01"
+      },
+      "walk": {
+        "duration": 1.6260762367888106,
+        "frames": 49,
+        "channels": 177,
+        "source": "Crawler walk (foot paths + leg IK, legs x1.03)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 539880
+  },
+  "mca001": {
+    "name": "Sinister",
+    "file": "mca001.glb",
+    "bones": 14,
+    "vertices": 5469,
+    "triangles": 4926,
+    "clips": {
+      "idle": {
+        "duration": 3.8333334922790527,
+        "frames": 116,
+        "channels": 84,
+        "sourceChannels": 60,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 84,
+        "sourceChannels": 60,
+        "unboundSourceChannels": []
+      }
+    },
+    "muzzles": [],
+    "bytes": 776000
+  },
+  "mcg002": {
+    "name": "Thermite",
+    "file": "mcg002.glb",
+    "bones": 26,
+    "vertices": 4925,
+    "triangles": 4220,
+    "clips": {
+      "idle": {
+        "duration": 5.333333492279053,
+        "frames": 161,
+        "channels": 258,
+        "sourceChannels": 159,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 258,
+        "sourceChannels": 231,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 1311899107,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1311899107,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1311899107,
+            "property": "scale"
+          }
+        ]
+      },
+      "walk": {
+        "duration": 2.0333235848163422,
+        "frames": 49,
+        "channels": 258,
+        "source": "Crawler walk (foot paths + leg IK, legs x1.62)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02",
+      "socket_muzzle_fire_03",
+      "socket_muzzle_fire_04"
+    ],
+    "bytes": 979748
+  },
+  "mea001": {
+    "name": "Penetrator",
+    "file": "mea001.glb",
+    "bones": 27,
+    "vertices": 1541,
+    "triangles": 2016,
+    "clips": {
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 174,
+        "sourceChannels": 96,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 174,
+        "sourceChannels": 96,
+        "unboundSourceChannels": []
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02",
+      "socket_muzzle_fire_03",
+      "socket_muzzle_fire_04"
+    ],
+    "bytes": 348900
+  },
+  "meg006": {
+    "name": "Twin Tail",
+    "file": "meg006.glb",
+    "bones": 23,
+    "vertices": 4320,
+    "triangles": 3539,
+    "clips": {
+      "walk": {
+        "duration": 1.6000001430511475,
+        "frames": 49,
+        "channels": 180,
+        "sourceChannels": 102,
+        "unboundSourceChannels": []
+      },
+      "shot2": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 180,
+        "sourceChannels": 182,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 2249962060,
+            "property": "translation"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "translation"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2249962060,
+            "property": "scale"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "scale"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "scale"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "scale"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "scale"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2249962060,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "scale"
+          }
+        ],
+        "source": "meg006_sd_shot_02"
+      },
+      "idle": {
+        "duration": 1.4000000953674316,
+        "frames": 43,
+        "channels": 180,
+        "sourceChannels": 102,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.5,
+        "frames": 16,
+        "channels": 180,
+        "sourceChannels": 183,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 2249962060,
+            "property": "translation"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "translation"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "translation"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "translation"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2249962060,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 2249962060,
+            "property": "scale"
+          },
+          {
+            "pathHash": 410986479,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4045177562,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2172024405,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4134618819,
+            "property": "scale"
+          },
+          {
+            "pathHash": 1870141305,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4252056932,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2367408619,
+            "property": "scale"
+          },
+          {
+            "pathHash": 4196202877,
+            "property": "scale"
+          },
+          {
+            "pathHash": 2598072472,
+            "property": "scale"
+          },
+          {
+            "pathHash": 1662363847,
+            "property": "scale"
+          },
+          {
+            "pathHash": 336762961,
+            "property": "scale"
+          },
+          {
+            "pathHash": 3288944710,
+            "property": "scale"
+          }
+        ],
+        "source": "meg006_sd_shot_01"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02",
+      "socket_muzzle_fire_03",
+      "socket_muzzle_fire_04"
+    ],
+    "bytes": 592488
+  },
+  "mma001": {
+    "name": "Hard Hat",
+    "file": "mma001.glb",
+    "bones": 12,
+    "vertices": 1263,
+    "triangles": 1734,
+    "clips": {
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 69,
+        "sourceChannels": 21,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 3924510320,
+            "property": "translation"
+          },
+          {
+            "pathHash": 3924510320,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 3924510320,
+            "property": "scale"
+          }
+        ]
+      },
+      "idle": {
+        "duration": 4.266666889190674,
+        "frames": 129,
+        "channels": 69,
+        "sourceChannels": 29,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 3924510320,
+            "property": "translation"
+          },
+          {
+            "pathHash": 3924510320,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 3924510320,
+            "property": "scale"
+          }
+        ]
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
+    "bytes": 263064
+  },
+  "xea003": {
+    "name": "Hanged Man",
+    "file": "xea003.glb",
+    "bones": 16,
+    "vertices": 1708,
+    "triangles": 1340,
+    "clips": {
+      "idle": {
+        "duration": 1.3333333730697632,
+        "frames": 41,
+        "channels": 78,
+        "sourceChannels": 44,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 2753437989,
+            "property": "translation"
+          },
+          {
+            "pathHash": 2753437989,
+            "property": "rotation"
+          }
+        ],
+        "source": "xea003_sd_idle_01"
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 78,
+        "sourceChannels": 12,
+        "unboundSourceChannels": [],
+        "source": "xea003_sd_shot_01"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 291116
+  },
+  "xeg006": {
+    "name": "Solaris",
+    "file": "xeg006.glb",
+    "bones": 26,
+    "vertices": 2683,
+    "triangles": 2654,
+    "clips": {
+      "idle": {
+        "duration": 1.0,
+        "frames": 31,
+        "channels": 138,
+        "sourceChannels": 91,
+        "unboundSourceChannels": [],
+        "source": "xeg006_sd_idle_01"
+      },
+      "walk": {
+        "duration": 1.2541568503372367,
+        "frames": 33,
+        "channels": 138,
+        "source": "Soldier EG (Nikke) walk (leg joints, legs x1.38)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01",
+      "socket_muzzle_fire_02"
+    ],
+    "bytes": 403820
+  },
+  "xma003": {
+    "name": "Seahorse",
+    "file": "xma003.glb",
+    "bones": 70,
+    "vertices": 1542,
+    "triangles": 1618,
+    "clips": {
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 240,
+        "sourceChannels": 16,
+        "unboundSourceChannels": []
+      },
+      "idle": {
+        "duration": 1.6000001430511475,
+        "frames": 49,
+        "channels": 240,
+        "sourceChannels": 215,
+        "unboundSourceChannels": [
+          {
+            "pathHash": 1293644558,
+            "property": "translation"
+          },
+          {
+            "pathHash": 1293644558,
+            "property": "rotation"
+          },
+          {
+            "pathHash": 1293644558,
+            "property": "scale"
+          }
+        ]
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 391308
+  },
+  "xmg001": {
+    "name": "Phalanx",
+    "file": "xmg001.glb",
+    "bones": 39,
+    "vertices": 2598,
+    "triangles": 2770,
+    "clips": {
+      "idle": {
+        "duration": 1.3333333730697632,
+        "frames": 41,
+        "channels": 207,
+        "sourceChannels": 169,
+        "unboundSourceChannels": []
+      },
+      "shot": {
+        "duration": 0.40000003576278687,
+        "frames": 13,
+        "channels": 207,
+        "sourceChannels": 158,
+        "unboundSourceChannels": []
+      },
+      "walk": {
+        "duration": 1.3333333730697632,
+        "channels": 207,
+        "source": "its idle (glides)"
+      }
+    },
+    "muzzles": [
+      "socket_muzzle_fire_01"
+    ],
+    "bytes": 440604
   }
 }

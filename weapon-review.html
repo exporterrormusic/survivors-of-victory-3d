@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Snow White • Weapons</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#20272d;color:#e5e8e9;font:14px system-ui,sans-serif}
+    canvas{display:block;width:100vw;height:100vh;touch-action:none;outline:none}
+    header{position:absolute;top:28px;left:32px;pointer-events:none}small{letter-spacing:.18em;color:#d8b85e;font-size:11px}
+    h1{font-weight:500;font-size:28px;margin:9px 0}p{color:#aeb8c0;margin:7px 0;max-width:380px;line-height:1.5}
+    nav{position:absolute;bottom:28px;left:32px;display:flex;gap:8px;flex-wrap:wrap}
+    button,a{background:#2e3942;border:1px solid #53616d;color:#edf1f3;border-radius:4px;padding:10px 14px;font:inherit;text-decoration:none;cursor:pointer}
+    button:hover,a:hover{background:#46515a}#status{position:absolute;right:28px;bottom:32px;color:#aeb8c0;font-size:12px}
+  </style>
+</head>
+<body><canvas id="view" aria-label="Interactive Snow White turret and missile preview"></canvas>
+  <header><small>SNOW WHITE / SEVEN DWARVES</small><h1>Launcher &amp; missile</h1><p>Drag to orbit · scroll to zoom<br>Missile displayed at 2× scale.</p></header>
+  <nav><button data-view="hero">Three-quarter</button><button data-view="front">Front</button><button data-view="back">Back</button><button data-view="top">Top</button><button id="finish">Surface textures</button><a href="/?run=test-range">Test range</a></nav>
+  <span id="status">Loading surfaces…</span>
+  <script type="module" src="/src/review/snow-white-weapons.ts"></script>
+</body></html>

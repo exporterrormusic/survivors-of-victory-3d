@@ -4,7 +4,7 @@
 // Music / SFX volume rows are built here too. Everything edits the shared audio settings.
 import { AUDIO_SETTINGS_EVENT, loadAudioSettings, saveAudioSettings, type AudioSettings } from '../frontend/settings/GameSettings';
 import { audioEngine } from './audio-engine';
-import { UI } from './sound-bank';
+import { UI, type Track } from './sound-bank';
 import './music-control.css';
 
 const RESTORE_KEY = 'nikke-moba.music-restore-volume';
@@ -48,6 +48,17 @@ let shownPaused: boolean | null = null;
 export function setNowPlaying(title: string | null, controls: TrackControls = {}): void {
   nowPlaying = { title, controls };
   render();
+}
+
+/** Play `tracks` in order from the first, looping, with the strip's previous / next stepping through them. */
+export function playPlaylist(tracks: readonly Track[]): void {
+  let i = 0;
+  const play = (n: number) => {
+    i = (n + tracks.length) % tracks.length;
+    void audioEngine.playMusic(tracks[i], () => play(i + 1));
+    setNowPlaying(tracks[i].title, { next: () => play(i + 1), previous: () => play(i - 1) });
+  };
+  play(0);
 }
 
 /** The music strip, attached to the minimap panel (`parent`). */

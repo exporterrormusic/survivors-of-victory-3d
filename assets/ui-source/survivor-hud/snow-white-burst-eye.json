@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-10-25",
+  "source": "snow-white-burst-eye.png",
+  "runtime": "public/ui/survivor/snow-white-burst-eye.png",
+  "prompt": "Use case: precise-object-edit.\nAsset type: production game HUD Burst-card illustration, a very wide horizontal strip, 1536 x 512 pixels (3:1).\nEdit the supplied Snow White character sheet: take the character identity from the CLOSE-UP view on the right and transform that face into an extremely tight, cinematic single-eye crop. Output ONLY the finished illustration, with no character-sheet layout or labels.\nSubject: Snow White from GODDESS OF VICTORY: NIKKE. Preserve her distinctive golden-yellow iris with dark amber upper shading, dark pupil and crisp reflected highlight, sharp dark upper lash line, pale skin, finely layered silver-white bangs with very faint lavender-gray shadows, and a small cropped edge of her dark graphite angular combat visor along the top. Visor stays above the eye. Mature, calm, focused combat gaze.\nComposition: extreme face close-up, tighter than a portrait. Only one fully visible golden eye, eyebrow fragments, white hair, upper cheek and a hint of nose bridge; no mouth, chin, shoulders or weapon. Place the visible eye center at approximately 64% of canvas width and 53% of height. The entire eye opening is around 30% of canvas width and 55% of height. Hair sweeps diagonally across the top and left. Let the leftmost third naturally fade into muted charcoal shadow while retaining subtle hair detail, to accommodate separately rendered game text. Keep the main eye bright, intact, sharp and unobstructed in the right half. Image fills edge to edge.\nStyle: polished premium anime game splash illustration, clean expressive linework with delicate painted shading, similar fidelity to the character sheet. Cool silver and charcoal palette with the golden iris as the single rich warm accent. Dramatic but restrained lighting, not an exaggerated magical glowing eye. Strong readability when reduced to a roughly 292 x 92 pixel UI strip.\nConstraints: no typography, logo, watermark, UI border, yellow frame, gauge, buttons, key labels, equipment, particles, hatching overlay, extra eyes or facial duplication. No blue eyes. No full face or upper-body portrait. Do not reproduce the character sheet background. Opaque raster illustration.",
+  "references": [
+    {
+      "role": "Character identity and face edit target",
+      "source": "User-supplied Snow White character sheet"
+    },
+    {
+      "role": "Online visual research; viewed, not composited",
+      "url": "https://www.zerochan.net/4058481",
+      "artist": "Noker",
+      "local": "references/snow-white-noker.webp"
+    },
+    {
+      "role": "Online eye-close-up composition research; viewed, not composited",
+      "url": "https://x.com/Dorowadoro/status/2005832676188528696",
+      "local": "references/snow-white-ost-eye.jpg"
+    },
+    {
+      "role": "UI placement and crop reference",
+      "local": "approved-mockup.png"
+    }
+  ],
+  "notes": "A standalone illustration for the Survivors Burst card. Frame, text, and charge gauge remain code-rendered. Character portrait and equipment icons are unchanged."
+}

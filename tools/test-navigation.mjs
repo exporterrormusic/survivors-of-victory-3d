@@ -90,3 +90,18 @@ for (const scenario of cases) for (const radius of [.65, .85, 1.1, 1.2]) for (co
   assert.deepEqual(map.route(start,goal,.65),[goal]);checks++;
 }
 console.log(`Navigation: ${checks} scenarios passed (body sizes, frame rates, moving/blocked goals, crowds, concave boundaries and destroyed gates).`);
+// Oblique contact on a rotated capsule wall must retain tangential motion.
+for(const fps of [20,60,120])for(const angle of [0,.63,1.4]){
+  const tangent={x:Math.cos(angle),z:Math.sin(angle)},normal={x:-Math.sin(angle),z:Math.cos(angle)};
+  const obstacles=Array.from({length:41},(_,i)=>({x:tangent.x*(i-20)*.3,z:tangent.z*(i-20)*.3,r:.4}));
+  const map=new NavigationMap(obstacles,20),radius=.45;
+  let p={x:tangent.x*-3+normal.x*1.02,z:tangent.z*-3+normal.z*1.02};
+  for(let frame=0;frame<fps*4;frame++){
+    const next=map.slide(p,(tangent.x*2-normal.x*.8)/fps,(tangent.z*2-normal.z*.8)/fps,radius);
+    assert.ok(map.clear(p,next,radius),'sliding never crosses rotated cover');
+    assert.ok(dist(p,next)<=Math.hypot(2,.8)/fps+1e-8,'contact never accelerates movement');p=next;
+  }
+  assert.ok(p.x*tangent.x+p.z*tangent.z>3,'continuous wall contact does not glue the body');
+  assert.deepEqual(map.slide(p,0,0,radius),p,'no idle or paused drift');
+}
+console.log('Surface sliding: rotated walls at 20/60/120 fps, no penetration, bounded speed and no idle drift passed.');

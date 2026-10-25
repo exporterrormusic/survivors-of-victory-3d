@@ -63,7 +63,7 @@ class AudioEngine {
   }
 
   /** A sustained weapon sound. Cancellation also covers an in-flight decode. */
-  loop(cue: Cue): () => void {
+  loop(cue: Cue, fade = .06): () => void {
     const graph = this.ensureGraph();
     let stopped = false;
     let source: AudioBufferSourceNode | undefined;
@@ -74,7 +74,7 @@ class AudioEngine {
       source.buffer = decoded; source.loop = true;
       volume = graph.context.createGain();
       volume.gain.setValueAtTime(0, graph.context.currentTime);
-      volume.gain.linearRampToValueAtTime(cue.volume, graph.context.currentTime + .06);
+      volume.gain.linearRampToValueAtTime(cue.volume, graph.context.currentTime + fade);
       source.connect(volume).connect(graph.sfx);
       const playing = source, gain = volume;
       source.onended = () => { playing.disconnect(); gain.disconnect(); };
@@ -87,8 +87,8 @@ class AudioEngine {
       const now = graph.context.currentTime;
       volume.gain.cancelScheduledValues(now);
       volume.gain.setValueAtTime(volume.gain.value, now);
-      volume.gain.linearRampToValueAtTime(0, now + .06);
-      source.stop(now + .06);
+      volume.gain.linearRampToValueAtTime(0, now + fade);
+      source.stop(now + fade);
     };
   }
 

@@ -1,0 +1,10 @@
+{
+  "source": "assets\\weapons-source\\snow-white\\surface-atlas-v1.png",
+  "runtime": "public\\weapons\\snow-white\\surface-atlas-v1.webp",
+  "size": [
+    1254,
+    1254
+  ],
+  "bytes": 271762,
+  "conversion": "WebP quality 94; original dimensions preserved; no image edits"
+}

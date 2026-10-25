@@ -1,0 +1,23 @@
+import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, MeshBuilder, Scene, ShadowGenerator, StandardMaterial, Vector3 } from '@babylonjs/core';
+import { createSakuraTree } from '../sakura';
+import { GLTF2Export } from '@babylonjs/serializers/glTF';
+const canvas=document.querySelector<HTMLCanvasElement>('#view')!;
+const engine=new Engine(canvas,true,{preserveDrawingBuffer:true,stencil:true});
+const scene=new Scene(engine);scene.clearColor=new Color4(.12,.14,.19,1);
+const camera=new ArcRotateCamera('review-camera',-.9,1.12,15,new Vector3(0,3.6,0),scene);
+camera.attachControl(canvas,true);camera.lowerRadiusLimit=7;camera.upperRadiusLimit=25;
+camera.lowerBetaLimit=.15;camera.upperBetaLimit=1.5;camera.wheelPrecision=35;camera.minZ=.1;
+const hemi=new HemisphericLight('fill',new Vector3(0,1,0),scene);hemi.intensity=.8;
+hemi.groundColor=new Color3(.42,.32,.40);
+const sun=new DirectionalLight('sun',new Vector3(-.5,-1,.4),scene);sun.position.set(8,16,-9);sun.intensity=1.1;
+const shadows=new ShadowGenerator(2048,sun);shadows.usePercentageCloserFiltering=true;
+const tree=createSakuraTree(scene,shadows);
+const floor=MeshBuilder.CreateGround('preview-floor',{width:200,height:200},scene);
+const mat=new StandardMaterial('preview-floor-material',scene);mat.diffuseColor.set(.19,.23,.24);mat.specularColor.set(0,0,0);
+floor.material=mat;floor.receiveShadows=true;
+let rotate=true;document.querySelector('#rotate')!.addEventListener('click',e=>{rotate=!rotate;(e.target as HTMLElement).textContent=rotate?'Pause turntable':'Resume turntable';});
+canvas.addEventListener('pointerdown',()=>{rotate=false;document.querySelector('#rotate')!.textContent='Resume turntable';});
+engine.runRenderLoop(()=>{if(rotate)camera.alpha+=engine.getDeltaTime()*.00012;scene.render();});
+window.addEventListener('resize',()=>engine.resize());
+Object.assign(window,{sakuraReview:{scene,engine,camera,tree,pause:()=>{rotate=false;},
+  exportGLB:()=>GLTF2Export.GLBAsync(scene,'sakura-tree',{shouldExportNode:n=>n===tree||n.isDescendantOf(tree)})}});

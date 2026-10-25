@@ -1,0 +1,32 @@
+{
+  "images": [
+    {
+      "file": "A01-ability-ranks.png",
+      "width": 1672,
+      "height": 941,
+      "crop": "contain"
+    },
+    {
+      "file": "A02-rank-roadmap.png",
+      "width": 1916,
+      "height": 821,
+      "crop": "contain"
+    },
+    {
+      "file": "A03-automatic-milestones.png",
+      "width": 1672,
+      "height": 941,
+      "crop": "contain"
+    },
+    {
+      "file": "T01-illustrated-hex-tree.png",
+      "width": 1672,
+      "height": 941,
+      "crop": "contain"
+    }
+  ],
+  "filters": true,
+  "viewer": true,
+  "keyboard": true,
+  "errors": []
+}

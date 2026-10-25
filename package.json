@@ -9,9 +9,14 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
+    "test:snow": "node --experimental-strip-types tools/test-snow.mjs",
+    "test:snow-navigation": "node --experimental-strip-types tools/test-snow-navigation.mjs",
+    "test:sortie": "node --experimental-strip-types tools/test-sortie.mjs",
+    "test:progress": "node --experimental-strip-types tools/test-progress.mjs",
     "chibi": "node tools/fetch-chibi.mjs",
     "minions": "node tools/fetch-chibi.mjs --minions",
-    "raptures": "python tools/convert-raptures.py"
+    "raptures": "python tools/convert-raptures.py",
+    "raptures:extract": "python tools/extract-raptures.py"
   },
   "dependencies": {
     "@babylonjs/core": "^9.32.0",

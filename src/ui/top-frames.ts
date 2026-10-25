@@ -22,7 +22,8 @@ function insetPolygon(points: readonly Point[], distance: number): Point[] {
 const path = (points: readonly Point[]): string =>
   points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ') + 'Z';
 
-function mountFrame(host: HTMLElement, kind: FrameKind): void {
+/** Wrap `host`'s children in the angled metal frame (survivor HUD reuses the 'score' shape). */
+export function mountFrame(host: HTMLElement, kind: FrameKind): void {
   const content = document.createElement('div');
   content.className = 'hud-top-content';
   content.append(...host.childNodes);

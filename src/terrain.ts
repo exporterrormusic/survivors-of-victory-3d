@@ -40,6 +40,14 @@ class OutpostTerrain extends MaterialPluginBase {
       CUSTOM_FRAGMENT_DEFINITIONS: `
         uniform sampler2D outpostPaving;
         uniform sampler2D outpostMoss;
+        vec3 outpostPaint(sampler2D source, vec2 uv) {
+          #ifdef ANIME_TOON
+          // Broader texture strokes; retain the lane mask and paving boundaries.
+          return texture2D(source, uv, 1.7).rgb;
+          #else
+          return texture2D(source, uv).rgb;
+          #endif
+        }
         float outpostSegment(vec2 p, vec2 a, vec2 b) {
           vec2 ab=b-a; return length(p-a-ab*clamp(dot(p-a,ab)/dot(ab,ab),0.0,1.0));
         }
@@ -53,10 +61,10 @@ class OutpostTerrain extends MaterialPluginBase {
       CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `
         vec2 groundPosition = vPositionW.xz;
         vec2 laneUV = vec2(groundPosition.x + groundPosition.y, groundPosition.y - groundPosition.x) * 0.70710678 / ${TERRAIN_TILE_SIZE.toFixed(1)};
-        vec3 paving = texture2D(outpostPaving, laneUV).rgb;
+        vec3 paving = outpostPaint(outpostPaving, laneUV);
         vec2 mossUV = groundPosition / ${TERRAIN_TILE_SIZE.toFixed(1)};
-        vec3 moss = mix(texture2D(outpostMoss, mossUV).rgb,
-                        texture2D(outpostMoss, vec2(-mossUV.y, mossUV.x) * .83 + .37).rgb,
+        vec3 moss = mix(outpostPaint(outpostMoss, mossUV),
+                        outpostPaint(outpostMoss, vec2(-mossUV.y, mossUV.x) * .83 + .37),
                         outpostNoise(groundPosition * .14) * .35);
         float edgeVariation = (outpostNoise(groundPosition * .33) - .5) * 2.0
                             + (outpostNoise(groundPosition * 1.6) - .5) * .4;

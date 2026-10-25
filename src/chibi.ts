@@ -169,6 +169,26 @@ export class Chibi {
     return this.groups.has(name);
   }
 
+  /** The clip's animation group, for callers that layer clips themselves (src/survivor/rig.ts). */
+  animationGroup(name: string): AnimationGroup | undefined {
+    return this.groups.get(name);
+  }
+
+  /** A skeleton joint by name. */
+  joint(name: string): TransformNode | undefined {
+    return this.nodes.get(name);
+  }
+
+  /** The per-clip yaw node under root; layered callers set its rotation instead of calling update(). */
+  get facingNode(): TransformNode {
+    return this.facing;
+  }
+
+  /** Facing yaw (radians) that points clip `name` forward; aimed clips point the gun forward. */
+  clipYaw(name: string): number {
+    return this.staticYaw.get(name) ?? Math.PI;
+  }
+
   clipNames(): string[] {
     return [...this.groups.keys()].sort();
   }

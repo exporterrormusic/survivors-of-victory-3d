@@ -7,7 +7,13 @@ const BASE = `${import.meta.env.BASE_URL}environment/`;
  * branching 3D trunks. No camera-facing whole-tree sprites or solid leaf balls.
  * Cards are static thin instances: about 1,500 separate InstancedMeshes cost more CPU in
  * per-frame culling and dirty-marking than drawing the few thousand extra triangles. */
-export function createFoliage(scene: Scene, shadows: ShadowGenerator) {
+export function createFoliage(scene: Scene, shadows: ShadowGenerator,
+  canPlant:(at:Vector3,radius:number,height:number)=>boolean=()=>true) {
+  function allowed(parent:TransformNode,at:Vector3,radius:number,height:number):boolean {
+    const world=parent.computeWorldMatrix(true),m=world.m;
+    const scale=Math.max(Math.hypot(m[0],m[1],m[2]),Math.hypot(m[4],m[5],m[6]),Math.hypot(m[8],m[9],m[10]));
+    return canPlant(Vector3.TransformCoordinates(at,world),radius*scale,height*scale);
+  }
   const foliage = new StandardMaterial('painted-leaves-and-ferns', scene);
   const atlas = new Texture(`${BASE}foliage-atlas.webp`, scene);
   atlas.hasAlpha = true;
@@ -57,6 +63,8 @@ export function createFoliage(scene: Scene, shadows: ShadowGenerator) {
 
   return {
     tree(parent: TransformNode, radius: number, variant: number, random: Random): void {
+      // Reserve the entire crown, including the longest branch and inclined cards.
+      if(!allowed(parent,new Vector3(radius*.28,0,radius*.5),5.6,5.5+radius*.35))return;
       const tree = new TransformNode('painted-outpost-tree', scene); tree.parent = parent;
       tree.position.set(radius * .28, 0, radius * .5);
       const height = 3.8 + radius * .35;
@@ -80,11 +88,13 @@ export function createFoliage(scene: Scene, shadows: ShadowGenerator) {
       shadows.addShadowCaster(trunk);
     },
     fern(parent: TransformNode, at: Vector3, scale: number, random: Random): void {
+      if(!allowed(parent,at,scale*1.3,scale*1.2))return;
       const yaw = random() * Math.PI * 2;
       for (let i = 0; i < 3; i++) card(2, parent, at, scale * 1.35, scale, yaw + i * Math.PI / 3, .2);
       card(2, parent, at.add(new Vector3(0, scale * .18, 0)), scale, scale, yaw, 1.25);
     },
     ivy(parent: TransformNode, radius: number, height: number): void {
+      if(!allowed(parent,new Vector3(-radius*.15,height-1.5,-radius*.36),radius*.5+.2,1.8))return;
       card(3, parent, new Vector3(-radius * .15, height - 1.5, -radius * .36), radius * .85, 1.8, 0, -.04);
     },
     /** Upload the placed cards; call once after all foliage is placed. */

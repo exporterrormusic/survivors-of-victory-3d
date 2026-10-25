@@ -8,14 +8,12 @@ import { characterVoice } from '../characters/assets';
 import type { CombatEvent } from '../combat-events';
 import type { Combat } from '../combat';
 import { audioEngine } from './audio-engine';
-import { setNowPlaying } from './music-control';
+import { playPlaylist } from './music-control';
+import { positionalSound } from './positional';
 import { BATTLE_TRACKS, SFX, UI, WEAPON_FIRE, WEAPON_RELOAD, WEAPON_SPECIAL, type Cue, type Track } from './sound-bank';
 
-/** Full volume within this many metres of the camera focus, silent beyond FAR. */
-const NEAR = 12;
-const FAR = 48;
-/** metres of horizontal offset that pan fully to one side */
-const PAN_WIDTH = 24;
+/** Full volume within 12 m of the camera focus, silent beyond 48 m. */
+const FALLOFF = { near: 12, far: 48, panWidth: 24 };
 /** Survivors opened a match with the hero's theme this often. */
 const THEME_CHANCE = .75;
 
@@ -38,24 +36,9 @@ export function startMatchAudio(combat: Combat, hero: () => CharacterModule, lis
   audioEngine.preload([...Object.values(SFX), ...Object.values(UI)].map((cue) => cue.url));
   kit();
 
-  const playlist = battlePlaylist(hero());
-  let trackIndex = 0;
-  const playTrack = (index: number) => {
-    trackIndex = index % playlist.length;
-    const track = playlist[trackIndex];
-    void audioEngine.playMusic(track, () => playTrack(trackIndex + 1));
-    setNowPlaying(track.title, {
-      next: () => playTrack(trackIndex + 1),
-      previous: () => playTrack(trackIndex - 1 + playlist.length),
-    });
-  };
-  playTrack(0);
+  playPlaylist(battlePlaylist(hero()));
 
-  const at = (cue: Cue, position: Vector3, gain = 1) => {
-    const dx = position.x - listener.x, dz = position.z - listener.z, distance = Math.hypot(dx, dz);
-    const falloff = Math.max(0, Math.min(1, 1 - (distance - NEAR) / (FAR - NEAR)));
-    if (falloff > 0) audioEngine.play(cue, gain * falloff, dx / PAN_WIDTH);
-  };
+  const at = positionalSound(listener, FALLOFF);
   const castCue = (sound: CastSound): Cue | null => {
     switch (sound) {
       case 'weapon': return kit().weapon;

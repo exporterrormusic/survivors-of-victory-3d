@@ -1,0 +1,7 @@
+{
+  "mode": "built-in image_gen",
+  "selected": "blossoms-anime.png",
+  "runtime": "public/environment/sakura-v1/blossoms.webp",
+  "prompt": "Create a square production texture atlas for a SIMPLE ANIME sakura tree in a chibi game. Genuine transparent RGBA background. Four separate flat illustrated blossom-cluster shapes arranged in a strict equal 2 by 2 grid, each contained inside its own square quadrant with 8% transparent padding. Each cluster is a rounded irregular cloud-like spray of cherry blossoms: use large simple overlapping five-petal flower silhouettes, flat pale blush pink fill, a single dusty pink shadow tone, and just a few small dark pink center dots. About 12 to 18 simplified blossoms per cluster, NO fine stamens, NO veins, NO tiny detailed flowers, NO realism, NO textured paint strokes, NO gradients. Clean restrained cel-shaded anime game art, readable at small size. Two or three delicate simple dark plum twig strokes visible through each cluster. No green leaves. Top left wide spray, top right rounded spray, bottom left drooping spray, bottom right open forked spray. Soft scalloped organic silhouettes with transparent gaps, different cluster outlines. Limited palette of 4 pink tones and 1 plum tone. No text, labels, borders, trunk, scenery or cast shadows. This is a flat texture for curved foliage cards on an actual 3D model, not a whole tree picture.",
+  "workflow": "Painted alpha-tested curved foliage cards on branching 3D geometry, matching src/foliage.ts. Flat plum wood for the requested simple anime style."
+}

@@ -4,6 +4,14 @@ Babylon.js MOBA prototype using NIKKE's 3D chibi models. Current scope: Snow Whi
 of her other variants), Red Hood, Rapunzel, and Scarlet, HotS-style movement and combat, a shared placeholder ability kit,
 opposing Nikke/Rapture minion waves, overgrown industrial ruins, and a HotS-style HUD with restrained NIKKE colors. Multiplayer is not implemented.
 
+The current **Survivor test range** has ground snow: open
+`?run=test-range&snow=drifts&weather=snow&time=day`, then **WEATHER LAB → Ground snow**.
+Separate player boot prints and grounded Rapture claw prints refill during snowfall.
+Blue-shaded deep drifts slow movement; tall banks block walking and dashes.
+Grounded enemies route around banks. Use **WEATHER LAB → Enemies → Pursue player**
+or add `&enemies=pursue` to try it; Hold positions remains available for training.
+See [ground snow setup and floor integration](docs/SNOW.md).
+
 ```
 npm install
 npm run chibi      # download + convert the models (already done once; re-run to add more)
@@ -191,8 +199,12 @@ a separate presentation.
 
 ## Environment art
 
-F10 → **Lighting & color** selects Painted daylight (default), Warm daylight, Cool woodland,
-or Previous lighting for comparison. **Ambient shadows** adds contact shading and can be
+F10 → **Lighting & color** selects Anime, Painted daylight (default), Warm daylight, Cool woodland,
+or Previous lighting for comparison. Anime uses a bright simplified palette, flat cel shadows,
+strong ink outlines on characters and solid scenery, and smoother background textures. Painted
+Nikke facial details receive gentler shading. It works in
+the survivor test range and MOBA maps. Ambient occlusion is off in Anime; switching back restores
+the saved preference. Original materials and textures remain intact. **Ambient shadows** adds contact shading and can be
 disabled for performance. Painted surfaces now respond to the sun without self-illumination;
 the shadow map follows the camera while panning. [Lighting pass details](docs/LIGHTING.md).
 
@@ -292,29 +304,70 @@ because in lobby poses the "far end" is sometimes the stock.
 
 ## Outpost Rapture assets
 
-These come from the installed game's `sdmonster_assets_*` Unity bundles. The complete copies
-are preserved in `raw/outpost-research/`; `inspection.json` records the local catalog/chunk-store
-provenance. The older files under `raw/raptures/` are battle preview exports and are not used.
+These come from the installed game's `sdmonster_assets_*` Unity bundles: all 22 in the
+catalog are converted. Lure, Pelican and Crawler are in matches; the rest await review.
+The complete copies are preserved in `raw/outpost-research/`; `inspection.json` records the
+local catalog/chunk-store provenance. The older files under `raw/raptures/` are battle preview
+exports and are not used. Names follow the NKAS bestiary; heights are measured over every clip.
 
-| Rapture | ID | Skin joints | Native clips |
-| --- | --- | --- | --- |
-| Lure | `bma002` | 12 | idle, walk, shot |
-| Pelican | `bmg001` | 56 | idle, shot |
-| Crawler | `mmg005` | 22 | idle, walk, shot |
+| Rapture | ID | Height | Clips | Muzzles |
+| --- | --- | --- | --- | --- |
+| Lure | `bma002` | 2.3 m | idle, walk, shot | 2 |
+| Pelican | `bmg001` | 2.4 m | idle, shot (walk borrowed from Crawler) | 1 |
+| Crawler | `mmg005` | 2.3 m | idle, walk, shot | 2 |
+| Capra | `beg003` | 2.0 m | idle, shot, walk (Crawler, leg IK) | 2 |
+| Hanged Man | `xea003` | 2.3 m | idle, shot | 1 |
+| Seahorse | `xma003` | 2.4 m | idle, shot | 1 |
+| Cube | `emg003` | 2.4 m | idle, shot, walk (Crawler, leg IK) | 1 |
+| Solaris | `xeg006` | 2.4 m | idle, walk (Soldier EG's legs); no shot | 2 |
+| Tail Bone | `bea001` | 2.4 m | idle, shot | 1 |
+| Twin Tail | `meg006` | 2.4 m | idle, walk, shot, shot2 | 4 |
+| Penetrator | `mea001` | 2.8 m | idle, shot | 4 |
+| Phalanx | `xmg001` | 3.0 m | idle, shot, walk (glides on idle) | 1 |
+| Sentry | `eeg003` | 3.0 m | idle, shot, walk (Crawler, leg IK) | 1 |
+| Squid | `ema002` | 3.1 m | idle, shot | 1 |
+| Tripod | `eea002` | 3.9 m | idle, shot | 1 |
+| Hard Hat | `mma001` | 4.2 m | idle, shot (hovers 1 m up) | 2 |
+| Thermite | `mcg002` | 4.4 m | idle, shot, walk (Crawler, leg IK) | 4 |
+| Cucumber | `bcg001` | 4.7 m | idle, shot, walk (Crawler, leg IK) | 6 |
+| Loud Mouth | `ecg001` | 5.1 m | idle, shot, walk (Crawler, leg IK) | none |
+| Obelisk | `eca001` | 6.1 m | idle, shot | 2 |
+| Cocytus | `bca001` | 8.1 m | idle, shot | none |
+| Sinister | `mca001` | 17.3 m | idle, shot | none |
 
-To rebuild the existing bundle copies (Python 3.11 was used):
+Only Lure, Crawler and Twin Tail have a native walk. `tools/rapture_walks.py` gives the walkers
+above theirs during conversion. The four-legged ones follow Crawler's foot paths, scaled to their
+footprint, with two-bone leg IK, so feet plant at each model's own stance height (Capra, Sentry
+and Cube share Crawler's leg rig; Cucumber, Loud Mouth and Thermite share a larger one). Solaris
+replays a mass-produced Nikke's Biped leg rotations around its own pose. Phalanx glides on its
+idle. Bigger legs step slower (square root of the size ratio). Claw tips can still dip ~0.15 m
+into the floor at the end of a step. The rest float or hover and have no walk; moving units
+without one play idle. The crowd does not bake `shot2` yet.
+Models without muzzle sockets fire from the crowd's fallback point until given one.
+
+To copy the bundles out of the install (read-only, needs `pip install zstandard`) and rebuild
+the GLBs (Python 3.11 was used):
 
 ```powershell
 python -m pip install --target artifacts/tooling/unitypy UnityPy==1.25.4
+npm run raptures:extract
 npm run raptures
 ```
+
+`npm run dev`, then open `/rapture-review.html` to review them: each model is drawn through
+the lane-minion crowd path beside a mass-produced Nikke, with clip buttons, muzzle markers,
+measured height/reach/lowest point (and the `modelLift` that clears the floor), a lineup by
+size, and a per-model verdict and notes kept in the browser ("Copy review notes" exports them).
 
 `tools/convert-raptures.py` writes self-contained GLBs and an asset manifest to `public/raptures/`.
 It decodes dense, streamed cubic, and constant transform curves at the source sample rate,
 resolves bone paths, preserves skin weights and bind poses, and converts Unity coordinates to
 glTF. Paths are relative to the Animator: tracks for nonexistent children stay unbound, as
 recorded in `index.json`. In particular, Pelican's obsolete `bmg001` child tracks must not bind
-to the prefab root (doing so tilts the whole model 90 degrees into the floor).
+to the prefab root (doing so tilts the whole model 90 degrees into the floor). Tracks on the
+skinned mesh's own node (Squid, Hard Hat, Hanged Man) also stay unbound: Unity and glTF ignore
+that transform, but Babylon would apply it and tip the model over. Numbered clips are unified
+(`idle_01` → `idle`, `shot_02` → `shot2`), and the texture comes from the material's `_MainTex`.
 Missing clip channels restore the original transform pose. A small per-species `modelLift`
 in `src/enemy.ts` keeps animated geometry above the arena while the gameplay position and
 target ring stay at ground level. The native toon material is
@@ -327,7 +380,10 @@ The game installation is not needed at runtime and is never modified by the conv
 | --- | --- |
 | `tools/sdp.mjs` | SDP1 → animated GLB plus facing analysis |
 | `tools/fetch-chibi.mjs` | download/convert CLI, writes `public/chibi/index.json` |
+| `tools/extract-raptures.py` | copy the SDMonster bundles out of the local install (read-only) |
 | `tools/convert-raptures.py` | local Outpost bundles to animated `public/raptures/*.glb` |
+| `tools/rapture_walks.py` | borrowed/generated walk clips for walk-less Raptures (used by the converter) |
+| `rapture-review.html`, `src/review/` | dev-only Rapture review page (not in the game build) |
 | `src/chibi.ts` | load a chibi, crossfade clips, per-clip facing |
 | `src/main.ts` | input, settings, variant switching, frame layout, game loop |
 | `src/hero.ts` | hero state machine, movement, attacks and abilities |
@@ -357,5 +413,6 @@ The game installation is not needed at runtime and is never modified by the conv
 
 The models are © SHIFT UP / Proxima Beta. NKAS provides them for archival use and does not license
 redistribution. This is fine for a private fan prototype. Don't ship it commercially, and think before
-publishing the converted files. `raw/`, `public/chibi/`, and `public/raptures/` are git-ignored.
+publishing the converted files. `raw/` is git-ignored; `public/chibi/` and `public/raptures/` are
+versioned so a clone runs.
 `npm run chibi` rebuilds heroes and Nikke minions; `npm run raptures` rebuilds enemies from the local bundle copies.

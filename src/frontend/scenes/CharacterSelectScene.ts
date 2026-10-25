@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { openCapstoneLoadout } from "../ui/CapstoneLoadout";
 
 import {
   gameAudio,
@@ -906,7 +907,7 @@ export class CharacterSelectScene extends Phaser.Scene {
     const container = this.add.container(x, y);
     const surface = this.add.graphics();
     const label = this.add
-      .text(width / 2, height / 2, "VIEW TALENT TREE", {
+      .text(width / 2, height / 2, this.currentCharacter.id === "snow-white" ? "CAPSTONE LOADOUT" : "VIEW TALENT TREE", {
         color: "#26313a",
         fontFamily: "Rajdhani",
         fontSize: "19px",
@@ -930,7 +931,13 @@ export class CharacterSelectScene extends Phaser.Scene {
     redraw(false);
     hit.on("pointerover", () => redraw(true));
     hit.on("pointerout", () => redraw(false));
-    hit.on("pointerup", () => this.openTalentTree());
+    hit.on("pointerup", () => {
+      if (this.currentCharacter.id !== "snow-white") { this.openTalentTree(); return; }
+      const dialog = openCapstoneLoadout();
+      const cleanup = () => dialog.remove();
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
+      dialog.addEventListener('close', () => this.events.off(Phaser.Scenes.Events.SHUTDOWN, cleanup), { once: true });
+    });
     container.add([surface, label, hit]);
     return container;
   }

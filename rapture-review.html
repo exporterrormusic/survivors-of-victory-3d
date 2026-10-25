@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rapture Review</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        --bg: #12191b; --panel: rgba(16, 24, 27, .92); --line: #2c3b40; --text: #dfe8ea; --dim: #8fa3a8;
+        --accent: #f0a23a; --good: #5cc98a; --fix: #e8b84a; --reject: #e06060; --none: #4a5a5f;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+        font: 15px/1.35 system-ui, "Segoe UI", sans-serif; }
+      #view { position: fixed; inset: 0; width: 100%; height: 100%; outline: none; touch-action: none; }
+      .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+      #list { top: 12px; left: 12px; bottom: 12px; width: 210px; display: flex; flex-direction: column; }
+      #list header { padding: 12px 14px 8px; font-weight: 700; letter-spacing: .02em; }
+      #list header span { display: block; color: var(--dim); font-weight: 400; font-size: 13px; }
+      #models { flex: 1; overflow-y: auto; padding: 0 6px; }
+      #models button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0;
+        border-radius: 5px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+      #models button:hover { background: #1d292d; }
+      #models button.selected { background: #263a40; }
+      #models i { width: 9px; height: 9px; border-radius: 50%; background: var(--none); flex: none; }
+      #models i.works { background: var(--good); } #models i.fix { background: var(--fix); } #models i.reject { background: var(--reject); }
+      #models small { margin-left: auto; color: var(--dim); font-size: 12px; }
+      #list footer { padding: 10px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+      #card { top: 12px; right: 12px; width: 300px; max-height: calc(100% - 24px); overflow-y: auto; padding: 14px; }
+      #card h2 { margin: 0; font-size: 22px; }
+      #card .id { color: var(--dim); font-size: 13px; margin-bottom: 10px; }
+      #card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 10px 0; font-size: 14px; }
+      #card dt { color: var(--dim); } #card dd { margin: 0; }
+      .flag { margin: 8px 0; padding: 7px 9px; border-radius: 5px; background: #3a2e18; color: #f3d9a4; font-size: 13px; }
+      .row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+      .row button, footer button { flex: 1; padding: 7px 8px; border: 1px solid var(--line); border-radius: 5px;
+        background: #1b2629; color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+      .row button:disabled { opacity: .35; cursor: default; }
+      .row button.on { border-color: var(--accent); color: var(--accent); }
+      .verdict button.on[data-v="works"] { border-color: var(--good); color: var(--good); }
+      .verdict button.on[data-v="fix"] { border-color: var(--fix); color: var(--fix); }
+      .verdict button.on[data-v="reject"] { border-color: var(--reject); color: var(--reject); }
+      textarea { width: 100%; min-height: 70px; resize: vertical; padding: 7px; border: 1px solid var(--line);
+        border-radius: 5px; background: #0f1517; color: var(--text); font: inherit; font-size: 14px; }
+      h3 { margin: 14px 0 4px; font-size: 13px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+      #labels span { position: fixed; transform: translate(-50%, 0); padding: 1px 6px; border-radius: 4px; pointer-events: none;
+        background: rgba(10, 16, 18, .75); font-size: 13px; white-space: nowrap; }
+      #labels span.selected { color: var(--accent); }
+      #status { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 12px; color: var(--dim); font-size: 13px; }
+      #status:empty { display: none; }
+      #status.error { max-width: calc(100% - 32px); color: #ffd0d0; border-color: var(--reject); font-size: 15px; }
+      @media (max-width: 760px) {
+        #list { bottom: auto; right: 12px; width: auto; max-height: 34%; }
+        #card { top: auto; bottom: 12px; left: 12px; width: auto; max-height: 46%; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="labels"></div>
+    <nav id="list" class="panel">
+      <header>Rapture review<span id="progress"></span></header>
+      <div id="models"></div>
+      <footer>
+        <div class="row" id="modes"><button data-mode="focus">Focus</button><button data-mode="lineup">Lineup</button></div>
+        <button id="copy">Copy review notes</button>
+      </footer>
+    </nav>
+    <section id="card" class="panel"></section>
+    <div id="status" class="panel">Loading models…</div>
+    <!-- Dev-only page (npm run dev, then /rapture-review.html). Not part of the game build. -->
+    <script>
+      // The review script is TypeScript that only the Vite dev server can run. Say why instead of
+      // showing "Loading models…" forever: opened another way, or an error while loading.
+      const fail = (text) => { const s = document.getElementById('status'); s.textContent = text; s.classList.add('error'); };
+      const devUrl = 'http://localhost:5173/rapture-review.html';
+      addEventListener('error', (e) => fail(`Review page error: ${e.message}`));
+      addEventListener('unhandledrejection', (e) => fail(`Review page error: ${e.reason?.message ?? e.reason}`));
+      if (location.protocol === 'file:') fail(`Opened as a file. Run npm run dev, then open ${devUrl}`);
+      else setTimeout(() => { if (!window.reviewStarted) fail(`The review script didn't start. Run npm run dev, then open ${devUrl}`); }, 8000);
+    </script>
+    <script type="module" src="/src/review/rapture-review.ts"></script>
+  </body>
+</html>

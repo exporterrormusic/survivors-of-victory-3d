@@ -1,11 +1,15 @@
 import {
-  type Camera, ColorCurves, Constants, DefaultRenderingPipeline, DirectionalLight,
+  type AbstractMesh, type Camera, Color3, ColorCurves, Constants, DefaultRenderingPipeline, DirectionalLight,
   FxaaPostProcess, HemisphericLight, ImageProcessingConfiguration, PBRMaterial,
   type Scene, ShadowGenerator, SSAO2RenderingPipeline, StandardMaterial, Vector3,
 } from '@babylonjs/core';
 import type { World } from './world';
+import { createAnimeLook } from './toon';
+import { createEnemyRedGlow } from './enemy-glow';
+import { createEnemyMetal } from './enemy-metal';
 
 export const VISUAL_PRESETS = {
+  anime: 'Anime',
   daylight: 'Painted daylight',
   warm: 'Warm daylight',
   cool: 'Cool woodland',
@@ -13,11 +17,13 @@ export const VISUAL_PRESETS = {
 } as const;
 export type VisualPreset = keyof typeof VISUAL_PRESETS;
 
-/** First lighting pass: directional depth, contact shading and restrained grades.
- * All three grades share the same lighting. DOM portraits/HUD stay outside the pass. */
-export function createVisualSettings(scene: Scene, camera: Camera, world: World) {
+/** Scene lighting and switchable cel shading. DOM portraits/HUD stay outside the pass. */
+export function createVisualSettings(scene: Scene, camera: Camera, world: Pick<World, 'shadows' | 'glow'>) {
   const sun = scene.getLightByName('sun') as DirectionalLight;
   const hemi = scene.getLightByName('hemi') as HemisphericLight;
+  const toon = createAnimeLook(scene, camera, sun);
+  const enemyGlow = createEnemyRedGlow(scene, camera);
+  const enemyMetal = createEnemyMetal(scene, sun);
   const image = scene.imageProcessingConfiguration;
   const rim = new DirectionalLight('unit-rim', new Vector3(.5, -.35, -1).normalize(), scene);
   rim.diffuse.set(.8, .9, 1);rim.specular.copyFrom(rim.diffuse);
@@ -31,9 +37,66 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
   let occlusion: SSAO2RenderingPipeline | null = null;
   let legacyAA: FxaaPostProcess | null = null;
   let ambientShadows = true;
+  let polish = true;
   let current: VisualPreset = 'original';
+  const atmosphere = { night: 0, dusk: 0, clouds: 0, flash: 0, petals: 0 };
+  const base = { sun: new Color3(), sky: new Color3(), ground: new Color3(), direction: new Vector3(), sunPower: 1, skyPower: 1, rimPower: 0, exposure: 1 };
+  const sunsetDirection = new Vector3(-.85,-.36,.32).normalize();
+  const moonDirection = new Vector3(.5,-.85,.3).normalize();
+  const toonLight = new Color3(), toonShade = new Color3();
+  const lightningWhite = new Color3(.92,.96,1);
+  let playerFill: HemisphericLight | null = null;
+  let baseReady = false;
+
+  function applyAtmosphere(): void {
+    if (!baseReady) return;
+    const { night, dusk, clouds, flash, petals } = atmosphere;
+    // Night already supplies the dark palette. Cloud cover only nudges it further.
+    const cloudShade = clouds * (1 - night * .8);
+    Vector3.LerpToRef(base.direction,sunsetDirection,dusk,sun.direction);sun.direction.normalize();
+    Vector3.LerpToRef(sun.direction,moonDirection,night,sun.direction);sun.direction.normalize();
+    sun.diffuse.set(base.sun.r * (1 - night * .48 + dusk * .10), base.sun.g * (1 - night * .28 - dusk * .09), base.sun.b * (1 + night * .15 - dusk * .28));
+    Color3.LerpToRef(sun.diffuse,lightningWhite,Math.min(1,flash*.7),sun.diffuse);
+    sun.intensity = base.sunPower * (1 - night * .58) * (1 - cloudShade * .6) + flash * 2.5;
+    hemi.diffuse.set(base.sky.r * (1 - night * .35), base.sky.g * (1 - night * .18 - dusk * .05), base.sky.b);
+    hemi.groundColor.set(base.ground.r * (1 - night * .4), base.ground.g * (1 - night * .3), base.ground.b * (1 - night * .1));
+    Color3.LerpToRef(hemi.diffuse,lightningWhite,Math.min(1,flash*.7),hemi.diffuse);
+    hemi.intensity = base.skyPower * (1 - night * .42) * (1 + cloudShade * .12) + flash * .65;
+    rim.intensity = base.rimPower * (1 + night * .2);
+    image.exposure = base.exposure * (1 - night * .28 - cloudShade * .08 - dusk * .04 + flash * .10);
+    // A soft edge falloff uses the existing grading pass and leaves the HUD untouched.
+    image.vignetteEnabled = night > .001;
+    image.vignetteWeight = night * .45;
+    image.vignetteCameraFov = .7;
+    image.vignetteStretch = .5;
+    // Keep cool moonlit faces readable while deepening the cel shadows, rather than
+    // increasing saturation across the painted textures and character skin.
+    toonLight.set((1 - night * .50 + dusk * .12 - cloudShade * .12) + flash * .82,
+      (1 - night * .35 - dusk * .06 - cloudShade * .08) + flash * .82,
+      (1 - night * .10 - dusk * .21) + flash * .8);
+    toonShade.set((1 - night * .64 - dusk * .07 - cloudShade * .12) + flash * .72,
+      (1 - night * .54 - dusk * .06 - cloudShade * .08) + flash * .74,
+      (1 - night * .34) + flash * .76);
+    // Sakura bounce gently warms both material lighting and the anime pass.
+    sun.diffuse.r *= 1 + petals * .07;sun.diffuse.g *= 1 - petals * .06;
+    hemi.diffuse.r *= 1 + petals * .10;hemi.diffuse.g *= 1 - petals * .07;
+    hemi.groundColor.r *= 1 + petals * .16;
+    toonLight.r *= 1 + petals * .045;toonLight.g *= 1 - petals * .045;
+    toonShade.r *= 1 + petals * .09;toonShade.g *= 1 - petals * .04;
+    toon.setAtmosphere(toonLight,toonShade);
+    toon.setPlayerFill(night * 1.3);
+    if (playerFill) {
+      playerFill.intensity = night * .9;
+      playerFill.setEnabled(current !== 'anime' && night > .001 && playerFill.includedOnlyMeshes.length > 0);
+    }
+    enemyGlow.setAtmosphere(night, dusk);
+    enemyMetal.setAtmosphere(night, dusk, flash);
+  }
 
   function refreshUnits(): void {
+    enemyGlow.refresh();
+    enemyMetal.refresh();
+    toon.refresh();
     rim.includedOnlyMeshes = scene.meshes.filter(mesh => !!mesh.skeleton);
     for (const mesh of rim.includedOnlyMeshes) {
       if (!(mesh.material instanceof PBRMaterial)) continue;
@@ -56,11 +119,12 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
       return;
     }
     // AO precedes grading/AA. Preserve HDR scene color through the AO composite.
-    // Geometry buffer avoids a prepass changing the custom terrain material path.
-    if (ambientShadows && aoSupported) {
+    // Use the material prepass so baked crowd animation and material normals match the visible pose.
+    if (ambientShadows && aoSupported && (polish || current !== 'anime')) {
       occlusion = new SSAO2RenderingPipeline('outpost-contact-shadows', scene,
-        { ssaoRatio: .5, blurRatio: 1 }, [camera], true, textureType);
-      occlusion.samples = 16;occlusion.radius = .8;occlusion.totalStrength = .65;
+        { ssaoRatio: .5, blurRatio: 1 }, [camera], !polish, textureType);
+      occlusion.samples = 16;occlusion.radius = polish ? .45 : .8;
+      occlusion.totalStrength = polish ? (current === 'anime' ? .30 : .40) : .65;
       occlusion.base = 0;occlusion.maxZ = 120;occlusion.epsilon = .025;
       occlusion.bilateralSamples = 8;occlusion.bilateralSoften = .25;
     }
@@ -75,18 +139,18 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
     image.colorCurvesEnabled = preset !== 'original';
     image.colorCurves = curves;
     // Parametric color grades, kept editable while the art direction is being tuned.
-    curves.globalSaturation = preset === 'cool' ? -6 : 3;
+    curves.globalSaturation = preset === 'anime' ? 14 : preset === 'cool' ? -6 : 3;
     curves.shadowsHue = preset === 'cool' ? 215 : 220;
-    curves.shadowsDensity = preset === 'cool' ? 18 : 9;
+    curves.shadowsDensity = preset === 'anime' ? 3 : preset === 'cool' ? 18 : 9;
     curves.shadowsExposure = 0;
     curves.highlightsHue = 38;
-    curves.highlightsDensity = preset === 'warm' ? 38 : preset === 'cool' ? 3 : 9;
+    curves.highlightsDensity = preset === 'anime' ? 2 : preset === 'warm' ? 38 : preset === 'cool' ? 3 : 9;
     curves.midtonesHue = preset === 'cool' ? 205 : 36;
     curves.midtonesDensity = preset === 'warm' ? 32 : preset === 'cool' ? 14 : 0;
     image.toneMappingEnabled = preset !== 'original';
     image.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
-    image.exposure = preset === 'original' ? 1.03 : 1.12;
-    image.contrast = preset === 'original' ? 1 : 1.04;
+    image.exposure = preset === 'original' ? 1.03 : preset === 'anime' ? 1.20 : 1.12;
+    image.contrast = preset === 'original' || preset === 'anime' ? 1 : 1.04;
   }
 
   /** Every image-processing, light or material edit rescans all meshes once per material;
@@ -101,6 +165,30 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
     get current(): VisualPreset { return current; },
     get ambientShadowsSupported(): boolean { return aoSupported; },
     refreshUnits,
+    /** Development A/B: compare the shader pass under identical lighting. */
+    setPolish(enabled: boolean): void {
+      polish = enabled;
+      enemyMetal.setPolish(enabled);
+      batched(buildPipeline);
+    },
+    /** Controlled character only; the fill follows its mesh through movement/animation. */
+    setPlayerMeshes(meshes: readonly AbstractMesh[]): void {
+      toon.setPlayerMeshes(meshes);
+      if (!playerFill) {
+        playerFill = new HemisphericLight('player-night-fill',new Vector3(0,1,-.5),scene);
+        playerFill.diffuse.set(.86,.91,1);playerFill.groundColor.set(.45,.50,.62);
+        playerFill.specular.set(0,0,0);
+        playerFill.intensity = 0;playerFill.renderPriority = 1;
+      }
+      playerFill.includedOnlyMeshes = [...meshes];
+      applyAtmosphere();
+    },
+    /** Compose world atmosphere with the chosen art preset; never rebuild postprocessing. */
+    setAtmosphere(night: number, dusk: number, clouds: number, flash: number, petals = 0): void {
+      if (atmosphere.night === night && atmosphere.dusk === dusk && atmosphere.clouds === clouds && atmosphere.flash === flash && atmosphere.petals === petals) return;
+      Object.assign(atmosphere, { night, dusk, clouds, flash, petals });
+      applyAtmosphere();
+    },
     setAmbientShadows(enabled: boolean): void {
       if (ambientShadows === enabled) return;
       ambientShadows = enabled;
@@ -110,8 +198,10 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
   };
 
   function applyPreset(preset: VisualPreset): void {
-    const changedFamily = (current === 'original') !== (preset === 'original');
+    const changedFamily = (current === 'original') !== (preset === 'original')
+      || (current === 'anime') !== (preset === 'anime');
     current = preset;
+    toon.setEnabled(preset === 'anime');
     refreshUnits();
     const previous = preset === 'original';
     // The previous paint was unintentionally self-lit: emissiveTexture adds its
@@ -134,9 +224,18 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: World)
       rim.intensity = .38;world.shadows.darkness = .2;
     }
     world.glow.intensity = .45;
+    if (preset === 'anime') {
+      rim.intensity = 0;
+      world.shadows.darkness = .15;
+    }
     world.shadows.usePercentageCloserFiltering = true;
     world.shadows.filteringQuality = previous ? ShadowGenerator.QUALITY_MEDIUM : ShadowGenerator.QUALITY_HIGH;
     grade(preset);
+    base.sun.copyFrom(sun.diffuse);base.sky.copyFrom(hemi.diffuse);base.ground.copyFrom(hemi.groundColor);
+    base.direction.copyFrom(sun.direction);
+    base.sunPower = sun.intensity;base.skyPower = hemi.intensity;base.rimPower = rim.intensity;base.exposure = image.exposure;
+    baseReady = true;
+    applyAtmosphere();
     if (changedFamily || (!pipeline && !legacyAA)) buildPipeline();
   }
 }

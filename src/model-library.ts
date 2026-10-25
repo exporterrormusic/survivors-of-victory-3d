@@ -48,6 +48,11 @@ export async function preloadModels(scene: Scene, urls: string[]): Promise<void>
       pluginOptions: { gltf: { animationStartMode: GLTFLoaderAnimationStartMode.NONE } },
     });
     optimizeStaticTracks(asset.animationGroups);
+    // Classify by asset origin, so red clothing, scenery and ability effects are
+    // never mistaken for enemy armor. Instances share these source materials.
+    if (url.startsWith(`${import.meta.env.BASE_URL}raptures/`)) {
+      for (const material of asset.materials) material.metadata = { ...material.metadata, enemyRedGlow: true };
+    }
     library.set(url, asset);
   }));
 }

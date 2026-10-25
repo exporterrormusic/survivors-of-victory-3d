@@ -1,0 +1,63 @@
+{
+  "created": "2026-10-25",
+  "tool": "Built-in image_gen",
+  "status": "Design proposals; no gameplay changes",
+  "references": [
+    "../survivors-2026-10-24/T01-hex-attack-tree.png",
+    "../../../artifacts/ui/talent-menu/current-hud.jpg"
+  ],
+  "images": [
+    {
+      "id": "A01",
+      "title": "Ability ranks",
+      "file": "A01-ability-ranks.png",
+      "ratio": "16:9",
+      "model": "New progression: spend points to raise Weapon, Special, or Burst through five authored ranks.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-d56ce451-1ae6-4f5e-88f0-ad9cdd5441ee.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2062376,
+      "sha256": "e46cbd279f4a98f281361ca13f45206de5fd6a580d37ac75b8f4e7b4389629b9",
+      "promptFile": "prompts.json"
+    },
+    {
+      "id": "A02",
+      "title": "Rank roadmap",
+      "file": "A02-rank-roadmap.png",
+      "ratio": "21:9",
+      "model": "Same five-rank system as Ability ranks, with every upcoming upgrade visible in three linear tracks.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-f0acddfc-ee4c-45bf-91e9-7666a482a597.png",
+      "width": 1916,
+      "height": 821,
+      "bytes": 2041250,
+      "sha256": "831d6bafd53ac7c9c40626d25e670cdcc9f991e8d8715d853135a3c607212437",
+      "promptFile": "prompts.json"
+    },
+    {
+      "id": "A03",
+      "title": "Automatic milestones",
+      "file": "A03-automatic-milestones.png",
+      "ratio": "16:9",
+      "model": "New progression: all three abilities improve automatically at shared character-level milestones; no points or purchases.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-737a912b-3838-4374-93eb-bef1d72de391.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2120039,
+      "sha256": "fb0ffb9c4c1c8c450999cedf0f42776d97cd09d023ff7a6d1b1182f417acb51b",
+      "promptFile": "prompts.json"
+    },
+    {
+      "id": "T01",
+      "title": "Illustrated hex tree",
+      "file": "T01-illustrated-hex-tree.png",
+      "ratio": "16:9",
+      "model": "Existing progression: six individual upgrades per category, authored prerequisites, and free mastery after all seven talents.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a1722d-dd77-76d3-a852-e8cdd49c0063\\exec-b7057a2a-707c-42e4-a733-152ed8962786.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2123443,
+      "sha256": "8de2553e98ceb38fd9300c090da7b418947f46ed9fda6a43eff1121442b0c115",
+      "promptFile": "prompts.json"
+    }
+  ]
+}

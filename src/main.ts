@@ -23,16 +23,12 @@ import { Indicators } from './targeting';
 import { ARENA, BLUE_SPAWN, createWorld, type World } from './world';
 import { BATTLEGROUNDS, MAP_ID } from './battleground';
 import { createVisualSettings, VISUAL_PRESETS, type VisualPreset } from './visuals';
+import { fitFrame } from './frame-layout';
+import { loadSetting, saveSetting } from './settings-store';
 // Rajdhani, as in the Survivors of Victory menus; the front end loads it too, but ?hero= links skip it.
 import '@fontsource/rajdhani/600.css';
 import '@fontsource/rajdhani/700.css';
 import './style.css';
-
-
-// Desktop and landscape keep HotS-style aspect limits. Narrow portrait screens
-// use the full viewport so the HUD can reflow without a tiny letterboxed arena.
-const MIN_ASPECT = 16 / 9;
-const MAX_ASPECT = 21 / 9;
 
 // 'hots': Heroes of the Storm. Right-click moves or attacks, A + left-click attack-moves,
 //         S stop, H hold, Q W E R abilities, Z mount, B hearth.
@@ -97,24 +93,8 @@ async function main(): Promise<void> {
 
   // --- frame layout ---------------------------------------------------------
   const minimap = new Minimap($<HTMLCanvasElement>('minimap'), world);
-  const layout = () => {
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-    const portraitViewport = W <= 900 && H > W;
-    const aspect = portraitViewport ? W / H : Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, W / H));
-    let w = W;
-    let h = Math.round(W / aspect);
-    if (h > H) {
-      h = H;
-      w = Math.round(H * aspect);
-    }
-    Object.assign(frame.style, { width: `${w}px`, height: `${h}px`, left: `${(W - w) >> 1}px`, top: `${(H - h) >> 1}px` });
-    frame.style.setProperty('--u', `${h / 1080}px`);
-    engine.resize();
-    minimap.resize();
-  };
-  layout();
-  window.addEventListener('resize', layout);
+  // Desktop and landscape keep HotS-style aspect limits; narrow portrait screens use the full viewport.
+  fitFrame(frame, () => { engine.resize(); minimap.resize(); });
 
   // --- picking --------------------------------------------------------------
   const groundAt = (x: number, y: number): Vector3 | null => {
@@ -516,10 +496,18 @@ async function main(): Promise<void> {
   const visualPreset = loadSetting('visuals', Object.keys(VISUAL_PRESETS) as VisualPreset[], 'daylight');
   for (const [id, label] of Object.entries(VISUAL_PRESETS)) visualSel.add(new Option(label, id, false, id === visualPreset));
   visuals.apply(visualPreset);
+  function syncAmbientControl(): void {
+    const previous = visuals.current === 'original';
+    ambientSel.disabled = previous || !visuals.ambientShadowsSupported;
+    ambientSel.value = ambientSel.disabled ? 'off' : loadSetting('ambient-shadows', ['on', 'off'], 'on');
+    ambientSel.title = previous ? 'Previous lighting keeps contact shading off for comparison.' : 'Subtle contact shading under units and between surfaces.';
+  }
+  syncAmbientControl();
   visualSel.addEventListener('change', () => {
     visualSel.blur();
     visuals.apply(visualSel.value as VisualPreset);
     saveSetting('visuals', visualSel.value);
+    syncAmbientControl();
   });
   ambientSel.addEventListener('change', () => {
     ambientSel.blur();
@@ -633,23 +621,6 @@ async function main(): Promise<void> {
   $('loading').remove();
 
   Object.assign(window, { game: { scene, hero, cam, combat, engine, toScreen } });
-}
-
-function loadSetting<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
-  try {
-    const v = localStorage.getItem(`nikke-moba.${key}`) as T | null;
-    return v && allowed.includes(v) ? v : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveSetting(key: string, value: string): void {
-  try {
-    localStorage.setItem(`nikke-moba.${key}`, value);
-  } catch {
-    // private mode etc.: the setting just won't stick
-  }
 }
 
 async function loadChibi(scene: Scene, world: World, index: ChibiIndex, hero: HeroVariant): Promise<Chibi> {

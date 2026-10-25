@@ -1,0 +1,39 @@
+{
+  "images": [
+    {
+      "theme": "hud",
+      "ratio": "wide",
+      "file": "A02-v4-square-frames-21x9.png",
+      "width": 1916,
+      "height": 821,
+      "fit": "contain"
+    },
+    {
+      "theme": "hud",
+      "ratio": "standard",
+      "file": "A02-v4-square-frames-16x9.png",
+      "width": 1672,
+      "height": 941,
+      "fit": "contain"
+    },
+    {
+      "theme": "previous",
+      "ratio": "wide",
+      "file": "A02-v3-hud-theme-21x9.png",
+      "width": 1916,
+      "height": 821,
+      "fit": "contain"
+    },
+    {
+      "theme": "previous",
+      "ratio": "standard",
+      "file": "A02-v3-hud-theme-16x9.png",
+      "width": 1672,
+      "height": 941,
+      "fit": "contain"
+    }
+  ],
+  "errors": [],
+  "navigation": true,
+  "promptProvenance": true
+}

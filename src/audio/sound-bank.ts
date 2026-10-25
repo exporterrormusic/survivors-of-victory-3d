@@ -59,10 +59,15 @@ export const SFX = {
   whoosh: cue('gameplay/weapons/fire-sword.mp3', .25, 2),
   /** heroic beam */
   burstBeam: cue('gameplay/enemies/beam.wav', .5, 1),
+  /** Snow White's Burst voice, using her existing +1.1 dB voice-line mix. */
+  snowWhiteBurst: cue('voice/characters/snow-white/burst.wav', .5 * 10 ** (1.1 / 20), 1),
+  /** Player turrets must not share cues with Rapture attacks. */
+  snowWhiteTurretFire: cue('gameplay/weapons/fire-rocket.mp3', .18, 2, .12),
   /** many minions fire at once, so these are quiet and tightly limited */
   nikkeMinionFire: cue('gameplay/weapons/fire-assault.mp3', .14, 3, .07),
   raptureBolt: cue('gameplay/enemies/beam.wav', .14, 3, .08),
-  raptureMortar: cue('gameplay/weapons/fire-rocket.mp3', .18, 2, .12),
+  raptureMortar: cue('gameplay/enemies/beam.wav', .22, 3, .12),
+  raptureImpact: cue('gameplay/enemies/rapture-growl.mp3', .16, 3, .12),
   raptureDeath: cue('gameplay/enemies/rapture-growl.mp3', .3, 2, .25),
   /** healing casts and summons */
   heal: cue('ui/confirm.wav', .3, 2),

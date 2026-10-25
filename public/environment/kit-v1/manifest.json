@@ -1,0 +1,2653 @@
+{
+  "version": 1,
+  "units": "metres",
+  "style": "simple anime",
+  "assets": [
+    {
+      "id": "rock-pebbles",
+      "label": "Pebble cluster",
+      "category": "Rocks",
+      "finish": "clean",
+      "file": "rock-pebbles-clean.glb",
+      "bytes": 67720,
+      "triangles": 640,
+      "meshes": 2,
+      "size": [
+        1.5990456342697144,
+        0.2917943596839905,
+        1.3976946473121643
+      ],
+      "bounds": {
+        "min": [
+          -0.6616541147232056,
+          -0.02633512020111084,
+          -0.6483656764030457
+        ],
+        "max": [
+          0.9373915195465088,
+          0.26545923948287964,
+          0.7493289709091187
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-boulder",
+      "label": "Round boulder",
+      "category": "Rocks",
+      "finish": "clean",
+      "file": "rock-boulder-clean.glb",
+      "bytes": 18744,
+      "triangles": 160,
+      "meshes": 2,
+      "size": [
+        2.48940372467041,
+        1.7106663584709167,
+        1.9825902581214905
+      ],
+      "bounds": {
+        "min": [
+          -1.2836154699325562,
+          -0.03141695261001587,
+          -0.98106449842453
+        ],
+        "max": [
+          1.205788254737854,
+          1.6792494058609009,
+          1.0015257596969604
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-flat",
+      "label": "Flat rock",
+      "category": "Rocks",
+      "finish": "clean",
+      "file": "rock-flat-clean.glb",
+      "bytes": 9496,
+      "triangles": 80,
+      "meshes": 1,
+      "size": [
+        2.0169657468795776,
+        0.5969840586185455,
+        1.4463329315185547
+      ],
+      "bounds": {
+        "min": [
+          -1.0069905519485474,
+          -0.024909168481826782,
+          -0.7122105956077576
+        ],
+        "max": [
+          1.0099751949310303,
+          0.5720748901367188,
+          0.7341223359107971
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cliff-face",
+      "label": "Cliff face · 4 m",
+      "category": "Rocks",
+      "finish": "clean",
+      "file": "cliff-face-clean.glb",
+      "bytes": 27984,
+      "triangles": 240,
+      "meshes": 3,
+      "size": [
+        4.21527624130249,
+        3.287057876586914,
+        2.078607201576233
+      ],
+      "bounds": {
+        "min": [
+          -2.109488010406494,
+          -0.08843398094177246,
+          -0.8056908845901489
+        ],
+        "max": [
+          2.105788230895996,
+          3.1986238956451416,
+          1.272916316986084
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-ledge",
+      "label": "Rock ledge",
+      "category": "Rocks",
+      "finish": "clean",
+      "file": "rock-ledge-clean.glb",
+      "bytes": 18736,
+      "triangles": 160,
+      "meshes": 2,
+      "size": [
+        3.3379703760147095,
+        1.3365558981895447,
+        2.0395758748054504
+      ],
+      "bounds": {
+        "min": [
+          -1.7688690423965454,
+          0.0025395750999450684,
+          -1.1096875667572021
+        ],
+        "max": [
+          1.569101333618164,
+          1.3390954732894897,
+          0.9298883080482483
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-straight",
+      "label": "Wall · 2 m",
+      "category": "Walls",
+      "finish": "clean",
+      "file": "wall-straight-clean.glb",
+      "bytes": 14392,
+      "triangles": 156,
+      "meshes": 3,
+      "size": [
+        2,
+        1.4704999732971191,
+        0.64
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0.009500002861022955,
+          -0.32
+        ],
+        "max": [
+          1,
+          1.4799999761581422,
+          0.32
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-corner",
+      "label": "Wall corner",
+      "category": "Walls",
+      "finish": "clean",
+      "file": "wall-corner-clean.glb",
+      "bytes": 26156,
+      "triangles": 324,
+      "meshes": 3,
+      "size": [
+        2.3200000000000003,
+        1.58,
+        2.32
+      ],
+      "bounds": {
+        "min": [
+          -2,
+          2.1457672083613488e-8,
+          -0.32
+        ],
+        "max": [
+          0.32000000000000023,
+          1.5800000214576722,
+          2
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-end",
+      "label": "End pillar",
+      "category": "Walls",
+      "finish": "clean",
+      "file": "wall-end-clean.glb",
+      "bytes": 4060,
+      "triangles": 24,
+      "meshes": 2,
+      "size": [
+        0.76,
+        1.6600000214576722,
+        0.76
+      ],
+      "bounds": {
+        "min": [
+          -0.38,
+          2.1457672083613488e-8,
+          -0.38
+        ],
+        "max": [
+          0.38,
+          1.6600000429153443,
+          0.38
+        ]
+      },
+      "sockets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-broken",
+      "label": "Broken wall · 2 m",
+      "category": "Walls",
+      "finish": "clean",
+      "file": "wall-broken-clean.glb",
+      "bytes": 26556,
+      "triangles": 256,
+      "meshes": 3,
+      "size": [
+        2.0233938686847686,
+        1.3103776216506957,
+        1.0719399154186249
+      ],
+      "bounds": {
+        "min": [
+          -0.993,
+          0.004122376441955566,
+          -0.5032170712947845
+        ],
+        "max": [
+          1.0303938686847687,
+          1.3144999980926513,
+          0.5687228441238403
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-gate",
+      "label": "Gate · 4 m",
+      "category": "Walls",
+      "finish": "clean",
+      "file": "wall-gate-clean.glb",
+      "bytes": 18744,
+      "triangles": 204,
+      "meshes": 4,
+      "size": [
+        4.18,
+        2.6199999713897704,
+        0.8
+      ],
+      "bounds": {
+        "min": [
+          -2.09,
+          0,
+          -0.4
+        ],
+        "max": [
+          2.09,
+          2.6199999713897704,
+          0.4
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "path-stones",
+      "label": "Stepping stones · 2 m",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "path-stones-clean.glb",
+      "bytes": 9268,
+      "triangles": 160,
+      "meshes": 2,
+      "size": [
+        1.435459315776825,
+        0.12,
+        2.129919251181166
+      ],
+      "bounds": {
+        "min": [
+          -0.6756492445297155,
+          -1.341104505225843e-9,
+          -1.0902731200120472
+        ],
+        "max": [
+          0.7598100712471094,
+          0.11999999865889549,
+          1.039646131169119
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "stairs-stone",
+      "label": "Stone stairs · 2 m",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "stairs-stone-clean.glb",
+      "bytes": 9940,
+      "triangles": 96,
+      "meshes": 3,
+      "size": [
+        2,
+        1.03,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -1
+        ],
+        "max": [
+          1,
+          1.03,
+          1
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-dirt",
+      "label": "Dirt patch",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "patch-dirt-clean.glb",
+      "bytes": 21252,
+      "triangles": 440,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04850000020861626,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.048999999433755874,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-gravel",
+      "label": "Gravel patch",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "patch-gravel-clean.glb",
+      "bytes": 86844,
+      "triangles": 840,
+      "meshes": 3,
+      "size": [
+        2.6563780307769775,
+        0.11253600746393204,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.11303600668907166,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-moss",
+      "label": "Moss patch",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "patch-moss-clean.glb",
+      "bytes": 21248,
+      "triangles": 440,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04850000020861626,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.048999999433755874,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-puddle",
+      "label": "Shallow puddle",
+      "category": "Ground",
+      "finish": "clean",
+      "file": "patch-puddle-clean.glb",
+      "bytes": 10980,
+      "triangles": 200,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04750000053644181,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.047999999761581424,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-grass",
+      "label": "Grass tuft",
+      "category": "Plants",
+      "finish": "clean",
+      "file": "plant-grass-clean.glb",
+      "bytes": 5128,
+      "triangles": 60,
+      "meshes": 2,
+      "size": [
+        1.2296982369771534,
+        0.833190159429796,
+        0.9817684519514102
+      ],
+      "bounds": {
+        "min": [
+          -0.6134731056156651,
+          0,
+          -0.49816880717875034
+        ],
+        "max": [
+          0.6162251313614882,
+          0.833190159429796,
+          0.4835996447726598
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-bush",
+      "label": "Round bush",
+      "category": "Plants",
+      "finish": "clean",
+      "file": "plant-bush-clean.glb",
+      "bytes": 51380,
+      "triangles": 480,
+      "meshes": 2,
+      "size": [
+        1.7858356833457947,
+        1.1479726731777191,
+        1.7478012442588806
+      ],
+      "bounds": {
+        "min": [
+          -0.8792555928230286,
+          0.04099157452583313,
+          -0.9092586040496826
+        ],
+        "max": [
+          0.9065800905227661,
+          1.1889642477035522,
+          0.838542640209198
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-fern",
+      "label": "Fern",
+      "category": "Plants",
+      "finish": "clean",
+      "file": "plant-fern-clean.glb",
+      "bytes": 88924,
+      "triangles": 2000,
+      "meshes": 2,
+      "size": [
+        1.8038891921760665,
+        0.7657870409624342,
+        1.7841816970951052
+      ],
+      "bounds": {
+        "min": [
+          -0.8953194465664716,
+          1.4901161138336505e-9,
+          -0.9052526395716152
+        ],
+        "max": [
+          0.908569745609595,
+          0.7657870424525504,
+          0.87892905752349
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-reeds",
+      "label": "Reeds",
+      "category": "Plants",
+      "finish": "clean",
+      "file": "plant-reeds-clean.glb",
+      "bytes": 32376,
+      "triangles": 672,
+      "meshes": 3,
+      "size": [
+        1.7868395552104723,
+        1.664270069982096,
+        1.7671832135125383
+      ],
+      "bounds": {
+        "min": [
+          -0.8868395552104724,
+          -0.0015462569251503133,
+          -0.8967038529217506
+        ],
+        "max": [
+          0.9,
+          1.6627238130569457,
+          0.8704793605907877
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "log-fallen",
+      "label": "Fallen log",
+      "category": "Plants",
+      "finish": "clean",
+      "file": "log-fallen-clean.glb",
+      "bytes": 16092,
+      "triangles": 320,
+      "meshes": 2,
+      "size": [
+        0.9646023329373699,
+        0.6670711881661656,
+        2.629000040054321
+      ],
+      "bounds": {
+        "min": [
+          -0.3,
+          0.014683057032382596,
+          -1.3145000200271606
+        ],
+        "max": [
+          0.6646023329373698,
+          0.6817542451985482,
+          1.3145000200271606
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-crate",
+      "label": "Wooden crate",
+      "category": "Cover",
+      "finish": "clean",
+      "file": "cover-crate-clean.glb",
+      "bytes": 30372,
+      "triangles": 384,
+      "meshes": 3,
+      "size": [
+        1.3,
+        1.1649999833106994,
+        1.3899999523162843
+      ],
+      "bounds": {
+        "min": [
+          -0.65,
+          1.1920928910669204e-8,
+          -0.6949999761581421
+        ],
+        "max": [
+          0.65,
+          1.1649999952316283,
+          0.6949999761581421
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrel",
+      "label": "Metal barrel",
+      "category": "Cover",
+      "finish": "clean",
+      "file": "cover-barrel-clean.glb",
+      "bytes": 15488,
+      "triangles": 280,
+      "meshes": 3,
+      "size": [
+        0.91,
+        1.2125000596046447,
+        0.8654614298285899
+      ],
+      "bounds": {
+        "min": [
+          -0.455,
+          -1.1920928910669204e-8,
+          -0.43273071491429493
+        ],
+        "max": [
+          0.455,
+          1.2125000476837158,
+          0.43273071491429493
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrier",
+      "label": "Concrete barrier · 2 m",
+      "category": "Cover",
+      "finish": "clean",
+      "file": "cover-barrier-clean.glb",
+      "bytes": 8008,
+      "triangles": 60,
+      "meshes": 3,
+      "size": [
+        2.08,
+        1.0499999536573887,
+        0.85
+      ],
+      "bounds": {
+        "min": [
+          -1.04,
+          -1.341104505225843e-9,
+          -0.425
+        ],
+        "max": [
+          1.04,
+          1.0499999523162842,
+          0.425
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-timber",
+      "label": "Stacked timber",
+      "category": "Cover",
+      "finish": "clean",
+      "file": "cover-timber-clean.glb",
+      "bytes": 62348,
+      "triangles": 1400,
+      "meshes": 2,
+      "size": [
+        1.4299999785423279,
+        0.8669965942491844,
+        2.4289999923706054
+      ],
+      "bounds": {
+        "min": [
+          -0.7149999892711639,
+          0.016501713306220606,
+          -1.2144999961853027
+        ],
+        "max": [
+          0.7149999892711639,
+          0.883498307555405,
+          1.2144999961853027
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-scrap",
+      "label": "Scrap pile",
+      "category": "Cover",
+      "finish": "clean",
+      "file": "cover-scrap-clean.glb",
+      "bytes": 14516,
+      "triangles": 204,
+      "meshes": 3,
+      "size": [
+        1.8873290388618977,
+        0.8374975634138115,
+        1.7712492961637758
+      ],
+      "bounds": {
+        "min": [
+          -0.7862875644730216,
+          -0.034084551793521156,
+          -0.8022538217007953
+        ],
+        "max": [
+          1.1010414743888761,
+          0.8034130116202903,
+          0.9689954744629805
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-pebbles",
+      "label": "Pebble cluster",
+      "category": "Rocks",
+      "finish": "mossy",
+      "file": "rock-pebbles-mossy.glb",
+      "bytes": 93488,
+      "triangles": 882,
+      "meshes": 3,
+      "size": [
+        1.5990456640720367,
+        0.3067943596839905,
+        1.3976946473121643
+      ],
+      "bounds": {
+        "min": [
+          -0.6616541147232056,
+          -0.02633512020111084,
+          -0.6483656764030457
+        ],
+        "max": [
+          0.9373915493488312,
+          0.28045923948287965,
+          0.7493289709091187
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-boulder",
+      "label": "Round boulder",
+      "category": "Rocks",
+      "finish": "mossy",
+      "file": "rock-boulder-mossy.glb",
+      "bytes": 25336,
+      "triangles": 214,
+      "meshes": 3,
+      "size": [
+        2.48940372467041,
+        1.7256663584709169,
+        1.9825902581214905
+      ],
+      "bounds": {
+        "min": [
+          -1.2836154699325562,
+          -0.03141695261001587,
+          -0.98106449842453
+        ],
+        "max": [
+          1.205788254737854,
+          1.694249405860901,
+          1.0015257596969604
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-flat",
+      "label": "Flat rock",
+      "category": "Rocks",
+      "finish": "mossy",
+      "file": "rock-flat-mossy.glb",
+      "bytes": 13528,
+      "triangles": 109,
+      "meshes": 2,
+      "size": [
+        2.0169657468795776,
+        0.6119840884208679,
+        1.4463329315185547
+      ],
+      "bounds": {
+        "min": [
+          -1.0069905519485474,
+          -0.024909168481826782,
+          -0.7122105956077576
+        ],
+        "max": [
+          1.0099751949310303,
+          0.5870749199390412,
+          0.7341223359107971
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cliff-face",
+      "label": "Cliff face · 4 m",
+      "category": "Rocks",
+      "finish": "mossy",
+      "file": "cliff-face-mossy.glb",
+      "bytes": 36928,
+      "triangles": 317,
+      "meshes": 4,
+      "size": [
+        4.21527636051178,
+        3.3020578765869137,
+        2.078607201576233
+      ],
+      "bounds": {
+        "min": [
+          -2.1094881296157837,
+          -0.08843398094177246,
+          -0.8056908845901489
+        ],
+        "max": [
+          2.105788230895996,
+          3.2136238956451413,
+          1.272916316986084
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-ledge",
+      "label": "Rock ledge",
+      "category": "Rocks",
+      "finish": "mossy",
+      "file": "rock-ledge-mossy.glb",
+      "bytes": 26040,
+      "triangles": 221,
+      "meshes": 3,
+      "size": [
+        3.3379703983664513,
+        1.3515558683872224,
+        2.0395758748054504
+      ],
+      "bounds": {
+        "min": [
+          -1.7688690423965454,
+          0.0025395750999450684,
+          -1.1096875667572021
+        ],
+        "max": [
+          1.5691013559699059,
+          1.3540954434871675,
+          0.9298883080482483
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-straight",
+      "label": "Wall · 2 m",
+      "category": "Walls",
+      "finish": "mossy",
+      "file": "wall-straight-mossy.glb",
+      "bytes": 16280,
+      "triangles": 168,
+      "meshes": 4,
+      "size": [
+        2,
+        1.5404999828338621,
+        0.64
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0.009500002861022955,
+          -0.32
+        ],
+        "max": [
+          1,
+          1.5499999856948852,
+          0.32
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-corner",
+      "label": "Wall corner",
+      "category": "Walls",
+      "finish": "mossy",
+      "file": "wall-corner-mossy.glb",
+      "bytes": 37052,
+      "triangles": 428,
+      "meshes": 4,
+      "size": [
+        2.3200000000000003,
+        1.6399666415154934,
+        2.32
+      ],
+      "bounds": {
+        "min": [
+          -2,
+          2.1457672083613488e-8,
+          -0.32
+        ],
+        "max": [
+          0.32000000000000023,
+          1.6399666629731655,
+          2
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-end",
+      "label": "End pillar",
+      "category": "Walls",
+      "finish": "mossy",
+      "file": "wall-end-mossy.glb",
+      "bytes": 13296,
+      "triangles": 104,
+      "meshes": 3,
+      "size": [
+        0.76,
+        1.7399666094779969,
+        0.76
+      ],
+      "bounds": {
+        "min": [
+          -0.38,
+          2.1457672083613488e-8,
+          -0.38
+        ],
+        "max": [
+          0.38,
+          1.739966630935669,
+          0.38
+        ]
+      },
+      "sockets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-broken",
+      "label": "Broken wall · 2 m",
+      "category": "Walls",
+      "finish": "mossy",
+      "file": "wall-broken-mossy.glb",
+      "bytes": 26560,
+      "triangles": 256,
+      "meshes": 3,
+      "size": [
+        2.0233938686847686,
+        1.3103776216506957,
+        1.0719399154186249
+      ],
+      "bounds": {
+        "min": [
+          -0.993,
+          0.004122376441955566,
+          -0.5032170712947845
+        ],
+        "max": [
+          1.0303938686847687,
+          1.3144999980926513,
+          0.5687228441238403
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-gate",
+      "label": "Gate · 4 m",
+      "category": "Walls",
+      "finish": "mossy",
+      "file": "wall-gate-mossy.glb",
+      "bytes": 36132,
+      "triangles": 364,
+      "meshes": 5,
+      "size": [
+        4.18,
+        2.6899666786193848,
+        0.8
+      ],
+      "bounds": {
+        "min": [
+          -2.09,
+          0,
+          -0.4
+        ],
+        "max": [
+          2.09,
+          2.6899666786193848,
+          0.4
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "path-stones",
+      "label": "Stepping stones · 2 m",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "path-stones-mossy.glb",
+      "bytes": 43000,
+      "triangles": 480,
+      "meshes": 3,
+      "size": [
+        1.435459315776825,
+        0.16996663942933082,
+        2.129919251181166
+      ],
+      "bounds": {
+        "min": [
+          -0.6756492445297155,
+          -1.341104505225843e-9,
+          -1.0902731200120472
+        ],
+        "max": [
+          0.7598100712471094,
+          0.16996663808822632,
+          1.039646131169119
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "stairs-stone",
+      "label": "Stone stairs · 2 m",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "stairs-stone-mossy.glb",
+      "bytes": 14348,
+      "triangles": 144,
+      "meshes": 4,
+      "size": [
+        2,
+        1.0674999523162843,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -1
+        ],
+        "max": [
+          1,
+          1.0674999523162843,
+          1
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-dirt",
+      "label": "Dirt patch",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "patch-dirt-mossy.glb",
+      "bytes": 21236,
+      "triangles": 440,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04850000020861626,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.048999999433755874,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-gravel",
+      "label": "Gravel patch",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "patch-gravel-mossy.glb",
+      "bytes": 86840,
+      "triangles": 840,
+      "meshes": 3,
+      "size": [
+        2.6563780307769775,
+        0.11253600746393204,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.11303600668907166,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-moss",
+      "label": "Moss patch",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "patch-moss-mossy.glb",
+      "bytes": 21252,
+      "triangles": 440,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04850000020861626,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.048999999433755874,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-puddle",
+      "label": "Shallow puddle",
+      "category": "Ground",
+      "finish": "mossy",
+      "file": "patch-puddle-mossy.glb",
+      "bytes": 10984,
+      "triangles": 200,
+      "meshes": 2,
+      "size": [
+        2.6563780307769775,
+        0.04750000053644181,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.047999999761581424,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-grass",
+      "label": "Grass tuft",
+      "category": "Plants",
+      "finish": "mossy",
+      "file": "plant-grass-mossy.glb",
+      "bytes": 5132,
+      "triangles": 60,
+      "meshes": 2,
+      "size": [
+        1.2296982369771534,
+        0.833190159429796,
+        0.9817684519514102
+      ],
+      "bounds": {
+        "min": [
+          -0.6134731056156651,
+          0,
+          -0.49816880717875034
+        ],
+        "max": [
+          0.6162251313614882,
+          0.833190159429796,
+          0.4835996447726598
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-bush",
+      "label": "Round bush",
+      "category": "Plants",
+      "finish": "mossy",
+      "file": "plant-bush-mossy.glb",
+      "bytes": 68172,
+      "triangles": 634,
+      "meshes": 3,
+      "size": [
+        1.7858356833457947,
+        1.1629726731777192,
+        1.7478012442588806
+      ],
+      "bounds": {
+        "min": [
+          -0.8792555928230286,
+          0.04099157452583313,
+          -0.9092586040496826
+        ],
+        "max": [
+          0.9065800905227661,
+          1.2039642477035524,
+          0.838542640209198
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-fern",
+      "label": "Fern",
+      "category": "Plants",
+      "finish": "mossy",
+      "file": "plant-fern-mossy.glb",
+      "bytes": 88928,
+      "triangles": 2000,
+      "meshes": 2,
+      "size": [
+        1.8038891921760665,
+        0.7657870409624342,
+        1.7841816970951052
+      ],
+      "bounds": {
+        "min": [
+          -0.8953194465664716,
+          1.4901161138336505e-9,
+          -0.9052526395716152
+        ],
+        "max": [
+          0.908569745609595,
+          0.7657870424525504,
+          0.87892905752349
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-reeds",
+      "label": "Reeds",
+      "category": "Plants",
+      "finish": "mossy",
+      "file": "plant-reeds-mossy.glb",
+      "bytes": 32364,
+      "triangles": 672,
+      "meshes": 3,
+      "size": [
+        1.7868395552104723,
+        1.664270069982096,
+        1.7671832135125383
+      ],
+      "bounds": {
+        "min": [
+          -0.8868395552104724,
+          -0.0015462569251503133,
+          -0.8967038529217506
+        ],
+        "max": [
+          0.9,
+          1.6627238130569457,
+          0.8704793605907877
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "log-fallen",
+      "label": "Fallen log",
+      "category": "Plants",
+      "finish": "mossy",
+      "file": "log-fallen-mossy.glb",
+      "bytes": 17992,
+      "triangles": 332,
+      "meshes": 3,
+      "size": [
+        0.9646023329373699,
+        0.6670711881661656,
+        2.629000040054321
+      ],
+      "bounds": {
+        "min": [
+          -0.3,
+          0.014683057032382596,
+          -1.3145000200271606
+        ],
+        "max": [
+          0.6646023329373698,
+          0.6817542451985482,
+          1.3145000200271606
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-crate",
+      "label": "Wooden crate",
+      "category": "Cover",
+      "finish": "mossy",
+      "file": "cover-crate-mossy.glb",
+      "bytes": 39604,
+      "triangles": 464,
+      "meshes": 4,
+      "size": [
+        1.3,
+        1.2599665999412537,
+        1.3899999523162843
+      ],
+      "bounds": {
+        "min": [
+          -0.65,
+          1.1920928910669204e-8,
+          -0.6949999761581421
+        ],
+        "max": [
+          0.65,
+          1.2599666118621826,
+          0.6949999761581421
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrel",
+      "label": "Metal barrel",
+      "category": "Cover",
+      "finish": "mossy",
+      "file": "cover-barrel-mossy.glb",
+      "bytes": 24740,
+      "triangles": 360,
+      "meshes": 4,
+      "size": [
+        0.91,
+        1.2599666237831115,
+        0.8654614298285899
+      ],
+      "bounds": {
+        "min": [
+          -0.455,
+          -1.1920928910669204e-8,
+          -0.43273071491429493
+        ],
+        "max": [
+          0.455,
+          1.2599666118621826,
+          0.43273071491429493
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrier",
+      "label": "Concrete barrier · 2 m",
+      "category": "Cover",
+      "finish": "mossy",
+      "file": "cover-barrier-mossy.glb",
+      "bytes": 9896,
+      "triangles": 72,
+      "meshes": 4,
+      "size": [
+        2.08,
+        1.1075000490248204,
+        0.85
+      ],
+      "bounds": {
+        "min": [
+          -1.04,
+          -1.341104505225843e-9,
+          -0.425
+        ],
+        "max": [
+          1.04,
+          1.1075000476837158,
+          0.425
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-timber",
+      "label": "Stacked timber",
+      "category": "Cover",
+      "finish": "mossy",
+      "file": "cover-timber-mossy.glb",
+      "bytes": 67592,
+      "triangles": 1460,
+      "meshes": 3,
+      "size": [
+        1.4299999785423279,
+        0.8874983019525684,
+        2.4289999923706054
+      ],
+      "bounds": {
+        "min": [
+          -0.7149999892711639,
+          0.016501713306220606,
+          -1.2144999961853027
+        ],
+        "max": [
+          0.7149999892711639,
+          0.904000015258789,
+          1.2144999961853027
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-scrap",
+      "label": "Scrap pile",
+      "category": "Cover",
+      "finish": "mossy",
+      "file": "cover-scrap-mossy.glb",
+      "bytes": 23768,
+      "triangles": 284,
+      "meshes": 4,
+      "size": [
+        1.8873290388618977,
+        0.8374975634138115,
+        1.7712492961637758
+      ],
+      "bounds": {
+        "min": [
+          -0.7862875644730216,
+          -0.034084551793521156,
+          -0.8022538217007953
+        ],
+        "max": [
+          1.1010414743888761,
+          0.8034130116202903,
+          0.9689954744629805
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-pebbles",
+      "label": "Pebble cluster",
+      "category": "Rocks",
+      "finish": "snowy",
+      "file": "rock-pebbles-snowy.glb",
+      "bytes": 93480,
+      "triangles": 882,
+      "meshes": 3,
+      "size": [
+        1.5990456640720367,
+        0.3067943596839905,
+        1.3976946473121643
+      ],
+      "bounds": {
+        "min": [
+          -0.6616541147232056,
+          -0.02633512020111084,
+          -0.6483656764030457
+        ],
+        "max": [
+          0.9373915493488312,
+          0.28045923948287965,
+          0.7493289709091187
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-boulder",
+      "label": "Round boulder",
+      "category": "Rocks",
+      "finish": "snowy",
+      "file": "rock-boulder-snowy.glb",
+      "bytes": 25328,
+      "triangles": 214,
+      "meshes": 3,
+      "size": [
+        2.48940372467041,
+        1.7256663584709169,
+        1.9825902581214905
+      ],
+      "bounds": {
+        "min": [
+          -1.2836154699325562,
+          -0.03141695261001587,
+          -0.98106449842453
+        ],
+        "max": [
+          1.205788254737854,
+          1.694249405860901,
+          1.0015257596969604
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-flat",
+      "label": "Flat rock",
+      "category": "Rocks",
+      "finish": "snowy",
+      "file": "rock-flat-snowy.glb",
+      "bytes": 13520,
+      "triangles": 109,
+      "meshes": 2,
+      "size": [
+        2.0169657468795776,
+        0.6119840884208679,
+        1.4463329315185547
+      ],
+      "bounds": {
+        "min": [
+          -1.0069905519485474,
+          -0.024909168481826782,
+          -0.7122105956077576
+        ],
+        "max": [
+          1.0099751949310303,
+          0.5870749199390412,
+          0.7341223359107971
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cliff-face",
+      "label": "Cliff face · 4 m",
+      "category": "Rocks",
+      "finish": "snowy",
+      "file": "cliff-face-snowy.glb",
+      "bytes": 36916,
+      "triangles": 317,
+      "meshes": 4,
+      "size": [
+        4.21527636051178,
+        3.3020578765869137,
+        2.078607201576233
+      ],
+      "bounds": {
+        "min": [
+          -2.1094881296157837,
+          -0.08843398094177246,
+          -0.8056908845901489
+        ],
+        "max": [
+          2.105788230895996,
+          3.2136238956451413,
+          1.272916316986084
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "rock-ledge",
+      "label": "Rock ledge",
+      "category": "Rocks",
+      "finish": "snowy",
+      "file": "rock-ledge-snowy.glb",
+      "bytes": 26036,
+      "triangles": 221,
+      "meshes": 3,
+      "size": [
+        3.3379703983664513,
+        1.3515558683872224,
+        2.0395758748054504
+      ],
+      "bounds": {
+        "min": [
+          -1.7688690423965454,
+          0.0025395750999450684,
+          -1.1096875667572021
+        ],
+        "max": [
+          1.5691013559699059,
+          1.3540954434871675,
+          0.9298883080482483
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-straight",
+      "label": "Wall · 2 m",
+      "category": "Walls",
+      "finish": "snowy",
+      "file": "wall-straight-snowy.glb",
+      "bytes": 16272,
+      "triangles": 168,
+      "meshes": 4,
+      "size": [
+        2,
+        1.5404999828338621,
+        0.64
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0.009500002861022955,
+          -0.32
+        ],
+        "max": [
+          1,
+          1.5499999856948852,
+          0.32
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-corner",
+      "label": "Wall corner",
+      "category": "Walls",
+      "finish": "snowy",
+      "file": "wall-corner-snowy.glb",
+      "bytes": 37044,
+      "triangles": 428,
+      "meshes": 4,
+      "size": [
+        2.3200000000000003,
+        1.679933280646801,
+        2.32
+      ],
+      "bounds": {
+        "min": [
+          -2,
+          2.1457672083613488e-8,
+          -0.32
+        ],
+        "max": [
+          0.32000000000000023,
+          1.6799333021044731,
+          2
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-end",
+      "label": "End pillar",
+      "category": "Walls",
+      "finish": "snowy",
+      "file": "wall-end-snowy.glb",
+      "bytes": 13288,
+      "triangles": 104,
+      "meshes": 3,
+      "size": [
+        0.76,
+        1.7799333119392395,
+        0.76
+      ],
+      "bounds": {
+        "min": [
+          -0.38,
+          2.1457672083613488e-8,
+          -0.38
+        ],
+        "max": [
+          0.38,
+          1.7799333333969116,
+          0.38
+        ]
+      },
+      "sockets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-broken",
+      "label": "Broken wall · 2 m",
+      "category": "Walls",
+      "finish": "snowy",
+      "file": "wall-broken-snowy.glb",
+      "bytes": 26556,
+      "triangles": 256,
+      "meshes": 3,
+      "size": [
+        2.0233938686847686,
+        1.3103776216506957,
+        1.0719399154186249
+      ],
+      "bounds": {
+        "min": [
+          -0.993,
+          0.004122376441955566,
+          -0.5032170712947845
+        ],
+        "max": [
+          1.0303938686847687,
+          1.3144999980926513,
+          0.5687228441238403
+        ]
+      },
+      "sockets": [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "wall-gate",
+      "label": "Gate · 4 m",
+      "category": "Walls",
+      "finish": "snowy",
+      "file": "wall-gate-snowy.glb",
+      "bytes": 36140,
+      "triangles": 364,
+      "meshes": 5,
+      "size": [
+        4.18,
+        2.729933261871338,
+        0.8
+      ],
+      "bounds": {
+        "min": [
+          -2.09,
+          0,
+          -0.4
+        ],
+        "max": [
+          2.09,
+          2.729933261871338,
+          0.4
+        ]
+      },
+      "sockets": [
+        [
+          -2,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0
+        ]
+      ],
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "path-stones",
+      "label": "Stepping stones · 2 m",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "path-stones-snowy.glb",
+      "bytes": 42992,
+      "triangles": 480,
+      "meshes": 3,
+      "size": [
+        1.435459315776825,
+        0.20993328228592872,
+        2.129919251181166
+      ],
+      "bounds": {
+        "min": [
+          -0.6756492445297155,
+          -1.341104505225843e-9,
+          -1.0902731200120472
+        ],
+        "max": [
+          0.7598100712471094,
+          0.20993328094482422,
+          1.039646131169119
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "stairs-stone",
+      "label": "Stone stairs · 2 m",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "stairs-stone-snowy.glb",
+      "bytes": 14340,
+      "triangles": 144,
+      "meshes": 4,
+      "size": [
+        2,
+        1.0674999523162843,
+        2
+      ],
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -1
+        ],
+        "max": [
+          1,
+          1.0674999523162843,
+          1
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-dirt",
+      "label": "Dirt patch",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "patch-dirt-snowy.glb",
+      "bytes": 25744,
+      "triangles": 520,
+      "meshes": 3,
+      "size": [
+        2.6563780307769775,
+        0.0819999983906746,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.08249999761581421,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-gravel",
+      "label": "Gravel patch",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "patch-gravel-snowy.glb",
+      "bytes": 91336,
+      "triangles": 920,
+      "meshes": 4,
+      "size": [
+        2.6563780307769775,
+        0.11253600746393204,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.11303600668907166,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-moss",
+      "label": "Moss patch",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "patch-moss-snowy.glb",
+      "bytes": 25744,
+      "triangles": 520,
+      "meshes": 3,
+      "size": [
+        2.6563780307769775,
+        0.0819999983906746,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.08249999761581421,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "patch-puddle",
+      "label": "Shallow puddle",
+      "category": "Ground",
+      "finish": "snowy",
+      "file": "patch-puddle-snowy.glb",
+      "bytes": 15476,
+      "triangles": 280,
+      "meshes": 3,
+      "size": [
+        2.6563780307769775,
+        0.0819999983906746,
+        2.020754479302936
+      ],
+      "bounds": {
+        "min": [
+          -1.2019477696471164,
+          0.0004999992251396163,
+          -1.091581865709598
+        ],
+        "max": [
+          1.4544302611298612,
+          0.08249999761581421,
+          0.9291726135933382
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-grass",
+      "label": "Grass tuft",
+      "category": "Plants",
+      "finish": "snowy",
+      "file": "plant-grass-snowy.glb",
+      "bytes": 5128,
+      "triangles": 60,
+      "meshes": 2,
+      "size": [
+        1.2296982369771534,
+        0.833190159429796,
+        0.9817684519514102
+      ],
+      "bounds": {
+        "min": [
+          -0.6134731056156651,
+          0,
+          -0.49816880717875034
+        ],
+        "max": [
+          0.6162251313614882,
+          0.833190159429796,
+          0.4835996447726598
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-bush",
+      "label": "Round bush",
+      "category": "Plants",
+      "finish": "snowy",
+      "file": "plant-bush-snowy.glb",
+      "bytes": 68164,
+      "triangles": 634,
+      "meshes": 3,
+      "size": [
+        1.7858356833457947,
+        1.1629726731777192,
+        1.7478012442588806
+      ],
+      "bounds": {
+        "min": [
+          -0.8792555928230286,
+          0.04099157452583313,
+          -0.9092586040496826
+        ],
+        "max": [
+          0.9065800905227661,
+          1.2039642477035524,
+          0.838542640209198
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-fern",
+      "label": "Fern",
+      "category": "Plants",
+      "finish": "snowy",
+      "file": "plant-fern-snowy.glb",
+      "bytes": 88920,
+      "triangles": 2000,
+      "meshes": 2,
+      "size": [
+        1.8038891921760665,
+        0.7657870409624342,
+        1.7841816970951052
+      ],
+      "bounds": {
+        "min": [
+          -0.8953194465664716,
+          1.4901161138336505e-9,
+          -0.9052526395716152
+        ],
+        "max": [
+          0.908569745609595,
+          0.7657870424525504,
+          0.87892905752349
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "plant-reeds",
+      "label": "Reeds",
+      "category": "Plants",
+      "finish": "snowy",
+      "file": "plant-reeds-snowy.glb",
+      "bytes": 32372,
+      "triangles": 672,
+      "meshes": 3,
+      "size": [
+        1.7868395552104723,
+        1.664270069982096,
+        1.7671832135125383
+      ],
+      "bounds": {
+        "min": [
+          -0.8868395552104724,
+          -0.0015462569251503133,
+          -0.8967038529217506
+        ],
+        "max": [
+          0.9,
+          1.6627238130569457,
+          0.8704793605907877
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "log-fallen",
+      "label": "Fallen log",
+      "category": "Plants",
+      "finish": "snowy",
+      "file": "log-fallen-snowy.glb",
+      "bytes": 18004,
+      "triangles": 332,
+      "meshes": 3,
+      "size": [
+        0.9646023329373699,
+        0.6670711881661656,
+        2.629000040054321
+      ],
+      "bounds": {
+        "min": [
+          -0.3,
+          0.014683057032382596,
+          -1.3145000200271606
+        ],
+        "max": [
+          0.6646023329373698,
+          0.6817542451985482,
+          1.3145000200271606
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-crate",
+      "label": "Wooden crate",
+      "category": "Cover",
+      "finish": "snowy",
+      "file": "cover-crate-snowy.glb",
+      "bytes": 39612,
+      "triangles": 464,
+      "meshes": 4,
+      "size": [
+        1.3,
+        1.2999333024024964,
+        1.3899999523162843
+      ],
+      "bounds": {
+        "min": [
+          -0.65,
+          1.1920928910669204e-8,
+          -0.6949999761581421
+        ],
+        "max": [
+          0.65,
+          1.2999333143234253,
+          0.6949999761581421
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrel",
+      "label": "Metal barrel",
+      "category": "Cover",
+      "finish": "snowy",
+      "file": "cover-barrel-snowy.glb",
+      "bytes": 24724,
+      "triangles": 360,
+      "meshes": 4,
+      "size": [
+        0.91,
+        1.2999333262443542,
+        0.8654614298285899
+      ],
+      "bounds": {
+        "min": [
+          -0.455,
+          -1.1920928910669204e-8,
+          -0.43273071491429493
+        ],
+        "max": [
+          0.455,
+          1.2999333143234253,
+          0.43273071491429493
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-barrier",
+      "label": "Concrete barrier · 2 m",
+      "category": "Cover",
+      "finish": "snowy",
+      "file": "cover-barrier-snowy.glb",
+      "bytes": 9888,
+      "triangles": 72,
+      "meshes": 4,
+      "size": [
+        2.08,
+        1.1075000490248204,
+        0.85
+      ],
+      "bounds": {
+        "min": [
+          -1.04,
+          -1.341104505225843e-9,
+          -0.425
+        ],
+        "max": [
+          1.04,
+          1.1075000476837158,
+          0.425
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-timber",
+      "label": "Stacked timber",
+      "category": "Cover",
+      "finish": "snowy",
+      "file": "cover-timber-snowy.glb",
+      "bytes": 67604,
+      "triangles": 1460,
+      "meshes": 3,
+      "size": [
+        1.4299999785423279,
+        0.8874983019525684,
+        2.4289999923706054
+      ],
+      "bounds": {
+        "min": [
+          -0.7149999892711639,
+          0.016501713306220606,
+          -1.2144999961853027
+        ],
+        "max": [
+          0.7149999892711639,
+          0.904000015258789,
+          1.2144999961853027
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "cover-scrap",
+      "label": "Scrap pile",
+      "category": "Cover",
+      "finish": "snowy",
+      "file": "cover-scrap-snowy.glb",
+      "bytes": 23752,
+      "triangles": 284,
+      "meshes": 4,
+      "size": [
+        1.8873290388618977,
+        0.8374975634138115,
+        1.7712492961637758
+      ],
+      "bounds": {
+        "min": [
+          -0.7862875644730216,
+          -0.034084551793521156,
+          -0.8022538217007953
+        ],
+        "max": [
+          1.1010414743888761,
+          0.8034130116202903,
+          0.9689954744629805
+        ]
+      },
+      "sockets": null,
+      "validation": {
+        "errors": 0,
+        "warnings": 0
+      }
+    }
+  ]
+}

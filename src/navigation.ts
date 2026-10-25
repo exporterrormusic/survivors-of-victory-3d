@@ -107,6 +107,40 @@ export class NavigationMap {
     return true;
   }
 
+  /** Surface-normal sliding with a small contact cushion, never an unchecked push.
+   * Uses the actual obstacle normals rather than world-axis X/Z fallback. */
+  slide(from:GroundPoint,dx:number,dz:number,radius:number):GroundPoint {
+    const travel=Math.hypot(dx,dz);
+    if(travel<1e-9)return {x:from.x,z:from.z};
+    let sx=dx,sz=dz;
+    for(let pass=0;pass<3;pass++)for(const o of this.obstacles){
+      if(o.active===false)continue;
+      const ox=from.x-o.x,oz=from.z-o.z,d=Math.hypot(ox,oz);
+      const gap=d-o.r-radius-MARGIN;
+      if(d<1e-8||gap>travel+.10)continue;
+      const nx=ox/d,nz=oz/d,inward=sx*nx+sz*nz;
+      // Leave the inward component that can safely reach contact this step.
+      const allowed=Math.max(0,gap-.025);
+      if(inward < -allowed){sx-=nx*(inward+allowed);sz-=nz*(inward+allowed);}
+      if(pass===0&&gap<.10){
+        const cushion=Math.min(travel*.18,Math.max(0,.10-gap)*.25);
+        sx+=nx*cushion;sz+=nz*cushion;
+      }
+    }
+    const length=Math.hypot(sx,sz);
+    if(length>travel){sx*=travel/length;sz*=travel/length;}
+    // Back off continuously if two contacts or the arena boundary constrain motion.
+    for(const scale of [1,.5,.25,.125]){
+      const next={x:from.x+sx*scale,z:from.z+sz*scale};
+      if(this.clear(from,next,radius))return next;
+    }
+    for(const [x,z] of [[dx,0],[0,dz]]){
+      const next={x:from.x+x,z:from.z+z};
+      if(this.clear(from,next,radius))return next;
+    }
+    return {x:from.x,z:from.z};
+  }
+
   /** Correct overlap only; ordinary movement still sweeps the entire segment. */
   project(point: GroundPoint, radius: number): GroundPoint {
     const edge = this.extent - radius - MARGIN;
@@ -269,8 +303,8 @@ export class NavigationAgent {
     this.steeringTime -= dt;
     if (this.steeringTime > 0) {
       if (!this.velocityX && !this.velocityZ) return false;
-      const next = { x: p.x + this.velocityX * step, z: p.z + this.velocityZ * step };
-      if (this.map.clear(p, next, this.radius)) { p.x = next.x; p.z = next.z; return true; }
+      const next = this.map.slide(p,this.velocityX*step,this.velocityZ*step,this.radius);
+      if (distance(p,next)>step*.15 && this.map.clear(p, next, this.radius)) { p.x = next.x; p.z = next.z; return true; }
     }
     // Steering decisions run at 10 Hz; movement and swept collision stay per-frame.
     this.steeringTime = .1; this.velocityX = 0; this.velocityZ = 0;
@@ -278,9 +312,10 @@ export class NavigationAgent {
     let best = -Infinity, chosen: GroundPoint | null = null;
     for (const angle of [0, .4 * this.side, -.4 * this.side, .8 * this.side, -.8 * this.side, 1.2 * this.side, -1.2 * this.side, 1.6 * this.side, -1.6 * this.side, 2 * this.side, -2 * this.side]) {
       const dx = Math.cos(yaw + angle), dz = Math.sin(yaw + angle);
-      const next = { x: p.x + dx * step, z: p.z + dz * step };
+      const next = this.map.slide(p,dx*step,dz*step,this.radius);
       if (!this.map.clear(p, next, this.radius)) continue;
       let score = Math.cos(angle) * 2 - (angle * this.side < 0 ? .08 : 0);
+      score -= 3 * (1 - distance(p,next)/Math.max(step,1e-9));
       for (const other of nearby) {
         const clearance = (this.radius + other.radius) * .85;
         const current = distance(p, other.position), after = distance(next, other.position);

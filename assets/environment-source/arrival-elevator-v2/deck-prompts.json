@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "docs/concepts/game-plan-2026-10-25/S06-boarding.png",
+  "output": "public/environment/arrival-elevator-v2/deck-steel-v4.png",
+  "prompt": "Game albedo texture, square seamless material, flat orthographic top-down. Match ONLY the elevator deck surface in the attached S06 reference. Smooth weathered medium warm grey steel with subtle taupe-brown dust, broad softly mottled patches, restrained scuffed scratches, lightly worn painted surface. Relatively light midtone, not black or dark blue. NO tile outlines, NO seams, NO borders, NO bolts, NO rivets, NO bevel frame, NO tread, NO checker pattern, NO hazard stripes, NO lights, NO shadows. The 3D geometry will supply the panel seams and hardware. Fine painted detail at NIKKE environment quality, broad readable flat metal rather than grungy noise. Neutral diffuse color only, no directional lighting or perspective. Fill image edge to edge."
+}
