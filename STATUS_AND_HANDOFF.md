@@ -1,5 +1,22 @@
 # Status and handoff (read this first)
 
+## Current visual exploration: grid tactics + focused turns (2026-10-24)
+
+The user returned from the incremental / micro-RTS exploration to a grid-tactics
+and JRPG hybrid. Move and choose a target on the grid, then move the camera behind
+the acting character to choose **Attack, Skill, Burst or Item**. No Defend command.
+For attacks, a line oscillates across a bar; click inside a skill-specific highlighted
+window to gain bonus damage. No defensive reactive dodge/parry or spatial weakpoint aim.
+
+Read [the hybrid concept notes](docs/concepts/hybrid-tactics-2026-10-24/README.md)
+and open `docs/concepts/hybrid-tactics-2026-10-24/index.html` for seven screenshot-based
+imagegen mockups: six moments in a turn plus one alternative Burst timing window.
+The prompts, reference screenshots and verification record are saved alongside them.
+Base damage on an outside-window click, +25% bonus, charge costs and the pictured skills
+are proposals for review. No gameplay conversion has been implemented or approved.
+Other genre options remain available. The unfinished incremental / micro-RTS drafts
+remain separate; do not treat them as the current direction. Preserve the MOBA archive.
+
 ## Survivors visual planning (2026-10-24)
 
 The next direction is being reviewed visually before gameplay implementation.

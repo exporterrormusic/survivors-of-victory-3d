@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grid tactics + focused turns · Visual study</title>
+<style>
+:root{color-scheme:dark;--bg:#08111b;--panel:#102333;--line:#365265;--text:#e8f1f6;--muted:#a6bdcb;--cyan:#50d9fa;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}main{max-width:1560px;margin:auto;padding:32px 24px 64px}h1,h2,p{margin:0}h1{font-size:clamp(28px,4vw,48px);line-height:1.16;font-weight:700;margin:8px 0 16px}h2{font-size:24px;margin-bottom:12px}a{color:var(--cyan);text-underline-offset:4px}button{font:inherit;cursor:pointer;color:inherit}button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:4px}.eyebrow{color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.16em}.intro{max-width:900px;color:var(--muted)}.links{display:flex;flex-wrap:wrap;gap:24px;margin:18px 0 30px}.flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:16px}.step{min-height:72px;text-align:left;border:1px solid var(--line);background:var(--panel);padding:12px;line-height:1.35;border-radius:6px}.step span{display:block;color:var(--muted);font-size:11px;letter-spacing:.1em;margin-bottom:5px}.step[aria-current="step"]{border-color:var(--cyan);box-shadow:inset 0 -3px var(--cyan);background:#16374a}.step:last-child{border-style:dashed}.viewer{margin:0;border:1px solid var(--line);background:#050b11;border-radius:8px;overflow:hidden}.viewer img{display:block;width:100%;aspect-ratio:1672/941;object-fit:contain}.caption{display:flex;gap:20px;align-items:center;justify-content:space-between;padding:20px 24px;background:var(--panel)}.caption h2{font-size:21px;margin:0 0 4px}.caption p{color:var(--muted);max-width:950px}.controls{display:flex;align-items:center;gap:8px;white-space:nowrap}.controls button{border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:9px 14px}.controls button:hover{border-color:var(--cyan)}.counter{color:var(--muted);font-size:13px;min-width:45px;text-align:center}.annotation{margin:12px 0 36px;color:var(--muted);font-size:13px}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:20px}.comparison figure{margin:0;border:1px solid var(--line);background:var(--panel);border-radius:6px;overflow:hidden}.comparison img{width:100%;display:block}.comparison figcaption{padding:15px 18px}.comparison strong{color:var(--gold)}.comparison p{color:var(--muted);font-size:14px}.principles{margin-top:32px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.principles article{border-top:2px solid var(--line);padding-top:16px}.principles h3{font-size:16px;margin:0 0 8px}.principles p{font-size:14px;color:var(--muted)}footer{margin-top:36px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:18px}
+@media(max-width:900px){.flow{grid-template-columns:repeat(4,1fr)}.caption{display:block}.controls{margin-top:15px}.comparison,.principles{grid-template-columns:1fr}main{padding:24px 14px}.caption{padding:16px}}@media(prefers-reduced-motion:no-preference){.step{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">Survivors of Victory 3D · Concept study · 24 October 2026</div>
+<h1>Grid tactics. One character’s turn.<br>A timed click for extra damage.</h1>
+<p class="intro">Move and select a target on the grid. Shift behind the acting character to choose <strong>Attack, Skill, Burst or Item</strong>. For an offensive action, stop the moving line inside its highlighted aim window to add bonus damage.</p>
+<nav class="links" aria-label="Design resources"><a href="README.md">Design notes & all images</a><a href="manifest.json">Prompts & references</a><a href="#compare">Compare timing windows</a></nav></header>
+<nav class="flow" aria-label="Turn storyboard">
+<button class="step" data-index="0" aria-current="false"><span>STEP 01</span>Move</button>
+<button class="step" data-index="1" aria-current="false"><span>STEP 02</span>Target</button>
+<button class="step" data-index="2" aria-current="false"><span>STEP 03</span>Command</button>
+<button class="step" data-index="3" aria-current="false"><span>STEP 04</span>Skill</button>
+<button class="step" data-index="4" aria-current="step"><span>STEP 05</span>Aim window</button>
+<button class="step" data-index="5" aria-current="false"><span>STEP 06</span>Bonus hit</button>
+<button class="step" data-index="6" aria-current="false"><span>ALTERNATIVE</span>Burst window</button>
+</nav>
+<figure class="viewer">
+<a id="fullImage" href="G05-aim-window.png" target="_blank" rel="noopener" aria-label="Open current mockup at full size"><img id="mainImage" src="G05-aim-window.png" alt="Aim-window concept: a white cursor travels toward the gold bonus zone above Attack, Skill, Burst and Item." width="1672" height="941"></a>
+<figcaption class="caption"><div aria-live="polite"><h2 id="imageTitle">05 · Time the click</h2><p id="imageCaption">The white line travels back and forth. Click while it is inside the gold section for the bonus.</p></div>
+<div class="controls"><button id="prev" type="button" aria-label="Previous mockup">←</button><span class="counter" id="counter">5 / 7</span><button id="next" type="button" aria-label="Next mockup">→</button></div></figcaption>
+</figure>
+<p class="annotation">Select a step or use the arrow keys to browse. Click the image to open it at full size. These are imagegen mockups; the timing bar in these images is static.</p>
+<section id="compare"><h2>Same input, different windows</h2><div class="comparison">
+<figure><a href="G05-aim-window.png" target="_blank" rel="noopener"><img src="G05-aim-window.png" alt="Piercing Shot timing window on the right side of the bar" loading="lazy" width="1672" height="941"></a><figcaption><strong>Skill · Piercing Shot</strong><p>A wider window toward the right. 120 base damage; 150 with successful timing.</p></figcaption></figure>
+<figure><a href="G07-burst-window-variant.png" target="_blank" rel="noopener"><img src="G07-burst-window-variant.png" alt="Seven Dwarves Burst timing window farther left and narrower" loading="lazy" width="1672" height="941"></a><figcaption><strong>Burst · Seven Dwarves</strong><p>A narrower window toward the left. 180 base damage; 225 with successful timing. An alternative example to the skill sequence.</p></figcaption></figure>
+</div></section>
+<section class="principles" aria-label="Design intent">
+<article><h3>Position stays meaningful</h3><p>Use the same battlefield and actual unit positions through the camera change. Range, cover and line of sight come from the grid.</p></article>
+<article><h3>Timing enhances the attack</h3><p>For this proposal, clicking outside the window still deals base damage. The bonus is a reward for a well-timed click. Values are illustrative.</p></article>
+<article><h3>Keep the turn brisk</h3><p>A short camera move, one click and a modest attack effect, then return to the grid for the next character. No reactive dodging or parrying.</p></article>
+</section>
+<footer>Seven generated visual concepts, based on current game screenshots and earlier genre studies. Built-in imagegen; saved at native 1672 × 941 pixels. The generated art can vary between camera views. No gameplay implementation or genre commitment is included.</footer>
+</main>
+<script>
+const images=[{"id":"G01","file":"G01-grid-movement.png","title":"Move on the grid","caption":"Preview a destination and its path. Position and cover remain tactical decisions.","stage":"01 / Move"},{"id":"G02","file":"G02-grid-target.png","title":"Choose a target","caption":"Confirm the move, then select the Pelican. The camera changes only after target confirmation.","stage":"02 / Target"},{"id":"G03","file":"G03-character-commands.png","title":"Choose a command","caption":"Focus behind Snow White, with Attack, Skill, Burst and Item in the existing bottom HUD style.","stage":"03 / Command"},{"id":"G04","file":"G04-skill-preview.png","title":"Preview the skill","caption":"Choose Piercing Shot and see its base damage, bonus and aim-window preview before confirming.","stage":"04 / Skill"},{"id":"G05","file":"G05-aim-window.png","title":"Time the click","caption":"The white line travels back and forth. Click while it is inside the gold section for the bonus.","stage":"05 / Aim"},{"id":"G06","file":"G06-bonus-result.png","title":"Resolve the attack","caption":"Successful timing adds 30 to the 120 base damage. The target goes from 300 HP to 150 HP.","stage":"06 / Result"},{"id":"G07","file":"G07-burst-window-variant.png","title":"Compare a Burst window","caption":"An alternative action, not the next step: Seven Dwarves has a narrower window farther left.","stage":"Variant / Burst"}];
+const mainImage=document.getElementById("mainImage"),fullImage=document.getElementById("fullImage"),imageTitle=document.getElementById("imageTitle"),imageCaption=document.getElementById("imageCaption"),counter=document.getElementById("counter");
+let current=4;
+function select(index){
+ current=(index+images.length)%images.length;const item=images[current];
+ mainImage.src=item.file;mainImage.alt=item.title+". "+item.caption;fullImage.href=item.file;
+ imageTitle.textContent=(current===6?"Variant":String(current+1).padStart(2,"0"))+" · "+item.title;
+ imageCaption.textContent=item.caption;counter.textContent=(current+1)+" / "+images.length;
+ document.querySelectorAll(".step").forEach((button,i)=>button.setAttribute("aria-current",i===current?"step":"false"));
+}
+document.querySelectorAll(".step").forEach(button=>button.addEventListener("click",()=>select(Number(button.dataset.index))));
+document.getElementById("prev").addEventListener("click",()=>select(current-1));
+document.getElementById("next").addEventListener("click",()=>select(current+1));
+document.addEventListener("keydown",event=>{
+ if(event.altKey||event.ctrlKey||event.metaKey||["INPUT","TEXTAREA","SELECT"].includes(event.target.tagName))return;
+ if(event.key==="ArrowRight"){event.preventDefault();select(current+1);}
+ if(event.key==="ArrowLeft"){event.preventDefault();select(current-1);}
+});
+</script>
+</body></html>

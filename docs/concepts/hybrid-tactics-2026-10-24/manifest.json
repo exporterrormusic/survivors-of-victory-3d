@@ -1,0 +1,144 @@
+{
+  "created": "2026-10-24",
+  "title": "Grid tactics with character-focused commands and aim-window attacks",
+  "generator": "Built-in image_gen.imagegen",
+  "intent": "Screenshot-based design mockups, not implemented gameplay",
+  "nativeSize": "Measured in verification.json; original generated pixels copied without editing or upscaling.",
+  "userRequirements": [
+    "Move and choose a target on a tactical grid, then transition behind the acting character.",
+    "Exactly four commands: Attack, Skill, Burst, Item.",
+    "A line moves back and forth across a bar; the player clicks while it is inside the highlighted interval.",
+    "Highlight position and width can vary by skill; success awards extra damage.",
+    "No reactive dodge/parry and no Defend command."
+  ],
+  "assumptions": [
+    "An outside-window click still deals base damage.",
+    "Skill values, charge costs, window sizes and bonus percentages are illustrative.",
+    "Burst example is an alternative to the main skill sequence, not the next action in that sequence.",
+    "The intended implementation keeps actors on the same map. AI mockups may change small geometry and enemy details between cameras."
+  ],
+  "references": [
+    {
+      "id": "hud",
+      "file": "references/hud.png",
+      "originalPath": "artifacts/ui/flat-redesign/desktop.png",
+      "role": "Actual current game screenshot"
+    },
+    {
+      "id": "world",
+      "file": "references/world.webp",
+      "originalPath": "artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp",
+      "role": "Actual current game screenshot"
+    },
+    {
+      "id": "grid",
+      "file": "references/grid.png",
+      "originalPath": "artifacts/genre-switch-mockups/2026-10-24-round-2/5A-tactics-player-phase.png",
+      "role": "Earlier generated genre concept; composition reference only"
+    },
+    {
+      "id": "jrpg",
+      "file": "references/jrpg.png",
+      "originalPath": "artifacts/genre-switch-mockups/2026-10-24-round-2/6A-jrpg-active-character-turn-v2.png",
+      "role": "Earlier generated genre concept; composition reference only"
+    },
+    {
+      "id": "hero",
+      "file": "references/hero.png",
+      "originalPath": "artifacts/ui/weapons/snow-white.png",
+      "role": "Actual current game screenshot"
+    }
+  ],
+  "images": [
+    {
+      "id": "G01",
+      "title": "Move on the grid",
+      "file": "G01-grid-movement.png",
+      "stage": "01 / Move",
+      "references": [
+        "references/grid.png",
+        "references/world.webp",
+        "references/hud.png",
+        "references/hero.png"
+      ],
+      "prompt": "Use case: ui-mockup. Asset: a single polished 16:9 in-game screenshot concept for this existing 3D game, landscape, full bleed. This is a grid-tactics / character-focused turn-based hybrid, grounded in the supplied actual screenshots, not a redesign of the art direction. Preserve the game's small chibi Snow White: short silver-white hair, black goggles on head, white cape, dark armored outfit, oversized white/black/gold sniper rifle. Ivory/dark mechanical Rapture enemies with red cores, painted mossy stone paths, ruined ivy walls, cream/gold sci-fi architecture and cyan light, daylight and practical existing-game asset quality. Existing UI visual language: flat dark navy translucent panels, steel bevel outlines, cyan selections, muted gold accents, clean legible condensed typography, hex portraits and hex ability frames. Use the existing bottom UI rather than abilities beside the character.\nCombat state for this whole sequence: TURN 4, Snow White is active, HP 1450/1450; target PELICAN has HP 300/300; party includes Crown, Scarlet, Rapunzel. A proposed skill named PIERCING SHOT deals 120 base damage, with +30 extra damage (+25%) for timing success, total 150. These are illustrative values. No random hit chance. The battlefield is one continuous location: courtyard stone road toward a cyan relay on raised steps at far right, low mossy cover wall on the left of Snow White, another broken wall near the right side of the target, trees and broken perimeter walls. One large selected Pelican ahead, two smaller enemies further back. The cinematic camera simply moves behind Snow White on her actual grid tile; actors never enter a separate battle arena. Keep this exact scene consistent in following screenshots.\nAbsolute action-menu rule: the only four character commands are ATTACK, SKILL, BURST, ITEM, in that order, singular words. Never add Defend, Guard, Wait, Flee, dodge, parry, shield command, or real-time weakpoint/crosshair aiming. Timing minigame is a HORIZONTAL BAR with one thin line traveling left and right through a fixed highlighted SECTION. The click is anywhere, not a spatial shot at the enemy. UI and character proportions should look shippable with the current assets; no realistic human proportions or ornate fantasy HUD. No watermark.\nFor this image: HIGH ISOMETRIC TACTICAL GRID VIEW, closely follow the composition and environment of reference 1 (previous tactics concept), use reference 2 for actual world materials and reference 3 for current HUD style; reference 4 for actual hero. Replace all old mechanics/UI text with this specification. Eight-by-eight-ish readable square grid follows ground perspective. Snow White stands lower center-left on a cyan selected tile, Crown to her upper left behind short cover, Rapunzel lower left, Scarlet lower center. Three enemies only, one large Pelican upper right-center before the cyan relay steps and two smaller machines behind. Cyan movement-range tiles, a short cyan dashed path to ONE gold destination tile in a gap between low walls, with a translucent ghost preview of Snow White there. This move gives a clear lane to the Pelican. Do not show a full clone character outside the transparent destination preview.\nTop left compact objective \"SEIZE THE RELAY\". Top center \"SNOW WHITE'S TURN\" with small \"TURN 4\" and a short initiative strip. Bottom left faithful hex Snow White portrait with \"SNOW WHITE\", \"1450 / 1450\", \"MOVE 5\". Bottom center wide flat navy instruction panel, exact text \"CHOOSE A TILE\" and smaller \"LMB Confirm move\". Bottom right three compact squad portraits labeled CROWN, SCARLET, RAPUNZEL. No action command menu yet; movement and target selection happen BEFORE the four-command close view. No end-turn/wait/guard button. Preserve lots of battlefield visibility, crisp cyan movement squares and cover silhouettes. Upper-right tiny designator \"01 / MOVE\" for storyboard continuity.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-611a4e49-b073-415c-a659-4d2efeadab81.png",
+      "savedPath": "G01-grid-movement.png"
+    },
+    {
+      "id": "G02",
+      "title": "Choose a target",
+      "file": "G02-grid-target.png",
+      "stage": "02 / Target",
+      "references": [
+        "G01-grid-movement.png"
+      ],
+      "prompt": "Use case: ui-mockup. Asset: a single polished 16:9 in-game screenshot concept for this existing 3D game, landscape, full bleed. This is a grid-tactics / character-focused turn-based hybrid, grounded in the supplied actual screenshots, not a redesign of the art direction. Preserve the game's small chibi Snow White: short silver-white hair, black goggles on head, white cape, dark armored outfit, oversized white/black/gold sniper rifle. Ivory/dark mechanical Rapture enemies with red cores, painted mossy stone paths, ruined ivy walls, cream/gold sci-fi architecture and cyan light, daylight and practical existing-game asset quality. Existing UI visual language: flat dark navy translucent panels, steel bevel outlines, cyan selections, muted gold accents, clean legible condensed typography, hex portraits and hex ability frames. Use the existing bottom UI rather than abilities beside the character.\nCombat state for this whole sequence: TURN 4, Snow White is active, HP 1450/1450; target PELICAN has HP 300/300; party includes Crown, Scarlet, Rapunzel. A proposed skill named PIERCING SHOT deals 120 base damage, with +30 extra damage (+25%) for timing success, total 150. These are illustrative values. No random hit chance. The battlefield is one continuous location: courtyard stone road toward a cyan relay on raised steps at far right, low mossy cover wall on the left of Snow White, another broken wall near the right side of the target, trees and broken perimeter walls. One large selected Pelican ahead, two smaller enemies further back. The cinematic camera simply moves behind Snow White on her actual grid tile; actors never enter a separate battle arena. Keep this exact scene consistent in following screenshots.\nAbsolute action-menu rule: the only four character commands are ATTACK, SKILL, BURST, ITEM, in that order, singular words. Never add Defend, Guard, Wait, Flee, dodge, parry, shield command, or real-time weakpoint/crosshair aiming. Timing minigame is a HORIZONTAL BAR with one thin line traveling left and right through a fixed highlighted SECTION. The click is anywhere, not a spatial shot at the enemy. UI and character proportions should look shippable with the current assets; no realistic human proportions or ornate fantasy HUD. No watermark.\nEdit reference 1 to create the NEXT moment in this same grid encounter. LOCK the camera, every environment landmark, all enemies and allied units other than Snow White to exactly the same positions as reference. The player has confirmed the move: REMOVE Snow White from her old lower-left-center location and REMOVE the translucent ghost. ONE solid Snow White now occupies exactly the gold destination tile at lower-right center where the ghost was, in the gap between foreground cover and the right wall. Remove cyan movement-range tiles and dashed movement path; preserve subtle neutral grid lines. Give her tile a cyan selection outline. Select the same nearest large Pelican up and right from her, beside the relay steps, with a red outlined target tile and understated red diamond target marker; add a thin gold straight sightline from Snow White to this Pelican.\nUI remains in the same style and layout, top \"SNOW WHITE'S TURN\", \"TURN 4\". Top-right storyboard label now \"02 / TARGET\". Objective and three squad portraits unchanged. Bottom left Snow White status unchanged HP 1450/1450, replace MOVE 5 with \"MOVE COMPLETE\". Bottom center instruction exactly \"CHOOSE A TARGET\" and smaller \"LMB Focus target  /  Esc Back\". Add a modest mid-right target forecast panel above bottom HUD, clear but not blocking chosen enemy: \"PELICAN\", \"300 / 300\", \"CLEAR LINE OF SIGHT\", \"Confirm to choose an action\". NO action commands yet, NO automatic attack, NO damage preview before an action is chosen, no percent hit chance. The selected Pelican has NOT been damaged yet.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-3f020f08-cc83-4204-8dec-41b07e69b4b9.png",
+      "savedPath": "G02-grid-target.png"
+    },
+    {
+      "id": "G03",
+      "title": "Focus on the acting character",
+      "file": "G03-character-commands.png",
+      "stage": "03 / Command",
+      "references": [
+        "G01-grid-movement.png",
+        "references/jrpg.png",
+        "references/hud.png",
+        "references/hero.png"
+      ],
+      "prompt": "Use case: ui-mockup. Asset: a single polished 16:9 in-game screenshot concept for this existing 3D game, landscape, full bleed. This is a grid-tactics / character-focused turn-based hybrid, grounded in the supplied actual screenshots, not a redesign of the art direction. Preserve the game's small chibi Snow White: short silver-white hair, black goggles on head, white cape, dark armored outfit, oversized white/black/gold sniper rifle. Ivory/dark mechanical Rapture enemies with red cores, painted mossy stone paths, ruined ivy walls, cream/gold sci-fi architecture and cyan light, daylight and practical existing-game asset quality. Existing UI visual language: flat dark navy translucent panels, steel bevel outlines, cyan selections, muted gold accents, clean legible condensed typography, hex portraits and hex ability frames. Use the existing bottom UI rather than abilities beside the character.\nCombat state for this whole sequence: TURN 4, Snow White is active, HP 1450/1450; target PELICAN has HP 300/300; party includes Crown, Scarlet, Rapunzel. A proposed skill named PIERCING SHOT deals 120 base damage, with +30 extra damage (+25%) for timing success, total 150. These are illustrative values. No random hit chance. The battlefield is one continuous location: courtyard stone road toward a cyan relay on raised steps at far right, low mossy cover wall on the left of Snow White, another broken wall near the right side of the target, trees and broken perimeter walls. One large selected Pelican ahead, two smaller enemies further back. The cinematic camera simply moves behind Snow White on her actual grid tile; actors never enter a separate battle arena. Keep this exact scene consistent in following screenshots.\nAbsolute action-menu rule: the only four character commands are ATTACK, SKILL, BURST, ITEM, in that order, singular words. Never add Defend, Guard, Wait, Flee, dodge, parry, shield command, or real-time weakpoint/crosshair aiming. Timing minigame is a HORIZONTAL BAR with one thin line traveling left and right through a fixed highlighted SECTION. The click is anywhere, not a spatial shot at the enemy. UI and character proportions should look shippable with the current assets; no realistic human proportions or ornate fantasy HUD. No watermark.\nCreate the CLOSE CAMERA stage of the same exact encounter shown in reference 1, from just behind and above Snow White's left shoulder, after she moved onto the gold destination tile. The full chibi Snow White occupies lower-left foreground, seen from behind, her rifle aimed generally forward. She is standing in that same courtyard gap; low cover wall is left foreground, broken wall is right midground, cyan relay and its raised stairs are far right behind the large selected Pelican. Pelican is ahead slightly right of center, medium size in the central field, red target ring on ground. Two smaller enemies remain in the distant background; other allies are behind the camera, represented by HUD portraits. Preserve the WORLD from reference 1; reference 2 is only a guide to camera distance, hero size and focus, NOT its old action names or party panels. Reference 3 supplies flat HUD style and hex buttons; reference 4 supplies actual chibi model. Avoid teleporting into a different arena; no grid overlay in this camera.\nTop left \"SEIZE THE RELAY\"; top center \"SNOW WHITE'S TURN\", small \"TURN 4\", compact initiative portraits matching reference 1. Top right target panel \"PELICAN\" with red HP bar \"300 / 300\". Small storyboard badge \"03 / COMMAND\". Bottom left hex Snow White portrait, \"SNOW WHITE\", green HP bar \"1450 / 1450\". Bottom center EXACTLY FOUR BIG compact hex command buttons arranged in a horizontal row, with clean icons and exact words below: \"ATTACK\" then \"SKILL\" then \"BURST\" then \"ITEM\". ATTACK simple rifle icon, SKILL cross-star icon, BURST gold burst icon, ITEM white case icon. SKILL currently hovered with cyan outline and subtle glow; BURST gold and available. Small hotkeys 1,2,3,4 optional. Footer under them \"Choose an action  /  Esc Back to grid\". Bottom right three compact hex portraits labeled CROWN, SCARLET, RAPUNZEL with green health bars, matched to reference 1. No guard/defend/wait/flee/dodge/parry button or label anywhere. No cooldown hotkeys QWER. No weakpoint aiming or crosshair reticle on enemy. Leave the middle of the screen open for the hero and her selected opponent. Show only this one screenshot, not a storyboard montage.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-cb7fa12d-c3fb-40f1-8433-c3c89cf2ca3c.png",
+      "savedPath": "G03-character-commands.png"
+    },
+    {
+      "id": "G04",
+      "title": "Choose a skill and see its bonus",
+      "file": "G04-skill-preview.png",
+      "stage": "04 / Skill",
+      "references": [
+        "G03-character-commands.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit the supplied screenshot non-destructively to show the next UI step of this SAME tactical/JRPG turn. Maintain EXACT camera, characters, weapons, enemies, environment, lighting, their positions, top initiative bar, all health values and all portraits. Snow White's HP remains 1450/1450 and selected PELICAN remains 300/300. Keep the four hex command buttons at bottom center with EXACT labels ATTACK, SKILL, BURST, ITEM. SKILL has active cyan outline; other buttons remain visible. Top-right stage badge changes to \"04 / SKILL\".\nOpen a well-designed flat navy skill-selection panel just ABOVE the command row at lower center/right, leaving enemy silhouette and Snow White's face/shoulder/rifle readable. Use crisp steel outlines, cyan highlights and gold bonus text. Panel consists of a narrow left list of TWO proposed skills \"Piercing Shot\" selected cyan, \"Armor Break\" unselected; and a slightly wider right detail section. Title \"PIERCING SHOT\". Detail text exactly: \"120 BASE DAMAGE\", \"+30 TIMING BONUS\", \"Cost: 1 charge  /  Available: 2\". Add a miniature preview of its aim-window BAR under these values: a horizontal dark track with exactly ONE gold highlighted SECTION at 70-86% of the width, no moving cursor yet. Under it exact text \"Click inside the window for +25% damage\". This is a preview, not an active minigame. Small button within panel \"CONFIRM SKILL\"; footer \"LMB Confirm  /  Esc Back\".\nMake the panel compact and readable like a real game screenshot; do not overfill with extra explanations. This preview has no hit-chance, no crit-chance, no cooldown seconds, no parry/dodge/guard, no defend command. No spatial aiming crosshair on enemy. All existing world and UI outside this panel remain visually unchanged, especially the existing four-command menu. Single landscape screenshot.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-527b02e4-e52c-4777-8e19-a9c3dd82596e.png",
+      "savedPath": "G04-skill-preview.png"
+    },
+    {
+      "id": "G05",
+      "title": "Click while the line crosses the aim window",
+      "file": "G05-aim-window.png",
+      "stage": "05 / Aim",
+      "references": [
+        "G03-character-commands.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit the supplied screenshot into the ACTIVE TIMING MINIGAME after selecting the skill PIERCING SHOT. Lock camera, same Snow White pose aiming rifle, same scene, same targets and positions and light, top portraits, UI art direction. No muzzle flash yet, shot has not fired. Snow White 1450/1450; PELICAN 300/300 unchanged. Stage badge \"05 / AIM\". Keep four bottom-center hex buttons ATTACK, SKILL, BURST, ITEM in same positions; dim them as inactive while timing, with subtle cyan rim around SKILL. Bottom-left hero status and bottom-right three party portraits remain.\nThe primary new interface is ONE large, easily read horizontal TIMING BAR floating just above the bottom command row, over empty ground in lower center/right. Do NOT place it over Snow White's rifle or target body. Compact navy panel about 640px wide. Title \"PIERCING SHOT\" left and \"AIM WINDOW\" right. Below title: \"120 base  +  30 bonus\". Under that, horizontal navy track with fine white border, about 600px wide and 32px tall. Highlight exactly ONE gold interval at 70%-86% of the bar width; label this interval \"BONUS +25%\" just above it, with thin connector. Rest of track dark navy. ONE thin brilliant white VERTICAL LINE is currently at 42% of track length, OUTSIDE the highlighted region, with a small triangular pointer at top and a very subtle short motion trail indicating rightward travel. A slim two-ended arrow BELOW the track indicates that this single white line bounces left/right across the entire bar. Do not add multiple markers or target crosshairs. The gold interval is stationary.\nBelow the track prominent mouse-left-button glyph and exact instruction \"LMB  Click inside the gold window\". Small subtext \"Outside the window: 120 damage\". The whole mechanic must be visually unmistakable: line moving back and forth; fixed highlighted window; click when line is inside for EXTRA damage. This is timed clicking, not moving a reticle onto an enemy body part. No parry, dodge, guard, defend, countdown reaction prompts, or elaborate animation. Keep same scene unblurred, shooter's posture steady. Single landscape screenshot, no diagram collage.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-f538e489-8428-4c2e-8ea4-fb37b5356f39.png",
+      "savedPath": "G05-aim-window.png"
+    },
+    {
+      "id": "G06",
+      "title": "Successful timing adds damage",
+      "file": "G06-bonus-result.png",
+      "stage": "06 / Result",
+      "references": [
+        "G05-aim-window.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit this exact screenshot to show the instant AFTER a successful timed click for PIERCING SHOT. Preserve the entire composition, camera, actor positions and appearance, geometry, light, color, UI frames, portrait art and four commands ATTACK SKILL BURST ITEM. Stage badge changes to \"06 / RESULT\". Only the following changes:\n1. Lock the single thin white timing line INSIDE the gold window, about midway across that existing gold interval. Remove the motion trail and two-headed motion arrow because the click has stopped it. Keep ONE horizontal track and ONE gold window. The gold window remains in exactly the same position as in reference.\n2. Timing panel title \"PIERCING SHOT\" stays. Replace \"AIM WINDOW\" at upper right of panel with gold \"BONUS HIT\". Damage text exactly \"120 base  +  30 bonus  =  150 damage\". Keep gold \"+25%\" label above window. Below bar replace click instructions with \"TIMING SUCCESS\" and smaller \"Charges remaining: 1\". No click prompt or fail message now.\n3. A short, restrained rifle muzzle flash and a thin gold tracer to the selected big Pelican, plus small sparks on its armor, no explosions, no full-screen streaks or elaborate animation. One readable floating damage number \"150\" in gold beside the Pelican, with small \"+30 BONUS\" under it.\n4. The target HP in the top-right panel changes to \"150 / 300\" and the red bar is now EXACTLY HALF full with a dark empty right half. The small overhead red HP bar above the selected large Pelican also becomes HALF full. Both smaller distant enemies remain undamaged. Snow White stays at 1450/1450.\nNo other edits. This shows a bonus to the attack, never a reactive defense or a failed attack penalty. Single screenshot, not multiple panels. Clear, modest impact with the enemy still fully visible.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-147ddda8-68a2-4683-8830-e0596978c8ac.png",
+      "savedPath": "G06-bonus-result.png"
+    },
+    {
+      "id": "G07",
+      "title": "Burst uses a different aim window",
+      "file": "G07-burst-window-variant.png",
+      "stage": "Variant / Burst",
+      "references": [
+        "G05-aim-window.png"
+      ],
+      "prompt": "Use case: ui-mockup. Create an ALTERNATIVE action example by editing the supplied active aim-window screenshot. This is BEFORE attacking, choosing BURST instead of SKILL in the same turn. Preserve EXACT camera, actors, actor poses, battlefield, all portraits, HUD style and layout. Snow White still 1450/1450 and Pelican still 300/300; no attack effect yet. Four bottom buttons remain EXACTLY ATTACK, SKILL, BURST, ITEM. Dim all four buttons while timing, with subtle GOLD active outline around BURST rather than SKILL.\nKeep the exact same size and position of the large horizontal timing panel and track. Change its title from PIERCING SHOT to \"SEVEN DWARVES\". Subline \"180 base  +  45 bonus\". Upper-right of panel \"BURST AIM WINDOW\".\nMost important change: ERASE the old gold region at the right side of the bar. Put EXACTLY ONE new, NARROWER gold highlighted region at 23%-34% across the full track from its left end. Thus this Burst has a short fixed gold window on the LEFT THIRD of the same bar. Label it \"BONUS +25%\" above with slim connector. There must not be another region on the right. The SINGLE white vertical moving line is at 61% across, OUTSIDE the gold window and to its right, with small triangle pointer and subtle trailing glow to indicate leftward travel. Keep the two-headed arrow below the track to show oscillation, not player-controlled aiming.\nUnder the track exact instruction \"LMB  Click inside the gold window\", and small subtext \"Outside the window: 180 damage\". Top-right storyboard badge \"BURST / VARIANT\". Keep everything else identical. No new target, no parry or dodge, no defend, no spatial aiming reticle. This compares different window position/width for different abilities, using the same mouse click mechanic and small existing attack animations. One landscape screenshot.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-f123fc12-812f-4f7c-8cdb-5716dcd7803a.png",
+      "savedPath": "G07-burst-window-variant.png"
+    }
+  ]
+}

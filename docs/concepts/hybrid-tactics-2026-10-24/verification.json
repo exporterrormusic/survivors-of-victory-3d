@@ -1,0 +1,128 @@
+{
+  "date": "2026-10-24",
+  "generatedImages": 7,
+  "referenceImages": 5,
+  "imageDecode": "passed",
+  "localLinksChecked": 31,
+  "localLinks": "passed",
+  "promptReferencePaths": "passed",
+  "galleryJavaScriptSyntax": "passed: node --check",
+  "httpAvailability": "passed: local gallery returned HTTP 200 on port 5194",
+  "interactiveBrowserReview": "not performed; browser unavailable in session",
+  "visualReview": "all seven outputs inspected inline; four command names, timing windows and result arithmetic checked",
+  "limitations": [
+    "Generated enemy geometry varies between the grid and close camera; actual implementation must reuse the same units.",
+    "Window position and width are illustrative; generated fractions are approximate."
+  ],
+  "files": [
+    {
+      "file": "G01-grid-movement.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 3328020,
+      "sha256": "372767189e1509821760c3ba1fd426267f2599777e0c75bf8d4317df182ec319"
+    },
+    {
+      "file": "G02-grid-target.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 3213856,
+      "sha256": "885dc70fb77e8a27779d08df940f2ec4330e93440266c8fd1694799b85409324"
+    },
+    {
+      "file": "G03-character-commands.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2774427,
+      "sha256": "26eb47692bf5b5221c03866c42526be11c98ec4885731cc0f82c134a269287a5"
+    },
+    {
+      "file": "G04-skill-preview.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2482608,
+      "sha256": "e8884562e76d91b709395dabbdd03c3ebca2dd1c24ed93fcd8a12521951d87ab"
+    },
+    {
+      "file": "G05-aim-window.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2481618,
+      "sha256": "62ce87036c29cbc514905d6f35f10bbf7e6b34bc749dff34783ae97746c4bb88"
+    },
+    {
+      "file": "G06-bonus-result.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2499428,
+      "sha256": "5106f9ca2507a4280ac456569fccefaf5e2ebdcbb789cce4cde8b0d5a973457b"
+    },
+    {
+      "file": "G07-burst-window-variant.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2512309,
+      "sha256": "0dd2a672b7dddf74ce48e75cd2129254126fc027e14b8e737a60f4f0992549a1"
+    },
+    {
+      "file": "references/hud.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 3133831,
+      "sha256": "421036f8d416d5f659f4d192f4ae74b5e7271101daac301053c06f3495194268"
+    },
+    {
+      "file": "references/world.webp",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 509560,
+      "sha256": "495952f42ed1dad818d1e4feea8b725941ea9111fe9d95ada9b9704d75ff1e0f"
+    },
+    {
+      "file": "references/grid.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 3163445,
+      "sha256": "0fdd80107d1e4f6ba2ba1b39c6626c314e1354424bfef00f34db30526825c6fc"
+    },
+    {
+      "file": "references/jrpg.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "bytes": 2715656,
+      "sha256": "18cb0564879e8e95b7f9ef082df914acd7df708e29d820b550fd42f9d6be6c69"
+    },
+    {
+      "file": "references/hero.png",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "bytes": 1809734,
+      "sha256": "d6f4c407dfeb63c6d6cb73386178a5b3da98377779cbb54e203ab1af5204fc84"
+    }
+  ],
+  "repositoryWhitespaceCheck": "passed with cr-at-eol to match existing CRLF documentation"
+}
