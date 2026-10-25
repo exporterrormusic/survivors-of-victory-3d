@@ -1,0 +1,123 @@
+{
+  "notes": {
+    "H01": {
+      "summary": "Keep the familiar portrait at lower left and large combat hexes in the middle.",
+      "strength": "Closest to the current 3D HUD; each combat state has room.",
+      "tradeoff": "Health and cooldowns require wider eye movement; minimap occupies a larger corner."
+    },
+    "H02": {
+      "summary": "Bring the portrait, health, ammo and action states into one centered dock.",
+      "strength": "Recommended HUD: fewer places to look and more open battlefield.",
+      "tradeoff": "Keep it shallow, scalable and outside the hero's immediate movement space."
+    },
+    "H03": {
+      "summary": "Check the HUD against late-run pressure and a melee character.",
+      "strength": "Melee replaces ammo; Burst's HP cost is visible before use.",
+      "tradeoff": "Horde density and effects are an art/readability target, not a measured performance result."
+    },
+    "M01": {
+      "summary": "Clear jammers, restore relays and turn captured defenses into support.",
+      "strength": "Recommended signature mode; makes good use of existing towers, gates and routes.",
+      "tradeoff": "Needs ownership/objective states and pressure pacing; avoid long stationary capture timers."
+    },
+    "M02": {
+      "summary": "Escort a mobile home base through route choices and blocked streets.",
+      "strength": "A clear reason to move, with the operation's maintenance breaks built into the fiction.",
+      "tradeoff": "Needs a new carrier, route behavior, repair rules and strong protection against escort frustration."
+    },
+    "M03": {
+      "summary": "Fight the horde while destroying specific boss components to remove attacks.",
+      "strength": "Gives manual aiming and target choice a visible consequence.",
+      "tradeoff": "Highest bespoke art/encounter burden; melee builds need fair access to parts."
+    },
+    "M04": {
+      "summary": "Choose between a safe exit and more carried salvage as the storm approaches.",
+      "strength": "Adds a clear push-your-luck decision to the same survivor combat.",
+      "tradeoff": "Needs extraction, hazard and reward rules; only carried rewards should be at risk."
+    },
+    "F01": {
+      "summary": "Optional route choice inside the existing five-stage operation.",
+      "strength": "Support versus supplies creates a readable decision between battles.",
+      "tradeoff": "Branching and persistent route rewards are new proposals, not current reference behavior."
+    },
+    "F02": {
+      "summary": "Present existing NIPMH buying, reserves and weighted capacity in the new dark UI.",
+      "strength": "Reuses a substantial existing progression system; distinguishes price from capacity.",
+      "tradeoff": "Three offers are shown for layout review, not a proposed limit on the stock system."
+    },
+    "T01": {
+      "summary": "Seven normal hex nodes, accurate prerequisite links and a separate automatic mastery.",
+      "strength": "Recommended full-tree view: strongest visual connection to the combat HUD.",
+      "tradeoff": "Effects require selection; names and long mastery labels must stay legible at smaller sizes."
+    },
+    "T02": {
+      "summary": "The same Attack build shown as cards with short effect text.",
+      "strength": "More information visible without hovering; easier to learn unfamiliar builds.",
+      "tradeoff": "Uses more screen area; less spacious than the hex layout."
+    },
+    "T03": {
+      "summary": "A paused drawer for quickly spending a point on available talents.",
+      "strength": "Faster familiar upgrades while the full tree remains accessible.",
+      "tradeoff": "Optional supplement only; do not turn it into three random offers or conceal other available nodes."
+    },
+    "T04": {
+      "summary": "The hex layout applied to Snow White's authored turret Skill tree.",
+      "strength": "Explains lasting turrets, prerequisites and the automatic Detonation mastery.",
+      "tradeoff": "Preview illustrations are concept aids; functional previews would be extra implementation work."
+    },
+    "T05": {
+      "summary": "Scarlet's authored Burst tree with the healing payoff and HP cost shown together.",
+      "strength": "Demonstrates that the UI can explain character-specific tradeoffs.",
+      "tradeoff": "Long names require wrapping; use explicit current/max HP wording when finalizing combat rules."
+    },
+    "T06": {
+      "summary": "See all three categories' owned nodes and mastery progress in one view.",
+      "strength": "Useful build summary; all 21 normal nodes and three capstones remain visible.",
+      "tradeoff": "An overview, not a replacement for prerequisite graphs and selected-node detail."
+    }
+  },
+  "references": [
+    {
+      "id": "R01",
+      "title": "Current 3D HUD",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/flat-redesign/desktop.png",
+      "file": "references/current-3d-hud.png"
+    },
+    {
+      "id": "R02",
+      "title": "Current 3D world after performance pass",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp",
+      "file": "references/current-3d-world.webp"
+    },
+    {
+      "id": "R03",
+      "title": "Actual 2D Survivors combat",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/survivor-game-1920x1080.png",
+      "file": "references/sov-2d-combat.png"
+    },
+    {
+      "id": "R04",
+      "title": "Actual 2D character menu",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/character-select-1920x1080.png",
+      "file": "references/sov-2d-character-menu.png"
+    },
+    {
+      "id": "R05",
+      "title": "Actual 2D staged operation",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/nipmh-flow/05-stage-02-with-nipmh.png",
+      "file": "references/sov-2d-operation.png"
+    },
+    {
+      "id": "R06",
+      "title": "Current Scarlet model and portrait",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/weapons/scarlet.png",
+      "file": "references/current-scarlet.png"
+    },
+    {
+      "id": "R07",
+      "title": "Actual 2D maintenance screen",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/maintenance-1920x1080.png",
+      "file": "references/sov-2d-maintenance.png"
+    }
+  ]
+}

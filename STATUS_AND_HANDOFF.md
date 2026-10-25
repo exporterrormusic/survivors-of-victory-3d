@@ -1,5 +1,19 @@
 # Status and handoff (read this first)
 
+## Survivors visual planning (2026-10-24)
+
+The next direction is being reviewed visually before gameplay implementation.
+Read [the Survivors visual plan](docs/SURVIVORS_VISUAL_PLAN.md) and open
+`docs/concepts/survivors-2026-10-24/index.html` for 15 imagegen mockups, comparisons,
+source screenshots, prompts and a shortlist. The 2D Survivors of Victory is the
+gameplay reference; the current 3D bottom HUD is the presentation reference.
+Keep cooldowns/charges in the bottom HUD rather than beside the overhead health bar.
+H02 centered HUD + T01 hex talent tree + M01 Reclamation is a recommendation for
+review, not a user-approved implementation choice. The other mode and UI options
+remain available. This pass changed design documentation only. Continue by refining
+the user's visual choices before writing the genre transition. Preserve the MOBA
+checkpoint described below.
+
 ## MOBA preservation before genre transition (2026-10-24)
 
 The user requires the MOBA to remain recoverable while exploring a Survivors direction.

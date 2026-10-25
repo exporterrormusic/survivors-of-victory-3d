@@ -1,0 +1,16 @@
+{
+  "selected_images": 15,
+  "native_dimensions": [
+    1672,
+    941
+  ],
+  "image_hashes_verified": true,
+  "png_decode_verified": true,
+  "local_links_verified": 48,
+  "unique_html_ids": true,
+  "javascript_syntax_check": "passed",
+  "gameplay_code_changed": false,
+  "interactive_browser_check": "Not performed: CUA reported no available apps or browsers, and iab creation was unavailable. HTML links, JS syntax, image decoding and hashes were verified.",
+  "local_http_smoke_check": "Passed for gallery, sample images and manifest.",
+  "visual_review": "All 15 selected generated screenshots reviewed inline; three targeted revisions selected."
+}

@@ -1,0 +1,430 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-10-24",
+  "status": "review_ready",
+  "requestedSize": "1920x1080",
+  "purpose": "Visual planning only; no gameplay changes",
+  "nativeSizeNote": "All 15 selected images were returned at 1672x941 despite requesting 1920x1080. They are saved without resizing.",
+  "images": [
+    {
+      "id": "F01",
+      "group": "Operation flow",
+      "title": "Operation routing \u00e2\u20ac\u201d deliberate stage choices",
+      "file": "F01-operation-route-selection.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/M01-reclamation.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T01-hex-attack-tree.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/character-select-1920x1080.png"
+      ],
+      "prompt": "Use case: ui-mockup. One16:9 in-game menu screenshot requested1920x1080, not a montage. Use image1 for Reclamation3D assets, image2 for CURRENT flat navy/steel/cyan/gold UI, image3 for the actual established Survivors menu information hierarchy only. Translate an existing five-stage operation into an OPTIONAL proposed branching-route choice between stages.\nHeader\"OPERATION ROUTE\", subtitle\"OUTPOST HOLLOW\", compact hero hex Snow White and HP42/50, top-right\"680 CREDITS\". Main left70%: a readable stylized overhead tactical map built from the same painted roads, gates, foliage and fort silhouettes, under a dark translucent map overlay. Diagram route from bottom-left toward upper-right, with exactly FIVE numbered stages along overall progression. Stage01 and02 are completed cyan checked nodes. For stage03, branch into exactly TWO alternative nodes both marked03: \"RELAY\" at center-upper and \"SUPPLY\" at center-lower. Gold selected RELAY node; SUPPLY unselected gray. Paths rejoin at future04\"FORTRESS\", then05\"CORE\". Future nodes have lock icons. Thin solid cyan completed links, dotted possible links; no sprawling dozen-node roguelike map.\nRight30% selected-stage briefing panel: \"STAGE03 /05\", \"RELAY RECLAMATION\"; thumbnail of captured ivory tower; three concise rows \"OBJECTIVE: RESTORE THE RELAY\", \"REWARD: TOWER SUPPORT\", \"THREAT: ARMORED RAPTURE\". Small risk note \"Fewer supplies on this route\". Prominent gold \"CONFIRM ROUTE\". Secondary \"BACK TO MAINTENANCE\". Bottom strip shows concise flow\"COMBAT \u00e2\u2020\u2019 MAINTENANCE \u00e2\u2020\u2019 NEXT STAGE\". No combat hotbar active on this between-stage menu. This is an optional route-choice expansion of the existing staged operation, with a meaningful support-versus-supplies choice; not multiplayer and not a second strategy campaign.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-3cf079d9-ae0f-4557-9ef7-c29755a35017.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Optional route choice inside the existing five-stage operation.",
+      "strength": "Support versus supplies creates a readable decision between battles.",
+      "tradeoff": "Branching and persistent route rewards are new proposals, not current reference behavior.",
+      "sha256": "79477d298f25e7f094a32325ace0b4e89121cda7fc1f5503b6c4795baefd121c",
+      "portableReferences": [
+        "M01-reclamation.png",
+        "T01-hex-attack-tree.png",
+        "references/sov-2d-character-menu.png"
+      ]
+    },
+    {
+      "id": "F02",
+      "group": "Operation flow",
+      "title": "Field maintenance \u00e2\u20ac\u201d existing NIPMH choices in new UI",
+      "file": "F02-field-maintenance.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/maintenance-1920x1080.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T01-hex-attack-tree.png"
+      ],
+      "prompt": "Use case: ui-mockup. One16:9 in-game menu screenshot requested1920x1080. Image1/current3D compact HUD and image3/talent menu define flat navy panels, thin steel/cyan outlines, gold headings, hex pictograms. Image2 is REAL Survivors of Victory maintenance UI and functional reference: retain recognizable NIPMH stock, buy/sell/capacity, equipped versus reserve, credits and continue-stage flow. Show an alternative dark treatment that feels like the current3D HUD, over a very faint blurred paused painted outpost. No new giant3D garage.\nTop\"FIELD MAINTENANCE\", subtitle\"STAGE02 COMPLETE / NEXT STAGE03 OF05\". Upper-right\"680 CREDITS\". Under header tabs\"BUY NIPMHS\", \"SELL NIPMHS\", \"UPGRADE CAPACITY\"; BUY selected. Center-left three clean stock cards with illustrated circuit-module icons matching original maintenance style: \"ECHO CHAMBER\", price\"200\", capacity\"2\"; \"STEADY HANDS\", price\"140\", capacity\"1\"; \"REDLINE INSTINCT\", price\"200\", capacity\"2\". All marked ASSAULT, selected Echo cyanoutline. Do not call these talent points.\nLower-left broad selected item panel\"ECHO CHAMBER\", \"Every fifth trigger pull repeats for60% damage.\", \"Echo consumes no ammo and grants no Burst.\", \"CAPACITY COST2\"; gold button\"BUY \u00e2\u20ac\u00a2200 CREDITS\". Source values are existing, not rebalanced.\nRight sidebar Snow White small hex portrait and\"LOADOUT CAPACITY3/5\", use a plain continuous progress bar60% filled (avoid countable slot icons). Equipped card\"SEVERED CIRCUIT\", cost3, concise tradeoff\"Weapon + Skill damage +40%; natural Burst gain -50%.\" Separate\"OWNED RESERVE\" empty state\"NO RESERVE MODULES\". Small note\"Buying adds to reserve; equip within capacity.\" Bottom-right primary cyan\"CONTINUE \u00e2\u20ac\u00a2 STAGE03\". No randomized talent cards, no permanent character shop or new currency. Keep substantial breathing room, large readable labels, visible difference between credit price and capacity cost. This is a visual re-skin of the existing maintenance system, not an invented new progression loop.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-8e0ee1a9-1b38-49a2-bfe4-c5ea2c93ea63.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Present existing NIPMH buying, reserves and weighted capacity in the new dark UI.",
+      "strength": "Reuses a substantial existing progression system; distinguishes price from capacity.",
+      "tradeoff": "Three offers are shown for layout review, not a proposed limit on the stock system.",
+      "sha256": "2dbd725b930db30f1c634547be361fc2aec5c8b28fe2250c9dae37c3832fe5ce",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/sov-2d-maintenance.png",
+        "T01-hex-attack-tree.png"
+      ]
+    },
+    {
+      "id": "H01",
+      "group": "Combat HUD",
+      "title": "Familiar bottom HUD",
+      "file": "H01-faithful-bottom-hud.png",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-267a6a8f-b836-4dcd-a586-451832370ea2.png",
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nINPUT ROLES: Image1=current 3D HUD reference, preserve its bottom-left hex portrait/HP treatment and bottom-center outlined hex buttons. Image2=current 3D world geometry/material/character reference. Image3=actual 2D Survivors gameplay reference for horde/solo combat, NOT pixel-art style.\nSHOT H01 \u00e2\u20ac\u201d CORE SURVIVORS COMBAT WITH FAITHFUL BOTTOM HUD.\nShow Snow White slightly below center firing a thin piercing rifle shot diagonally right through three enemies, a small deployed turret nearby. Around 45 Raptures approach in uneven groups from the wooded edges of a broad abandoned road. Clear immediate space around the player. Aim cursor visible. No MOBA bases/tower lanes in this shot.\nTop center small dark strip: \"06:42\" and \"WAVE 08\". Under it short \"STANDARD // ARK OUTSKIRTS\". Top-left tiny objective \"SURVIVE THE ASSAULT\". Top-right small pause button.\nBottom-left retain large current hex Snow White portrait and slanted nameplate; right beside portrait \"SNOW WHITE\", green HP \"42 / 50\", gold ammo pips \"5 / 7\". Do not invent mana. Bottom-center five outlined hexagonal controls, explicitly accurate INPUT labels: rifle \"LMB\" with ammo, turret \"RMB\" with \"1 / 2\" charges and small \"4.2s\", gold Burst \"E\" with \"78%\", dash \"SHIFT\" with \"READY\", talent hex \"TAB\" with gold \"2 SP\". Use monochrome tactical pictograms inside the hexagons. Bottom-right modest square local minimap showing player triangle and horde directions, no opposing teams' bases, no music widget. Thin cyan XP strip across very bottom marked \"LV 12\". This screen must demonstrate the direct combination of the 2D Survivors mechanics and this project's current 3D bottom HUD, with world-space clutter removed.",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/flat-redesign/desktop.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/survivor-game-1920x1080.png"
+      ],
+      "width": 1672,
+      "height": 941,
+      "summary": "Keep the familiar portrait at lower left and large combat hexes in the middle.",
+      "strength": "Closest to the current 3D HUD; each combat state has room.",
+      "tradeoff": "Health and cooldowns require wider eye movement; minimap occupies a larger corner.",
+      "sha256": "3a764bda5f204c090d75aac3d729a50682dd0391d526f731bb7ffcb05e573cbb",
+      "portableReferences": [
+        "references/current-3d-hud.png",
+        "references/current-3d-world.webp",
+        "references/sov-2d-combat.png"
+      ]
+    },
+    {
+      "id": "H02",
+      "group": "Combat HUD",
+      "title": "Compact centered command dock",
+      "file": "H02-compact-command-dock.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H01-faithful-bottom-hud.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit the supplied existing design screenshot to compare HUD layouts. Preserve the exact battlefield, camera, Snow White, all enemies, shot and lighting. Change only the HUD layout. Full 16:9 frame.\nConsolidate the bottom-left portrait/HP and the five bottom-center ability hexes into ONE tightly organized bottom-center navy command dock, width about 60% screen and height 13%. Its left contains a smaller hex Snow White portrait, \"SNOW WHITE\", green \"42 / 50\" HP, seven gold ammo pips with \"5 / 7\", tiny \"R RELOAD\". Its right has five slightly smaller outlined hex icons in order rifle LMB, turret RMB \"1 / 2\" and \"4.2s\", gold Burst E \"78%\", dash SHIFT \"READY\", talents TAB \"2 SP\". No redundant second portrait or HP anywhere else. Leave bottom-left world open. Reduce minimap to a small square bottom-right, without music. Keep thin XP strip across bottom \"LV 12\". Keep top-center time/wave and small top-left objective exactly. No overhead cooldown or resource bars, only thin hero HP line. Match the same flat navy panels, cyan/steel outlines, gold ability readiness. Label no \"option\" text on image. This is a credible compact alternative; none of the five input labels may be cut off.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-4cd860e7-466a-4e5a-9a70-6dca6102cc25.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Bring the portrait, health, ammo and action states into one centered dock.",
+      "strength": "Recommended HUD: fewer places to look and more open battlefield.",
+      "tradeoff": "Keep it shallow, scalable and outside the hero's immediate movement space.",
+      "sha256": "25fbcdc98f8ca4a1e16300bc57cb875a08fea3b081c57737855a6fb969a9618a",
+      "portableReferences": [
+        "H01-faithful-bottom-hud.png"
+      ]
+    },
+    {
+      "id": "H03",
+      "group": "Combat HUD",
+      "title": "Late-run pressure and melee readability",
+      "file": "H03-scarlet-horde-readability.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H01-faithful-bottom-hud.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/weapons/scarlet.png"
+      ],
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nINPUT ROLES: Image1=approved direction for battlefield style and bottom HUD; image2=exact actual Scarlet model/portrait identity only, not its old UI.\nSHOT H03 \u00e2\u20ac\u201d LATE RUN SCARLET READABILITY. Same feasible 3D painted world, now a wide broken courtyard, crowded with 80 small mechanical Raptures at edges but hero silhouette visible. Scarlet near center wears lavender hair and broad pale conical hat, holds a sword; show ONE modest translucent pale-violet slash crescent in front, not a screen-filling effect. A clearly open escape gap to lower right, two thin red mortar landing circles well away from player, no damage-number cloud. Optional thin HP above Scarlet only. High camera, no closeup.\nKeep H01 bottom-left portrait/name/health, bottom-center hex control row and bottom-right minimap geometry. Portrait changes to Scarlet. HP \"18 / 50\" amber-orange with low-health icon; weapon reads \"MELEE\" with no ammo or reload meter. Hexes: sword \"LMB\"; slash \"RMB\" with \"3.1s\"; Burst \"E\" gold \"READY\"; dash \"SHIFT\" \"1.2s\"; talents \"TAB\" \"0 SP\". Small readable caution directly above Burst slot: \"SCARLET FLASH \u00e2\u20ac\u00a2 COSTS 50% HP\". Show actual tradeoff without modal. Thin XP bar LV18. Topcenter \"09:18\" and \"WAVE 18\". Top-left \"FINAL ASSAULT\". No mana, no random pickups, no overhead cooldowns. Game must look playable and readable at high threat; all controls visible.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-34b40a22-d889-4033-a7b2-88b96b98e4fe.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Check the HUD against late-run pressure and a melee character.",
+      "strength": "Melee replaces ammo; Burst's HP cost is visible before use.",
+      "tradeoff": "Horde density and effects are an art/readability target, not a measured performance result.",
+      "sha256": "fa245f71db1dcd2261c7fc5846445c5cab267f4335117f2bc6b508b7c3b577c6",
+      "portableReferences": [
+        "H01-faithful-bottom-hud.png",
+        "references/current-scarlet.png"
+      ]
+    },
+    {
+      "id": "M01",
+      "group": "Mode concepts",
+      "title": "Reclamation \u00e2\u20ac\u201d change the battlefield",
+      "file": "M01-reclamation.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp"
+      ],
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nImage1 is the exact compact bottom command dock and shared art direction. Image2 supplies existing fort/tower/gate geometry to reuse.\nNEW MODE PROPOSAL M01: RECLAMATION. Show a real active solo horde battle in a multi-route abandoned military district. Snow White near center shoots at a red enemy jammer beside an ivory gate. Forty small Raptures flood in from two wooded streets. On the left, a reclaimed ivory twin-barrel tower has cyan lights and fires into the horde. A thin cyan power cable/painted ground line connects it to a previously captured relay in the background. A second still-hostile relay on the upper right glows restrained red. Player is visibly making permanent local territory progress as the horde pressures her. Keep broad open space and a legible path around the gate.\nPreserve the H02 compact bottom-center dock exactly: hero portrait HP \"42/50\", ammo5/7, LMB weapon, RMB turret charges1/2, E Burst78%, SHIFT dash, TAB2SP. Minimap bottom-right now outlines four connected district sectors, two cyan, one selected gold, one gray; this replaces MOBA lanes. Thin XP LV12.\nTopcenter \"RECLAMATION\" and \"RELAYS 2 / 4\", timer \"06:42\". Top-left objective panel \"DISABLE THE JAMMER\", tiny \"RESTORE THE NORTH GATE\". Put a gold diamond only over the targeted jammer; no crowded labels. Near the allied tower a small cyan checked marker signals ownership without a wall of text. No base-building menu, no squad control, no 5v5, no additional cooldowns over hero. A genuine survivor shooter with territory changing the routes and providing earned support.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-578fc490-d34c-4c26-acc1-381e1ce82caf.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Clear jammers, restore relays and turn captured defenses into support.",
+      "strength": "Recommended signature mode; makes good use of existing towers, gates and routes.",
+      "tradeoff": "Needs ownership/objective states and pressure pacing; avoid long stationary capture timers.",
+      "sha256": "f619d42aa3c3e90b3c3171d1227b73d8fb6a3483dae1fd409398a0cf52bec335",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/current-3d-world.webp"
+      ]
+    },
+    {
+      "id": "M02",
+      "group": "Mode concepts",
+      "title": "Ark Convoy \u00e2\u20ac\u201d a mobile home base",
+      "file": "M02-ark-convoy.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp"
+      ],
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nImage1 locks shared 3D world and compact bottom HUD; image2 provides reusable ivory/blue-gray military structure materials.\nNEW MODE PROPOSAL M02: ARK CONVOY. Hero Snow White escorts a slow armored mobile command carrier along a broad overgrown road. The carrier is an original plausible wheeled chassis made from the project's ivory bunker/keep shapes: angular armor, ochre trim, four big tires, folded antenna and cyan rear repair dock; about 3 hero lengths, not a giant spacecraft. Center-left carrier pointing upper-right; player center-right ahead of it shooting a roadblock enemy. Horde about 45 mechanical Raptures streams from both tree lines and rear, with clear safe space next to carrier. A broken road forks in upper-right distance; one thin gold navigation line shows selected path. Parked supply crate at the riskier side fork, clearly secondary.\nThe unique visible decision is clearing a blockage while the mobile base is exposed, not standing in an escort-radius ring. Topcenter \"ARK CONVOY\", progress \"CHECKPOINT 2 / 4\"; top-left small objective \"CLEAR THE ROADBLOCK\". Below it restrained carrier status \"CARRIER 82%\" and segmented route progress. No giant health bar over vehicle. One small world objective diamond over roadblock.\nKeep the exact H02 compact bottom command dock, including correct LMB/RMB/E/SHIFT/TAB inputs, HP and ammo in dock only; thin XP and lower-right local route minimap. No RTS build panel, no extra party, no overhead cooldowns. Convincing current-game derivative; vehicle is a proposed new asset with simple feasible geometry.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-2feb120d-be16-4724-805e-717491955ec8.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Escort a mobile home base through route choices and blocked streets.",
+      "strength": "A clear reason to move, with the operation's maintenance breaks built into the fiction.",
+      "tradeoff": "Needs a new carrier, route behavior, repair rules and strong protection against escort frustration.",
+      "sha256": "d8e9ea9491eaba2a6c1be04529605e3b83efa77abbf76124d995d4bf1274ef3c",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/current-3d-world.webp"
+      ]
+    },
+    {
+      "id": "M03",
+      "group": "Mode concepts",
+      "title": "Breach Hunt \u00e2\u20ac\u201d dismantle a moving threat",
+      "file": "M03-breach-hunt.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp"
+      ],
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nImage1 is the shared compact HUD/style; image2 is the real modest engine's environment reference.\nNEW MODE PROPOSAL M03: BREACH HUNT. Top-down survivor shooter facing a large original Rapture siege walker in an open mossy industrial plaza, with 35 small Raptures threatening from edges. Snow White remains small near lower center. The walker in upper center occupies only about 22% image width, six mechanical legs and ivory-gunmetal armored torso. One shoulder mortar pod is visibly broken and smoking. The other shoulder pod remains attached, with a precise gold targeting bracket on its red core. A front armor plate is cracked. Only one weak-point highlighted at a time. Snow White aims manually at the remaining pod while kiting the horde. One red mortar telegraph on the far right, avoid hero. No cinematic over-shoulder, no timed aim minigame, no parry button.\nTop-center compact boss panel \"SIEGE WALKER\", health \"64%\", with two component chips: \"LEFT POD \u00e2\u20ac\u201d DISABLED\" in cyan and \"RIGHT POD \u00e2\u20ac\u201d ACTIVE\" in muted red. Top-left objective \"BREAK THE ARMOR\". Small secondary objective \"DISABLE 2 MORTAR PODS\". The disabled pod has obviously stopped firing; the remaining pod is charging. Make order of destruction readable through world state.\nBottom HUD exactly H02: Snow White portrait and HP, ammo; LMB rifle, RMB turret1/2, E burst92%, SHIFT ready, TAB1SP; small local minimap and XP LV16. A mode based on taking apart enemy attacks while surviving adds, not just a larger health sponge. No ground XP gems.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-7abc6ee4-597a-4cae-9bf0-740aeb6b29e0.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Fight the horde while destroying specific boss components to remove attacks.",
+      "strength": "Gives manual aiming and target choice a visible consequence.",
+      "tradeoff": "Highest bespoke art/encounter burden; melee builds need fair access to parts.",
+      "sha256": "773f71177798a1bd2e24eaa8371c7fb25544ce21f27b4e29f53cd432e2a04596",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/current-3d-world.webp"
+      ]
+    },
+    {
+      "id": "M04",
+      "group": "Mode concepts",
+      "title": "Surface Salvage \u00e2\u20ac\u201d choose when to leave",
+      "file": "M04-surface-salvage.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/nipmh-flow/05-stage-02-with-nipmh.png"
+      ],
+      "prompt": "Use case: ui-mockup. Produce ONE credible 16:9 in-game screenshot, requested 1920x1080, edge-to-edge with no external presentation border or collage. This is a visual design proposal for Survivors of Victory 3D using the existing game's real screenshots as references, not a promotional illustration.\nMatch the current Babylon game's modest hand-painted 3D chibi diorama: broad moss-cracked stone slabs, worn yellow road markings, painted grass and trees, simple ruined concrete and ivory military armor panels with blue-gray recesses and ochre trim. Clear painted daylight, warm sun/cool fill, grounded soft shadows. Camera high overhead three-quarter, about 65 degrees down, low perspective distortion. Hero around 1/14 screen height, readable amidst mechanical horde. Snow White has silver hair, goggles, white cloak and oversized long rifle. Raptures are small mechanical insects/walkers with dark metal legs, pale armor, red cores; no zombie people.\nUse CURRENT flat tactical navy/steel/cyan/gold UI shown in reference: #111B27 navy panels, thin #8EA5B6 borders, warm-white text, cyan selections, gold headings/Burst, green health. Angular cut corners, outlined hexagons, strong condensed Rajdhani-like typography. Flat 1-2px metal outlines, not bulky chrome bevels or fantasy filigree. Keep all text short and legible.\nRespect Survivors of Victory's one-character manual-aim combat, weapon ammo/reload, RMB Special, E Burst, SHIFT Dash, TAB Talents. No five MOBA spells or five-player team scoreboard. Cooldowns/charges/Burst MUST be in the bottom HUD. Above the hero permit only a thin optional HP line, no cooldown buttons, no stack of health/ammo/Burst bars and no floating action icons. Thin XP strip at very bottom. Kill XP is awarded directly: NO collectible XP gems. No damage-number blizzard; preserve empty movement gaps and readable small attack telegraphs. Every screen is a proposal, not a screenshot of already-implemented new mechanics.\nImage1 locks bottom dock/3D art. Image2 references the existing storm operation mood and objective language, NOT 2D flat art.\nNEW MODE PROPOSAL M04: SURFACE SALVAGE. Readable blue-gray dusk storm over an abandoned courtyard; not pitch black, and keep the familiar painted stone/grass style. Snow White at center holds off 35 incoming Raptures while moving toward a cyan extraction beacon at left. A tempting unopened gold-marked salvage container sits at right across the danger lane. A storm boundary approaches from far upper right, shown by a single restrained hazy diagonal weather front and a dashed ground warning line, not a neon battle-royale dome. The field offers a readable left escape route versus optional right loot risk. No pile of XP jewels.\nTop-center \"SURFACE SALVAGE\" and \"STORM ARRIVES 02:15\". Top-left two compact money rows, \"BANKED 420\" with lock icon and \"CARRYING 180\" with small warning icon, clearly distinct. Below: \"EXTRACT OR PUSH DEEPER\". Small world cyan marker \"EXIT\" near beacon and gold diamond on optional container; no giant labels. Lower-right minimap shows exit, optional container and advancing edge.\nBottom compact H02 dock preserved, HP38/50, ammo4/7, LMB/RMB/E/SHIFT/TAB appropriate icons and cooldowns. Only carried salvage is at risk, banked rewards safe; no lost permanent upgrades. Image represents a proposal for a risk-choice mode, not evidence that current game already has extraction.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-6d123d9d-002e-40ef-b2e7-724b73208af4.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Choose between a safe exit and more carried salvage as the storm approaches.",
+      "strength": "Adds a clear push-your-luck decision to the same survivor combat.",
+      "tradeoff": "Needs extraction, hazard and reward rules; only carried rewards should be at risk.",
+      "sha256": "5ff6190389639ee2a63efe5e8d9128edab7119b741fc770821d47bba236d2ed8",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/sov-2d-operation.png"
+      ]
+    },
+    {
+      "id": "T01",
+      "group": "Talent trees",
+      "title": "Hex tree \u00e2\u20ac\u201d compact nodes, clear detail pane",
+      "file": "T01-hex-attack-tree.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/flat-redesign/desktop.png"
+      ],
+      "prompt": "Use case: ui-mockup. ONE polished, believable 16:9 game UI screenshot, requested1920x1080. This is Survivors of Victory's existing talent content presented in the supplied current 3D game's UI. Use the supplied compact bottom HUD image as reference for Snow White's identity, flat navy panels, cyan/steel thin outlines, gold selected/action accents, green HP, angular cut corners and outlined hexagonal ability icons. No bulky chrome, purple space constellations or fantasy parchment. Bold condensed sci-fi typography; short labels must be readable. Dim the actual painted 3D battlefield behind the paused overlay, not an unrelated background. Keep the bottom command dock visibly dimmed and disabled, to anchor the menu to gameplay. No enemy animation implied.\nHeader \"RUN TALENTS\", character name, \"LV 12\", \"2 SP\", clear \"PAUSED\". Three category tabs exactly \"ATTACK\", \"SKILL\", \"BURST\". In-run temporary talent upgrades, not permanent account upgrades; no gems, shop currency, random rewards, rarity colors or rerolls. Existing talent rules: seven normal nodes each rank0/1 or1/1, plus ONE automatic mastery capstone. Normal nodes cost1SP and only require their actual prerequisite. Capstone activates for free after all seven normal nodes are owned; never show a purchase button/cost for mastery. A selected node's right detail panel must show its name, concise effect, prerequisite, and \"LEARN \u00e2\u20ac\u00a2 1 SP\" only if available. Show owned cyan+check, available white with bright outline, locked gray+lock, mastery gold with explicit progress. Include a small state legend so color is not the sole indication. \"TAB RESUME\" in footer. No invented mutual exclusion and no duplicate or missing nodes.ATTACK CONTENT EXACTLY EIGHT NODES:\nSeven Dwarves [OWNED1/1], Weak Point [OWNED1/1], Explosive Rounds [AVAILABLE0/1], Afterburn [OWNED1/1], Burning [AVAILABLE0/1, selected], Inferno [AVAILABLE0/1], Charging [AVAILABLE0/1], Unyielding [LOCKED AUTOMATIC MASTERY3/7].\nPrerequisite connections: Seven Dwarves connects directly to Weak Point, Explosive Rounds and Afterburn. Afterburn connects directly to Burning, Inferno and Charging. Do NOT draw a prerequisite from Weak Point or Explosive Rounds into Afterburn; branches do not exclude each other. Mastery separate gold framed strip: \"UNYIELDING\", \"AUTOMATIC MASTERY\", \"3 / 7 TALENTS\", \"No SP cost\". Not an eighth purchasable choice.\nSelected BURNING right panel: flame pictogram, \"BURNING\", \"Fire applies a damage-over-time burn.\", \"Requires Afterburn \u00e2\u0153\u201c\", \"LEARN \u00e2\u20ac\u00a2 1 SP\". Small actual content preview of a projectile's fire trail touching mechanical enemies, a modest diagram not a giant hero illustration. Values are not being rebalanced.\nLAYOUT A: Full-screen paused hex-node tree, not cards. Header/tab band takes10% height. Main tree occupies left65%, right detail pane27%. A small Snow White hex portrait beside header only; do not waste space on huge character art. Arrange Seven Dwarves near top center of tree, Weak Point upper-left branch, Explosive Rounds upper-right branch; Afterburn below root; Burning lower-left, Inferno lower-right, Charging bottom center. Seven normal nodes each a clean medium hex with recognizable rifle/target/explosion/fire/slow/charge symbol and name immediately beneath, tiny ownership line. Thin elbow connectors, no crossings through text. Unyielding mastery strip sits under the seven-node graph above disabled bottom HUD. Right selected Burning detail uses large typography and one clear purchase button. The root and main path must not be implied as mutually exclusive branch choices. Leave breathing room, make selected Burning easy to find. This is proposed default talent presentation, matching current combat hexes.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-858e9026-f9aa-40e7-86d2-4ea67d2e6f29.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "Seven normal hex nodes, accurate prerequisite links and a separate automatic mastery.",
+      "strength": "Recommended full-tree view: strongest visual connection to the combat HUD.",
+      "tradeoff": "Effects require selection; names and long mastery labels must stay legible at smaller sizes.",
+      "sha256": "60ab2f977829d3a008e06c06e2e06a979076242e96363436355c44d2ff88c526",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "references/current-3d-hud.png"
+      ]
+    },
+    {
+      "id": "T02",
+      "group": "Talent trees",
+      "title": "Card tree \u00e2\u20ac\u201d readable effects without hovering",
+      "file": "T02-card-attack-tree-v2.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T02-card-attack-tree.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Make a narrow UI accuracy correction to the supplied complete game screenshot. Preserve all geometry, seven normal talent cards and exact text, right details, battlefield, mastery text3/7 and bottom HUD. Change ONLY: (1) replace the tiny segmented mastery progress pips underneath3/7TALENTS with a single thin continuous progress bar filled approximately43%, no countable blocks; (2) in the category tabs put a small turret pictogram beside SKILL and a small concentric target with outward rays beside BURST, replacing their misleading dash/chevron symbols. Keep ATTACK label and all text unchanged. Full same16:9 screenshot.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-afcd608b-5936-468f-95de-0c026277954c.png",
+      "revises": "T02-card-attack-tree.png",
+      "history": [
+        {
+          "file": "iterations/T02-card-attack-tree.png",
+          "prompt": "Use case: ui-mockup. ONE polished, believable 16:9 game UI screenshot, requested1920x1080. This is Survivors of Victory's existing talent content presented in the supplied current 3D game's UI. Use the supplied compact bottom HUD image as reference for Snow White's identity, flat navy panels, cyan/steel thin outlines, gold selected/action accents, green HP, angular cut corners and outlined hexagonal ability icons. No bulky chrome, purple space constellations or fantasy parchment. Bold condensed sci-fi typography; short labels must be readable. Dim the actual painted 3D battlefield behind the paused overlay, not an unrelated background. Keep the bottom command dock visibly dimmed and disabled, to anchor the menu to gameplay. No enemy animation implied.\nHeader \"RUN TALENTS\", character name, \"LV 12\", \"2 SP\", clear \"PAUSED\". Three category tabs exactly \"ATTACK\", \"SKILL\", \"BURST\". In-run temporary talent upgrades, not permanent account upgrades; no gems, shop currency, random rewards, rarity colors or rerolls. Existing talent rules: seven normal nodes each rank0/1 or1/1, plus ONE automatic mastery capstone. Normal nodes cost1SP and only require their actual prerequisite. Capstone activates for free after all seven normal nodes are owned; never show a purchase button/cost for mastery. A selected node's right detail panel must show its name, concise effect, prerequisite, and \"LEARN \u00e2\u20ac\u00a2 1 SP\" only if available. Show owned cyan+check, available white with bright outline, locked gray+lock, mastery gold with explicit progress. Include a small state legend so color is not the sole indication. \"TAB RESUME\" in footer. No invented mutual exclusion and no duplicate or missing nodes.ATTACK CONTENT EXACTLY EIGHT NODES:\nSeven Dwarves [OWNED1/1], Weak Point [OWNED1/1], Explosive Rounds [AVAILABLE0/1], Afterburn [OWNED1/1], Burning [AVAILABLE0/1, selected], Inferno [AVAILABLE0/1], Charging [AVAILABLE0/1], Unyielding [LOCKED AUTOMATIC MASTERY3/7].\nPrerequisite connections: Seven Dwarves connects directly to Weak Point, Explosive Rounds and Afterburn. Afterburn connects directly to Burning, Inferno and Charging. Do NOT draw a prerequisite from Weak Point or Explosive Rounds into Afterburn; branches do not exclude each other. Mastery separate gold framed strip: \"UNYIELDING\", \"AUTOMATIC MASTERY\", \"3 / 7 TALENTS\", \"No SP cost\". Not an eighth purchasable choice.\nSelected BURNING right panel: flame pictogram, \"BURNING\", \"Fire applies a damage-over-time burn.\", \"Requires Afterburn \u00e2\u0153\u201c\", \"LEARN \u00e2\u20ac\u00a2 1 SP\". Small actual content preview of a projectile's fire trail touching mechanical enemies, a modest diagram not a giant hero illustration. Values are not being rebalanced.\nLAYOUT B: Alternative layout of the SAME exact talent state/content as A. Broad rectangular cut-corner navy cards in a spacious 3-column progression grid occupy left70%; details pane right25%. Each card contains a small outlined hex pictogram, talent name, one-line effect, and owned/available status. Row1: Weak Point left, Seven Dwarves center, Explosive Rounds right. Row2: Burning left, Afterburn center, Inferno right. Row3: Charging center; Unyielding automatic mastery is a full-width separate strip under grid, not a ninth card. Connect center Seven Dwarves to its two side cards and down to Afterburn; connect Afterburn to its side cards and down to Charging. Preserve accurate prerequisites. Burning selected cyan outerborder. Effects: Weak Point \"Hits mark enemies\"; Seven Dwarves \"Piercing sniper shots\"; Explosive Rounds \"Bullet kills can explode\"; Afterburn \"Shots leave fire trails\"; Burning \"Fire applies burning\"; Inferno \"Fire slows enemies\"; Charging \"Hold for a wider shot\". No scrolling, no hidden normal nodes. All seven normal cards and one mastery strip visible. Right selected Burning detail and learn1SP button. More information immediately readable than small-node layout, while matching the current flat HUD.",
+          "references": [
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/flat-redesign/desktop.png"
+          ],
+          "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-ee6daeaf-662c-4903-97ff-6f792a3f52d7.png",
+          "portableReferences": [
+            "H02-compact-command-dock.png",
+            "references/current-3d-hud.png"
+          ]
+        }
+      ],
+      "width": 1672,
+      "height": 941,
+      "summary": "The same Attack build shown as cards with short effect text.",
+      "strength": "More information visible without hovering; easier to learn unfamiliar builds.",
+      "tradeoff": "Uses more screen area; less spacious than the hex layout.",
+      "sha256": "58eb35cd5513b2fcc9026ea6a59b423fb31927bcde637456957fbf65ae4700ff",
+      "portableReferences": [
+        "iterations/T02-card-attack-tree.png"
+      ]
+    },
+    {
+      "id": "T03",
+      "group": "Talent trees",
+      "title": "Quick spend drawer \u00e2\u20ac\u201d all choices remain accessible",
+      "file": "T03-quick-spend-drawer.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T02-card-attack-tree.png"
+      ],
+      "prompt": "Use case: ui-mockup. One16:9 screenshot requested1920x1080. Image1 is the exact3D battlefield/compact HUD to preserve. Image2 is talent card material, typography, selected and owned states reference. Show a PAUSED quick-spend drawer covering only the lower-middle40% of the battlefield above the command dock; upper half still reveals Snow White and the real paused horde, dimmed. No gameplay running while spending.\nDrawer header at left \"TALENT POINT AVAILABLE\"; right gold \"2 SP\" and clear \"PAUSED\". Tabs \"ATTACK\" selected, \"SKILL\", \"BURST\". Subtitle \"AVAILABLE ATTACK TALENTS\". Three clean wide cards with outlined hex pictograms and short effects: \"EXPLOSIVE ROUNDS\" \u00e2\u20ac\u201d \"Bullet kills can explode.\"; \"BURNING\" \u00e2\u20ac\u201d \"Fire applies burning.\"; \"INFERNO\" \u00e2\u20ac\u201d \"Fire slows enemies.\". These are existing currently available nodes, not random rewards. Each card has small \"1 SP\"; selected Burning has a clear \"LEARN \u00e2\u20ac\u00a2 1 SP\" button, and small \"Requires Afterburn \u00e2\u0153\u201c\". A small horizontal-scroll arrow and \"4 available\" signals Charging is also available; do not imply these three are the only choices. Bottom action \"OPEN FULL TREE\" is clearly secondary; \"TAB RESUME\" at right. No reroll, rarity, random choice, consumables or discard button.\nKeep original compact bottom dock completely visible but disabled; its TAB badge2SP matches drawer. Navy panels, thin steel/cyan outlines, gold selection, readable type. No huge portrait or mastery purchase here. This is an optional faster presentation of the existing tree, with the full tree always accessible.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-1fa01b8c-fdd1-4093-9138-71db874d3696.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "A paused drawer for quickly spending a point on available talents.",
+      "strength": "Faster familiar upgrades while the full tree remains accessible.",
+      "tradeoff": "Optional supplement only; do not turn it into three random offers or conceal other available nodes.",
+      "sha256": "0e7348ea6a787fb723ca996f00f251a1a1d7577877fcfe29664405ebe3499d05",
+      "portableReferences": [
+        "H02-compact-command-dock.png",
+        "iterations/T02-card-attack-tree.png"
+      ]
+    },
+    {
+      "id": "T04",
+      "group": "Talent trees",
+      "title": "Skill tree \u00e2\u20ac\u201d turret build and mastery gate",
+      "file": "T04-skill-turret-tree.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T01-hex-attack-tree.png",
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H02-compact-command-dock.png"
+      ],
+      "prompt": "Use case: ui-mockup. ONE polished, believable 16:9 game UI screenshot, requested1920x1080. This is Survivors of Victory's existing talent content presented in the supplied current 3D game's UI. Use the supplied compact bottom HUD image as reference for Snow White's identity, flat navy panels, cyan/steel thin outlines, gold selected/action accents, green HP, angular cut corners and outlined hexagonal ability icons. No bulky chrome, purple space constellations or fantasy parchment. Bold condensed sci-fi typography; short labels must be readable. Dim the actual painted 3D battlefield behind the paused overlay, not an unrelated background. Keep the bottom command dock visibly dimmed and disabled, to anchor the menu to gameplay. No enemy animation implied.\nHeader \"RUN TALENTS\", character name, \"LV 12\", \"2 SP\", clear \"PAUSED\". Three category tabs exactly \"ATTACK\", \"SKILL\", \"BURST\". In-run temporary talent upgrades, not permanent account upgrades; no gems, shop currency, random rewards, rarity colors or rerolls. Existing talent rules: seven normal nodes each rank0/1 or1/1, plus ONE automatic mastery capstone. Normal nodes cost1SP and only require their actual prerequisite. Capstone activates for free after all seven normal nodes are owned; never show a purchase button/cost for mastery. A selected node's right detail panel must show its name, concise effect, prerequisite, and \"LEARN \u00e2\u20ac\u00a2 1 SP\" only if available. Show owned cyan+check, available white with bright outline, locked gray+lock, mastery gold with explicit progress. Include a small state legend so color is not the sole indication. \"TAB RESUME\" in footer. No invented mutual exclusion and no duplicate or missing nodes.\nUse Image1 as the exact layout/UI style target: same full-screen hex tree, header, right details and dim bottom dock. Image2 is gameplay/3D style. Change category to SKILL selected, character Snow White, 2SP, paused.\nReplace attack nodes with EXACTLY these EIGHT existing SKILL nodes:\nAuto-Turret at root [OWNED1/1]; Ammo Cache upper-left [OWNED1/1]; More Turrets upper-right [OWNED1/1]; Defensive Line center beneath root [OWNED1/1]; Incendiary Ammo lower-left [AVAILABLE0/1]; Armor-Piercing Ammo lower-right [AVAILABLE0/1]; Permanent Emplacement bottom-center [AVAILABLE0/1 SELECTED]. Last node is separate mastery strip \"DETONATION\", \"AUTOMATIC MASTERY\", \"4 / 7 TALENTS\", \"No SP cost\", locked.\nLinks precisely Auto-Turret\u00e2\u2020\u2019Ammo Cache,More Turrets,Defensive Line; Defensive Line\u00e2\u2020\u2019Incendiary Ammo,Armor-Piercing Ammo,Permanent Emplacement. No other prerequisite edges. Use turret/missile/aura/permanent emplacement pictograms, not unrelated dash/crosshair reused indiscriminately.\nRight detail \"PERMANENT EMPLACEMENT\" (wrap two lines), \"Turrets stay and reload.\", \"Deploying at the cap retires the oldest turret.\", \"Requires Defensive Line \u00e2\u0153\u201c\", \"LEARN \u00e2\u20ac\u00a2 1 SP\". Small 3D preview of two compact ivory turrets beside low cover in the actual painted environment; one is reloading, no unsupported stats. Capstone can't be purchased and still requires all seven regular talents. Every label readable, no omitted eighth node. Footer TAB RESUME.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-84c32cde-9ed8-4dc4-a6bb-275341483e51.png",
+      "width": 1672,
+      "height": 941,
+      "summary": "The hex layout applied to Snow White's authored turret Skill tree.",
+      "strength": "Explains lasting turrets, prerequisites and the automatic Detonation mastery.",
+      "tradeoff": "Preview illustrations are concept aids; functional previews would be extra implementation work.",
+      "sha256": "225585c6987f1806235e0015af774c8ed22e580aed437cd64b4c505b3d15707b",
+      "portableReferences": [
+        "T01-hex-attack-tree.png",
+        "H02-compact-command-dock.png"
+      ]
+    },
+    {
+      "id": "T05",
+      "group": "Talent trees",
+      "title": "Scarlet Burst \u00e2\u20ac\u201d explain reward and HP cost",
+      "file": "T05-scarlet-burst-tree-v2.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T05-scarlet-burst-tree.png"
+      ],
+      "prompt": "Use case: text-localization. Correct exactly ONE number in the supplied game UI screenshot. At the very bottom in the dimmed gameplay HUD, the rightmost talent hex above TAB currently reads \"0 SP\". Replace it with exactly \"2 SP\" so it agrees with the paused talent header. Preserve all other pixels/composition, exact eight talent nodes, descriptions, purchase button, Scarlet portrait, battlefield, tabs and colors. Full same16:9 screenshot.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-26c9ce0a-5e7c-4914-a285-e591ec0d2cd9.png",
+      "revises": "T05-scarlet-burst-tree.png",
+      "history": [
+        {
+          "file": "iterations/T05-scarlet-burst-tree.png",
+          "prompt": "Use case: ui-mockup. ONE polished, believable 16:9 game UI screenshot, requested1920x1080. This is Survivors of Victory's existing talent content presented in the supplied current 3D game's UI. Use the supplied compact bottom HUD image as reference for Snow White's identity, flat navy panels, cyan/steel thin outlines, gold selected/action accents, green HP, angular cut corners and outlined hexagonal ability icons. No bulky chrome, purple space constellations or fantasy parchment. Bold condensed sci-fi typography; short labels must be readable. Dim the actual painted 3D battlefield behind the paused overlay, not an unrelated background. Keep the bottom command dock visibly dimmed and disabled, to anchor the menu to gameplay. No enemy animation implied.\nHeader \"RUN TALENTS\", character name, \"LV 12\", \"2 SP\", clear \"PAUSED\". Three category tabs exactly \"ATTACK\", \"SKILL\", \"BURST\". In-run temporary talent upgrades, not permanent account upgrades; no gems, shop currency, random rewards, rarity colors or rerolls. Existing talent rules: seven normal nodes each rank0/1 or1/1, plus ONE automatic mastery capstone. Normal nodes cost1SP and only require their actual prerequisite. Capstone activates for free after all seven normal nodes are owned; never show a purchase button/cost for mastery. A selected node's right detail panel must show its name, concise effect, prerequisite, and \"LEARN \u00e2\u20ac\u00a2 1 SP\" only if available. Show owned cyan+check, available white with bright outline, locked gray+lock, mastery gold with explicit progress. Include a small state legend so color is not the sole indication. \"TAB RESUME\" in footer. No invented mutual exclusion and no duplicate or missing nodes.\nImage1 is exact hex tree layout/style. Image2 supplies Scarlet portrait, her actual chibi sword/hat and disabled bottom HUD. Change character to SCARLET, level18,2SP, Burst tab selected. Current HP18/50 in dim bottom HUD, MELEE weapon not ammo.\nEight exact existing BURST nodes: Scarlet Flash root [OWNED1/1]; Execution upper-left [OWNED1/1]; Drink to Victory upper-right [AVAILABLE0/1 SELECTED]; Scraping the Bottle center below root [OWNED1/1]; Expose Weakness lower-left [AVAILABLE0/1]; Fire In My Veins lower-right [AVAILABLE0/1]; D1 Crashout bottom-center [AVAILABLE0/1]. Separate gold mastery strip \"A GODDESS WHO CANNOT YIELD\", \"AUTOMATIC MASTERY\", \"3 / 7 TALENTS\", \"No SP cost\", locked.\nActual links: Scarlet Flash to Execution, Drink to Victory, Scraping the Bottle. Scraping the Bottle to Expose Weakness, Fire In My Veins, D1 Crashout. Do not change these into mutually exclusive upgrades.\nRight selected detail \"DRINK TO VICTORY\", \"Burst kills heal 5% maximum HP each.\", \"Up to 30% per Burst.\", \"Requires Scarlet Flash \u00e2\u0153\u201c\", \"LEARN \u00e2\u20ac\u00a2 1 SP\". Small muted-gold caution strip in details: \"SCARLET FLASH COSTS 50% HP\". Small preview of chibi Scarlet's restrained sword flash hitting mechanical Raptures; no gore, no gigantic screen effects. Preserve clearly readable labels, using two lines for long names. Other node icons sword/heart/mark/hourglass appropriate. Footer TAB RESUME.",
+          "references": [
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T01-hex-attack-tree.png",
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/H03-scarlet-horde-readability.png"
+          ],
+          "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-dd3b0fc8-7dea-4966-b594-cb375a94b689.png",
+          "portableReferences": [
+            "T01-hex-attack-tree.png",
+            "H03-scarlet-horde-readability.png"
+          ]
+        }
+      ],
+      "width": 1672,
+      "height": 941,
+      "summary": "Scarlet's authored Burst tree with the healing payoff and HP cost shown together.",
+      "strength": "Demonstrates that the UI can explain character-specific tradeoffs.",
+      "tradeoff": "Long names require wrapping; use explicit current/max HP wording when finalizing combat rules.",
+      "sha256": "85d27103781ff622ce8bf1b5aaf19836584dbe96991e986c2cbe4e0bab4f1039",
+      "portableReferences": [
+        "iterations/T05-scarlet-burst-tree.png"
+      ]
+    },
+    {
+      "id": "T06",
+      "group": "Talent trees",
+      "title": "Build overview \u00e2\u20ac\u201d compare all three categories",
+      "file": "T06-three-category-build-overview-v2.png",
+      "references": [
+        "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T06-three-category-build-overview.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Correct the supplied BUILD OVERVIEW screenshot by removing the small gray effect-description sentence beneath EACH of the21 normal talent names across all three columns. These secondary descriptions were not requested and some inaccurately describe source mechanics. REMOVE ALL21 secondary descriptions, leaving clean empty navy space beneath each existing talent name; do not replace them with any new text. Preserve EXACTLY all21 talent names, row order, small icons, owned checkmarks/open icons, Attack3/7, Skill4/7, Burst5/7, all three mastery boxes and their existing labels/counts, all buttons, header, portrait, background and dim bottom HUD. Do not remove any talent name and do not change stats or add descriptions. Same complete16:9 screenshot. This is a clean names-and-ownership overview; detailed effects belong only in the individual tree panel.",
+      "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-9d0d5cfb-3f89-4be4-9e39-c7827d5ffb4e.png",
+      "revises": "T06-three-category-build-overview.png",
+      "history": [
+        {
+          "file": "iterations/T06-three-category-build-overview.png",
+          "prompt": "Use case: ui-mockup. Create one16:9 paused game UI screenshot requested1920x1080, same flat navy/cyan/steel/gold language and dim painted battlefield as supplied references. This is \"BUILD OVERVIEW\" for Snow White, \"LV12\", \"2 SP\", \"PAUSED\", NOT a purchase tree and NOT permanent progression. Small hex portrait in header, no giant illustration. Three equally sized vertical columns, ATTACK, SKILL, BURST; all fit without scrolling. Bottom compact gameplay dock dim/disabled, TAB RESUME.\nEach column has EXACTLY7 readable normal talent rows with small outlined hex glyph, name, and either cyan check or white open circle. No prerequisite connection lines in this OVERVIEW. Each column finishes with separate gold outlined automatic mastery box, lock, text \"AUTO AT7/7 \u00e2\u20ac\u00a2 NO SP\", and an OPEN CATEGORY button. No Learn/purchase button.\nATTACK heading\"3/7 OWNED\"; seven rows: Seven Dwarves \u00e2\u0153\u201c, Weak Point \u00e2\u0153\u201c, Explosive Rounds \u00e2\u2014\u2039, Afterburn \u00e2\u0153\u201c, Burning \u00e2\u2014\u2039, Inferno \u00e2\u2014\u2039, Charging \u00e2\u2014\u2039. Mastery\"UNYIELDING\" and \"3/7\".\nSKILL heading\"4/7 OWNED\"; rows: Auto-Turret \u00e2\u0153\u201c, Ammo Cache \u00e2\u0153\u201c, More Turrets \u00e2\u0153\u201c, Defensive Line \u00e2\u0153\u201c, Incendiary Ammo \u00e2\u2014\u2039, Armor-Piercing Ammo \u00e2\u2014\u2039, Permanent Emplacement \u00e2\u2014\u2039. Mastery\"DETONATION\" and \"4/7\".\nBURST heading\"5/7 OWNED\"; rows: Seven Dwarves \u00e2\u0153\u201c, Incendiary Rounds \u00e2\u0153\u201c, Fully Active \u00e2\u0153\u201c, Focused Fire \u00e2\u0153\u201c, Pierce Through \u00e2\u0153\u201c, Stunned \u00e2\u2014\u2039, A Century of Prep Time \u00e2\u2014\u2039. Mastery\"A GODDESS WHO CANNOT YIELD\" and \"5/7\", wrap title if necessary.\nGold small helper at top \"CHOOSE A CATEGORY TO SPEND POINTS\". This makes investment across weapon, turret and Burst understandable at a glance, without inventing branching restrictions or removing talents. Use readable condensed type, generous row spacing, consistent7 row heights. State legend bottom \"\u00e2\u0153\u201c OWNED  \u00e2\u2014\u2039 AVAILABLE\".",
+          "references": [
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T01-hex-attack-tree.png",
+            "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/survivors-visual-plan/2026-10-24/T02-card-attack-tree.png"
+          ],
+          "source": "C:\\Users\\rmdou\\.codex\\generated_images\\01a16fe8-51a0-75d1-b3ba-749fe0409f71\\exec-2f4b799b-3eb8-4c70-bd1c-c97553acbb07.png",
+          "portableReferences": [
+            "T01-hex-attack-tree.png",
+            "iterations/T02-card-attack-tree.png"
+          ]
+        }
+      ],
+      "width": 1672,
+      "height": 941,
+      "summary": "See all three categories' owned nodes and mastery progress in one view.",
+      "strength": "Useful build summary; all 21 normal nodes and three capstones remain visible.",
+      "tradeoff": "An overview, not a replacement for prerequisite graphs and selected-node detail.",
+      "sha256": "baaec130fa2d2d4ad76681f520fbcbe5fee4f705acb31b0109a77b8736d00907",
+      "portableReferences": [
+        "iterations/T06-three-category-build-overview.png"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "id": "R01",
+      "title": "Current 3D HUD",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/flat-redesign/desktop.png",
+      "file": "references/current-3d-hud.png"
+    },
+    {
+      "id": "R02",
+      "title": "Current 3D world after performance pass",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/perf-pass-1/screens/three-lane-battle-lane-painted-ao-on-after.webp",
+      "file": "references/current-3d-world.webp"
+    },
+    {
+      "id": "R03",
+      "title": "Actual 2D Survivors combat",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/survivor-game-1920x1080.png",
+      "file": "references/sov-2d-combat.png"
+    },
+    {
+      "id": "R04",
+      "title": "Actual 2D character menu",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/character-select-1920x1080.png",
+      "file": "references/sov-2d-character-menu.png"
+    },
+    {
+      "id": "R05",
+      "title": "Actual 2D staged operation",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/nipmh-flow/05-stage-02-with-nipmh.png",
+      "file": "references/sov-2d-operation.png"
+    },
+    {
+      "id": "R06",
+      "title": "Current Scarlet model and portrait",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/artifacts/ui/weapons/scarlet.png",
+      "file": "references/current-scarlet.png"
+    },
+    {
+      "id": "R07",
+      "title": "Actual 2D maintenance screen",
+      "source": "C:/Users/rmdou/Desktop/GAME DEV/NIKKE MOBA/_REF/SURVIVORS OF VICTORY - 2026/_PHASER/.preview/visual/maintenance-1920x1080.png",
+      "file": "references/sov-2d-maintenance.png"
+    }
+  ]
+}
