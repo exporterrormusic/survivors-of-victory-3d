@@ -54,7 +54,7 @@ class Layer {
     private readonly targets = new Map<TransformNode, TransformNode>(),
   ) {}
 
-  play(name: string, { loop = true, speed = 1, fade = .12, restart = false } = {}): void {
+  play(name: string, { loop = true, speed = 1, fade = .12, restart = false, hold = false } = {}): void {
     const group = this.group(name);
     if (!group) return;
     if (name === this.current && !restart) {
@@ -70,13 +70,16 @@ class Layer {
     track.target = 1;
     if (restart || !group.isPlaying) {
       group.stop(true);
-      group.start(loop, speed, group.from, group.to);
+      // A held pose loops a sliver at the clip's very end: a paused group stops contributing to the
+      // blend, so it must keep evaluating to stay on its last frame.
+      if (hold) group.start(true, 1, group.to - .05, group.to);
+      else group.start(loop, speed, group.from, group.to);
       // a reversed clip starts at its end and runs back from there
       if (speed < 0) group.goToFrame(group.to);
     } else {
       group.speedRatio = speed;
     }
-    group.loopAnimation = loop;
+    group.loopAnimation = loop || hold;
     group.weight = track.weight;
     this.fade = fade;
     this.current = name;
@@ -148,6 +151,11 @@ export class TwinStickRig {
   private readonly neck: TransformNode;
   private readonly head: TransformNode | null;
   private readonly gun: TransformNode;
+  private readonly detachedWeapons: TransformNode[] = [];
+  private readonly torsoBefore = Matrix.Identity();
+  private readonly weaponDelta = Matrix.Identity();
+  private readonly weaponLocal = Matrix.Identity();
+  private readonly weaponParentInverse = Matrix.Identity();
   private readonly muzzleRef: MuzzleRef;
   private readonly restSpine: Quaternion;
   private readonly restHead: Quaternion | null;
@@ -184,26 +192,35 @@ export class TwinStickRig {
    */
   private readonly hipCorrection = new Map<string, number>();
 
-  constructor(readonly chibi: Chibi, cyclesPerMetre = 1.2 / (5.5 * .73)) {
+  constructor(readonly chibi: Chibi, cyclesPerMetre = 1.2 / (5.5 * .73), private readonly aimFacing: 'head' | 'weapon' = 'weapon') {
     const spine = chibi.joint(SPINE);
-    const gun = chibi.joint(GUN);
+    const muzzle = clipMuzzle(chibi.meta, 'aim_idle');
+    const gun = chibi.joint(GUN) ?? (muzzle ? chibi.joint(muzzle.joint) : null);
     if (!spine || !gun) throw new Error(`${chibi.meta.variant}: the twin-stick rig needs ${SPINE} and ${GUN}`);
     this.spine = spine;
     this.chest = chibi.joint('Bip001 Spine1') ?? spine;
     this.neck = chibi.joint('Bip001 Neck') ?? this.chest;
     this.head = chibi.joint('Bip001 Head') ?? null;
     this.gun = gun;
-    this.muzzleRef = clipMuzzle(chibi.meta, 'aim_idle') ?? { joint: GUN, offset: [0, 1, 0] };
+    this.muzzleRef = muzzle ?? { joint: gun.name, offset: [0, 1, 0] };
     spine.rotationQuaternion ??= Quaternion.FromEulerVector(spine.rotation);
     this.restSpine = spine.rotationQuaternion.clone();
     if (this.head) this.head.rotationQuaternion ??= Quaternion.FromEulerVector(this.head.rotation);
     this.restHead = this.head?.rotationQuaternion?.clone() ?? null;
     this.cyclesPerMetre = cyclesPerMetre;
-    this.reloadFacingOffset = aimOffset(chibi.meta, 'weapon') * DEG;
+    this.reloadFacingOffset = aimOffset(chibi.meta, aimFacing) * DEG;
 
     const upperNames: string[] = [];
     const collect = (n: Node) => { upperNames.push(n.name); for (const c of n.getChildren()) collect(c); };
     collect(spine);
+    // Heavy Arms animates its weapons beside the biped instead of under the spine.
+    // Keep them on the upper-body animation layer and carry the torso correction over.
+    if (!gun.isDescendantOf(spine)) {
+      for (const name of ['Bone_weapon01', 'Bone_weapon02', 'Bone_weapon03']) {
+        const weapon = chibi.joint(name);
+        if (weapon && !weapon.isDescendantOf(spine)) { this.detachedWeapons.push(weapon); collect(weapon); }
+      }
+    }
     this.lower = new Layer(chibi, 'lower', new AnimationGroupMask(upperNames, AnimationGroupMaskMode.Exclude));
     // Local spine keys are relative to each clip's own pelvis/root orientation. Using aim keys
     // directly under idle/run hips changes their pitch and roll as well as their yaw. Animate a
@@ -253,11 +270,20 @@ export class TwinStickRig {
     this.upper.play('idle', { fade: 0 });
   }
 
-  /** A full-body clip on both halves (death, stun). Ends when update() is called again. */
-  playFull(name: string, loop = false): void {
+  /** A full-body clip on both halves (death, stun). Ends when update() is called again.
+   * `hold` blends to the clip's final frame and stays there (Scarlet passed out). */
+  playFull(name: string, loop = false, hold = false): void {
     this.full = true;
-    this.lower.play(name, { loop, fade: .1, restart: true });
-    this.upper.play(name, { loop, fade: .1, restart: true });
+    const fade = hold ? .45 : .1;
+    this.lower.play(name, { loop, fade, restart: true, hold });
+    this.upper.play(name, { loop, fade, restart: true, hold });
+  }
+
+  /** While a full-body clip is held instead of calling update(): keep its blend fading in. */
+  updateFull(dt: number): void {
+    this.full = true;
+    this.lower.update(dt);
+    this.upper.update(dt);
   }
 
   /** Play position of the arms' clip, 0..1 (1 once a one-shot clip has finished). */
@@ -356,27 +382,47 @@ export class TwinStickRig {
       this.measure();
       return;
     }
+    if (this.detachedWeapons.length) this.torsoBefore.copyFrom(this.spine.computeWorldMatrix(true));
     this.rebaseTorso();
     this.uprightTorso();
+    this.followTorsoWithWeapons();
     const toAim = wrapAngle(this.aimYaw - this.legYaw);
     const relaxed = Math.max(-RELAXED_MAX, Math.min(RELAXED_MAX, toAim * RELAXED_SHARE));
     const gunYaw = this.measure();
     // A reload deliberately moves the rifle. Steer by the chest instead, cancelling the clip's
     // authored body turns while preserving the hand/weapon motion. Keep this through both fades;
     // switching back to barrel steering while reload still contributes causes a whole-body snap.
-    const aimed = lerpAngle(
+    const aimed = this.aimFacing === 'head' && this.head ? wrapAngle(this.aimYaw - this.headYaw()) : lerpAngle(
       wrapAngle(this.aimYaw - gunYaw),
       wrapAngle(this.aimYaw + this.chestAimOffset - this.chestYaw()),
       this.reloadAimWeight,
     );
     const w = this.aimWeight;
     const twist = relaxed * (1 - w) + aimed * w;
+    if (this.detachedWeapons.length) this.torsoBefore.copyFrom(this.spine.computeWorldMatrix(true));
     if (Math.abs(twist) > 1e-4) this.spine.rotate(UP.clone(), twist, Space.WORLD);
+    this.followTorsoWithWeapons();
     this.measure();
     if (this.reloadAimWeight === 0 && this.posture !== 'relaxed' && w >= 1) {
       this.chestAimOffset = wrapAngle(this.chestYaw() - this.aimYaw);
     }
     this.levelHead();
+  }
+
+  private followTorsoWithWeapons(): void {
+    if (!this.detachedWeapons.length) return;
+    this.torsoBefore.invertToRef(this.weaponDelta);
+    this.weaponDelta.multiplyToRef(this.spine.computeWorldMatrix(true), this.weaponDelta);
+    for (const weapon of this.detachedWeapons) {
+      weapon.computeWorldMatrix(true).multiplyToRef(this.weaponDelta, this.weaponLocal);
+      if (weapon.parent) {
+        weapon.parent.getWorldMatrix().invertToRef(this.weaponParentInverse);
+        this.weaponLocal.multiplyToRef(this.weaponParentInverse, this.weaponLocal);
+      }
+      weapon.rotationQuaternion ??= Quaternion.Identity();
+      this.weaponLocal.decompose(weapon.scaling, weapon.rotationQuaternion, weapon.position);
+      weapon.computeWorldMatrix(true);
+    }
   }
 
   /** World position of the gun tip after this frame's twist. */
@@ -411,6 +457,14 @@ export class TwinStickRig {
 
   private reloadVisible(): boolean {
     return this.upper.tracks.some(t => t.name === 'cover_reload' && t.weight > 0);
+  }
+
+  /** Rapunzel carries Holy Grace across her body, so its shaft cannot define look direction. */
+  private headYaw(): number {
+    this.chest.computeWorldMatrix(true);
+    this.neck.computeWorldMatrix(true);
+    Vector3.TransformNormalToRef(UP, this.head!.computeWorldMatrix(true), this.headForward);
+    return Math.atan2(this.headForward.x, this.headForward.z);
   }
 
   /** Keep the torso vertical while aiming, moving and reloading. Rotate the whole upper

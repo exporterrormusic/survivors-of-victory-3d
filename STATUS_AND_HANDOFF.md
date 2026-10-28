@@ -1,3 +1,56 @@
+## Alpha prep: saves, version, supply lift, squad, enemy movement (2026-10-27)
+
+Direction: the game is **Survival Round** (WAVE + ENDLESS). Ark Siege, Relay Run and the Salvage sortie are archived (URL-only).
+
+- **Version:** `src/version.ts` is the single source (`GAME_VERSION`, shown bottom-left of the main menu as `SOV-2026 // ARK SYS V0.1`, in Settings, and in exported saves). Bump it per build and add a matching top entry to `PATCH_RELEASES` in `MainMenuScene.ts`; the NOTICE unread dot is keyed by version. Notice text rewritten as a 0.1 Closed Alpha note.
+- **Saves (itch.io web + download):** `ProfileStorage.ts` adds export/import/erase of every `nikke-moba.*` key (itch.io HTML games share one origin, so never write unprefixed keys) and asks for persistent storage at boot. Settings > DATA has Export / Import / Erase (two-press). `vite.config.ts` uses `base: './'` for itch's sub-path. A desktop wrapper must serve from a fixed origin or localStorage is lost between launches; export/import covers moving progress.
+- **Stats:** `src/frontend/profile/SurvivalStats.ts` records rounds, wins, kills, bests per NIKKE (once per round id); results screen shows bests; kills/wins/boss kills now feed achievements.
+- **Supply lift** (`src/survivor/mode/supply-lift.ts`): the random green medical crate is gone. Every 60 s the arrival lift cycles and brings a health crate plus 1–5 mass-produced NIKKEs (Soldier/Product/iDoll, models copied from the MOBA archive). Squad: twin-stick run-and-gun, formation ring, backs off Raptures, steps out of red tells (`TelegraphLayer.dangerAt`), one reserved route search per frame (`NavigationMap.grantSearches`).
+- **Raptures move and fire:** `Target.attackHold` now means "attacking: half speed, face the player"; new `Target.rooted` is the old full stop, used only by lane/slam/dive/emplacement tells. Settled ranged Raptures circle at standoff instead of standing still; walk/idle swaps keep the clip clock; shared pacing allows 6 shooters (was 2); bolts lead the player.
+- **Talent picks** no longer clear held WASD; **level-ups** get a gold screen flash, ring and LEVEL N title, and waiting choices glow.
+
+- **Follow-ups (same day):** Raptures spawn instantly and only off screen (real camera projection, any zoom); the purple spawn circles are gone, and a spawn waits if nowhere is hidden. Big LEVEL notice only on levels that unlock a talent tier, no gold vignette; talent choices slide in one after another. Small banners slide/fade in and out (3 s, 1.8 s for plain level-ups). Max zoom-out 34 → 28. Normal Rapture bolts fly 28 m (was 14) and Raptures start shooting from 26 m (was 13). Lift collision only rebuilds when walkable space changes (12 rebuilds per cycle, was ~150, which was the frame-rate collapse). Squad models come from a pool of 5 loaded and shader-compiled during the arrival ride; the squad and crate ride up visibly on the cage.
+
+- **Squad as targets (later same day):** Raptures pick their nearest victim every ~0.5 s (player wins near-ties) via `Target.victim`; `horde.ts` hands each behavior a per-Rapture view of the player (a Proxy redirecting position/motion/hp/takeDamage), so every role can chase and hit squad members; bodies hurt anyone they touch. Squad: 80 HP, registered in `TargetField.squad`, names and HP bars over the squad and the hero (`hud.ts`). Squad AI holds position while it has a target, pushes toward Raptures near the player, only re-paths for goal moves over 2.2 m (no more jitter), range 15 m. The health crate no longer spins.
+
+- **Tuning + lift stutter (latest):** squad 40 HP, 2 damage, 0.75 s between shots, gun swings at 5 rad/s and fires only when on target, side-steps to a new firing spot every 1.6–3 s, leaves the deck first. Raptures weigh squad members as 35% closer (and stick with their current victim). Crate has no emissive glow. Stutter cause: each navigation rebuild costs ~60 ms per unit size. Survival Round now never rebuilds (resting lift collision all round; `SupplyLift.clearDeck` shoves bodies off the footprint while the cage moves), and the 8-model squad pool with rigs loads behind the loading screen (`SupplyLift.preload`) and is recycled when squad members fall.
+
+- **Squad weapons, Capra, roads (latest):** `mode/squad-weapons.ts` gives each model its real weapon (EG/Sun assault rifle bursts, OW/Ocean SMG, Product 12 minigun with spin-up, Product 08 piercing sniper with laser sight, FA/23 five-pellet shotgun, Flower splash rocket), ~3 DPS each; automatic weapons hold the aim pose, single shots play the model's shot clip at natural speed; thick tracers, muzzle flashes and impacts. Squad AI keeps its weapon's preferred range, protects the player first, finishes the wounded (sniper favours heavies, rocket favours clusters), retreats behind the player under 35% HP, keeps 2 m apart. Pool is 8 different models. Rapunzel's zones and Burst heal the squad. Heavies and bosses show gold names over their bars. Capra: 75 HP, planted for a 1.6 s charge and a 2.4 s slowly tracking beam that ticks and scorches. `rangePlacements()` now drops any solid prop on the main or cross road on every theme (decorations stay; the lift is not a prop). Checks: `node tools/verify-squad-weapons.mjs`.
+
+- **Scarlet drink + Test Range spawns:** Scarlet's drink heals 9.6% max HP per 4 s drink (was 4.8%) and starts after 2 s idle (`DRINK_DELAY`; Snow White's Focus keeps 3 s). Test Range Weather Lab has **Spawn ally** (a squad NIKKE beside the player; 3 preloaded, more load on demand) and **Drop health box** (a ground crate ahead of the player). Check: `node tools/verify-range-spawns.mjs`.
+
+Validation: typecheck, production build, `npm run test:save` (new), progress/survival/talents/sortie/snow suites. Browser: `node tools/verify-supply-lift.mjs` and `node tools/verify-hidden-spawns.mjs` (port 5194). Captures in `artifacts/supply-lift/`. Headless runs at ~2 fps, so movement checks step game time directly. `tools/verify-survival.mjs` is outdated (drives the removed medical crate and the rank menu). Real-speed balance of squad damage/HP still needs a playtest.
+
+## Rapunzel survivor port (2026-10-26)
+
+Rapunzel is now selectable in the survivor lobby, Test Range, and Survival Round, following Scarlet's ordered 30-SP progression and separate capstone save. Homing rockets, healing/burning zones, following aura, stacking permanent burns, full-heal/stun Burst, ten-launcher barrage, and held cursor designation are implemented. Default and Pure Grace models use the existing skin system. Three talent illustrations were generated with built-in imagegen; prompts and sources are saved. See `docs/RAPUNZEL.md` for mechanics, tests, and presentation limits. Anime lighting unchanged.
+
+Validation: TypeScript and production build passed (existing FluentUI directive warnings); three Rapunzel browser suites passed, including live controls and Pure Grace. Survival round and saved-progress regressions passed. Captures in `artifacts/rapunzel/`.
+
+## Ark Siege: current graybox direction (2026-10-26)
+
+Scale correction: user requested a large MOBA-scale battlefield. Footprint expanded to 408 × 228 m (3× width/depth, 9× area) with character size, movement and attack range unchanged. Adjacent lane rotations take 8 seconds, mid-lane end-to-end takes 40 seconds. Render bounds, navigation, minimap, camera, gate locations and rescue routes use the expanded coordinates. Snow/rain remain appearance studies. See `docs/ARK_SIEGE_GRAYBOX.md` for measurements.
+
+User approved a three-lane PvE siege with Ark on the left, enemy territory on the right, and allied defenses occupying only half the map. No player construction. Destroyed gates retreat that lane's frontline and create rescue opportunities in lost ground. The elevator faces right into the lanes. Normal matches should end before all talents unlock; ordered trees versus HotS-style choices remains undecided.
+
+Playable isolated basic-shape prototype: `?prototype=ark-siege`, also first mode in Stage Select. `src/siege/layout.ts` defines navigable corridors and objective sites, `simulation.ts` handles test combat/waves/breaches/escorts, and `main.ts` renders the graybox. It leaves existing character kits and persistence alone. Co-op is a layout goal, not implemented networking. No ImageGen material pass yet: playtest the full layout first. Details and controls in `docs/ARK_SIEGE_GRAYBOX.md`.
+
+Validation: connectivity/collision, individual lane retreat, objective spawn, complete escort return, loss state, and browser movement/aiming/camera/interaction checks passed. Production build completed with existing FluentUI directive warnings. Screenshots in `artifacts/ark-siege/`. Condensed pacing is for graybox evaluation, not final balance.
+
+## Survival Round: previous loop (2026-10-26)
+
+The user clarified that talents were intended to reset each 20-minute round. The current default is now **Survival Round**, not Relay Run or permanent-progression sorties. Elevator arrival → twenty minutes of escalating waves → Obelisk → one Rapture Core on victory. Ordered trees and their effects/costs remain intact; run XP is tuned for up to 30 SP. Tab pauses to purchase ranks. Lobby capstone selection persists, but its activation resets with the tree. No random upgrades or extra temporary-build system.
+
+`survival-mode.ts` integrates arrival, waves, heavy milestones, healing, final boss telegraphs and results. `survival-round.ts` is the engine-free clock/phase model. `RoundRewards.ts` saves only the core wallet and an idempotent receipt; legacy saved talent progress is untouched. Skins cost one core for this initial economy. Other NIKKEs remain Coming Soon because only Snow White has a finished survivor kit. Main menu and Stage Select reflect the new direction; older modes remain reachable by direct URLs. See `docs/SURVIVAL_ROUNDS.md` for details and validation commands.
+
+Validation passed: survival clock/rank/reward tests, progress and sortie regressions, capstone checks, TypeScript and production build. Isolated browser integration passed arrival, XP, paused ordered purchasing, Burst, healing, heavy/final boss transitions, one-time victory reward, one-core skin purchase, retry resets, retained ownership and death without reward. No page errors. Screenshots in `artifacts/survival-round/`. Browser time transitions were accelerated; ordinary 20-minute pacing still needs a player playtest.
+
+## Relay Run: superseded combat prototype (2026-10-26)
+
+The user approved testing a destination-based loop. Stage Select now defaults to Relay Run, fixed to Ark Outskirts. Direct link: `?run=test-range&mission=relay_run`. Follow the cyan street route, optionally collect guarded courtyard healing, defeat Hard Hat, then retry or return. No Alert, extraction, loot systems or saved progression in this prototype. Base abilities are ready, Burst starts full, and ordinary encounters do not gate movement. Older Salvage Run and Test Range remain available.
+
+Implementation: `src/survivor/mode/relay-mode.ts`, `relay-route.ts`, `relay-mode.css`, with narrow integration in survivor main and Stage Select. This is a compact graybox using existing combat; five-minute pacing still needs a player playtest. See `docs/RELAY_PROTOTYPE.md` for controls, limits and verification. Anime lighting remains unchanged.
+
 ## Lighting & color is always Anime (user rule, 2026-10-25)
 
 The user's darker look turned out to be the "Painted daylight" preset (about half Anime's brightness). The user
@@ -54,7 +107,7 @@ Small hooks added to Player, HUD and main; sortie rewards/extraction remain thei
 
 Passed final typecheck, `tools/test-elevator-motion.mjs`, sortie logic tests, `verify-elevator.mjs`
 (passenger Y, hidden model, stopped clock, replay, clearance, controls, 16:9/21:9), and full
-`verify-sortie.mjs` regression. No browser errors. Review `/elevator-review.html`; captures include
+`verify-sortie.mjs` regression. No browser errors. Review `/tools/review/elevator-review.html`; captures include
 `08-blast-doors-closing.png` and `09-sealed-extraction.png` under `artifacts/ui/ART-1/`.
 
 ## Lift art preview: S06 restored tower at range center (2026-10-25)
@@ -73,7 +126,7 @@ the sides, close before travel, and cannot open underground. Motion and lamps pa
 The rotated shaft is a real mesh opening in `arena.ts`, replacing the material-only discard after
 the reported striped floor artifact. Initial range framing is 18 m; wheel zoom remains available.
 
-Review: `/elevator-review.html`, or `?run=test-range&environment=outskirts&time=day&weather=clear`.
+Review: `/tools/review/elevator-review.html`, or `?run=test-range&environment=outskirts&time=day&weather=clear`.
 `artifacts/verify-elevator.mjs` passed center, endpoints, full cycle, interlock, interrupted command,
 UI controls, 16:9/21:9 and anime checks with no page errors. Captures include a full-height view in
 `artifacts/ui/ART-1/`. Sortie logic and browser regressions passed. Final typecheck passed after

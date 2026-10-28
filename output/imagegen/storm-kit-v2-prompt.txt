@@ -1,0 +1,8 @@
+Built-in image_gen generation; resized to 2048x2048 with independently matched quadrant edges.
+
+Use case: stylized-concept. Production game material atlas, exactly 2048x2048 PNG. Four equal 1024x1024 quadrants, hard division at exact center, no gaps, borders, text or labels. Each quadrant independently seamlessly tileable left-right and top-bottom, including all cracks and seams; keep about 12 pixels of safe quiet texture inside every quadrant edge, no border lines. Orthographic top-down flat surface view, no perspective, no directional lighting gradient.
+Top-left: weathered rain-soaked highway concrete, cool light grey, faint formwork seams, hairline cracks, small aggregate speckles, subtle water stains and little moss in cracks. Surface covers 3.3 meters.
+Top-right: old wet asphalt, medium dark blue-grey with lighter worn aggregate, a few subtle patched repairs, branching cracks, small puddle sheen spots. No road markings or paint. Surface covers 4.5 meters.
+Bottom-left: industrial steel painted muted blue-grey, chipped paint revealing darker metal, a few subtle rivet rows and faint rust bleed streaks. Surface covers 2.2 meters.
+Bottom-right: heavily rusted corroded sheet metal, orange-brown rust with flaking dark patches, remnants of faded white paint, pitted surface. Surface covers 2.5 meters.
+Shared style: stylized anime game texture, hand-painted look, clean readable shapes, bright mid-values for a game lit at night by storm light. Avoid very dark textures. Soft painted shading. All four are flat tileable materials, not objects. No lane paint, signs, lamps, warning lights or decoration.

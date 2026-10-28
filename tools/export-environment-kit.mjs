@@ -8,7 +8,7 @@ const errors=[],manifest={version:1,units:'metres',style:'simple anime',assets:[
 try {
   const page=await browser.newPage({viewport:{width:1600,height:1100}});
   page.on('pageerror',e=>{errors.push(e.message);console.error(e.message);});
-  await page.goto(`${process.env.KIT_REVIEW_URL??'http://127.0.0.1:5183'}/environment-kit-review.html`);
+  await page.goto(`${process.env.KIT_REVIEW_URL??'http://127.0.0.1:5183'}/tools/review/environment-kit-review.html`);
   await page.waitForFunction(()=>window.environmentKit?.scene.isReady(),{},{timeout:120000});
   const {assets,finishes}=await page.evaluate(()=>({assets:window.environmentKit.assets,finishes:window.environmentKit.finishes}));
   for(const finish of finishes){

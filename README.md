@@ -1,5 +1,22 @@
 # NIKKE MOBA (test bed)
 
+**Current layout prototype:** **Ark Siege**. Open `?prototype=ark-siege` or select **ARK SIEGE · GRAYBOX**.
+Three lanes, fixed destructible defenses in the allied half, and rescue excursions into enemy territory.
+Basic shapes and test combat only; see [controls and scope](docs/ARK_SIEGE_GRAYBOX.md).
+
+**Previous combat mode:** 20-minute **Survival Round**, followed by a final boss. Start with basic abilities,
+earn XP and spend SP through the ordered talent trees, then earn one Rapture Core on victory.
+Talents reset each round; skins and cores persist. Select Survival Round in Stage Select or open
+`?run=test-range&mission=survival_round&zone=outskirts_day`. See [current round rules](docs/SURVIVAL_ROUNDS.md).
+Snow White, Scarlet, and Rapunzel are playable; Scarlet and Rapunzel are in their first combat/visual playtest passes; the MOBA systems documented below are retained experiments.
+
+On Windows, double-click **start.bat** to start the game and open `http://localhost:5173/`.
+It installs dependencies if needed and reuses an existing game server. Keep the server
+window open while playing; press Ctrl+C to stop it. Node.js and npm must be installed.
+
+Development review pages live in `tools/review/` (open them through the dev server).
+Design briefs live in `docs/concepts/`; generated captures and logs belong in `artifacts/`.
+
 Babylon.js MOBA prototype using NIKKE's 3D chibi models. Current scope: Snow White (with three
 of her other variants), Red Hood, Rapunzel, and Scarlet, HotS-style movement and combat, a shared placeholder ability kit,
 opposing Nikke/Rapture minion waves, overgrown industrial ruins, and a HotS-style HUD with restrained NIKKE colors. Multiplayer is not implemented.
@@ -26,8 +43,10 @@ Choose a character in **F10 → Character / outfit**, or open a direct link:
 | Rapunzel | `http://localhost:5173/?v=c221_00` |
 | Scarlet | `http://localhost:5173/?v=c222_00` |
 
-Each has her own animated model and portrait. All characters currently share the existing Snow White
-test kit; character-specific abilities, healing, and melee combat are not implemented yet.
+These links open the archived MOBA. For Scarlet in the current survivor runtime, use
+`?run=test-range&character=scarlet`, or Weather Lab > Character. Tab opens her ordered talent tree.
+Switching characters restarts the run. See [Scarlet port notes](docs/SCARLET.md).
+Rapunzel uses `?run=test-range&character=rapunzel`; see [Rapunzel port notes](docs/RAPUNZEL.md).
 
 ## Battlegrounds
 
@@ -354,7 +373,7 @@ npm run raptures:extract
 npm run raptures
 ```
 
-`npm run dev`, then open `/rapture-review.html` to review them: each model is drawn through
+`npm run dev`, then open `/tools/review/rapture-review.html` to review them: each model is drawn through
 the lane-minion crowd path beside a mass-produced Nikke, with clip buttons, muzzle markers,
 measured height/reach/lowest point (and the `modelLift` that clears the floor), a lineup by
 size, and a per-model verdict and notes kept in the browser ("Copy review notes" exports them).
@@ -383,7 +402,7 @@ The game installation is not needed at runtime and is never modified by the conv
 | `tools/extract-raptures.py` | copy the SDMonster bundles out of the local install (read-only) |
 | `tools/convert-raptures.py` | local Outpost bundles to animated `public/raptures/*.glb` |
 | `tools/rapture_walks.py` | borrowed/generated walk clips for walk-less Raptures (used by the converter) |
-| `rapture-review.html`, `src/review/` | dev-only Rapture review page (not in the game build) |
+| `tools/review/rapture-review.html`, `src/review/` | dev-only Rapture review page (not in the game build) |
 | `src/chibi.ts` | load a chibi, crossfade clips, per-clip facing |
 | `src/main.ts` | input, settings, variant switching, frame layout, game loop |
 | `src/hero.ts` | hero state machine, movement, attacks and abilities |

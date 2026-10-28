@@ -62,6 +62,41 @@ class AudioEngine {
     });
   }
 
+  /**
+   * A one-off processed cue, outside the voice limits: `rate` below 1 plays it deeper and longer;
+   * `reverb` sends it through a generated hall whose tail is chopped into a stutter (`glitch`).
+   */
+  playProcessed(cue: Cue, { gain = 1, rate = 1, reverb = 0, glitch = false }: { gain?: number; rate?: number; reverb?: number; glitch?: boolean } = {}): void {
+    const graph = this.ensureGraph(), ctx = graph.context;
+    void this.buffer(cue.url).then((decoded) => {
+      if (!decoded) return;
+      const now = ctx.currentTime;
+      const source = ctx.createBufferSource();
+      source.buffer = decoded; source.playbackRate.value = rate;
+      const dry = ctx.createGain(); dry.gain.value = cue.volume * gain;
+      source.connect(dry).connect(graph.sfx);
+      if (reverb > 0) {
+        const convolver = ctx.createConvolver(); convolver.buffer = this.hall(ctx);
+        const wet = ctx.createGain(); wet.gain.value = cue.volume * gain * reverb;
+        source.connect(convolver).connect(wet).connect(graph.sfx);
+        if (glitch) {
+          // Gate the tail on and off in uneven steps, like a corrupted recording.
+          let t = now + .35;
+          while (t < now + 3.2) {
+            const on = .04 + Math.random() * .12, off = .02 + Math.random() * .1;
+            wet.gain.setValueAtTime(cue.volume * gain * reverb, t);
+            wet.gain.setValueAtTime(0, t + on);
+            t += on + off;
+          }
+          wet.gain.setValueAtTime(0, t);
+        }
+        setTimeout(() => { convolver.disconnect(); wet.disconnect(); }, 4500);
+      }
+      source.onended = () => { source.disconnect(); dry.disconnect(); };
+      source.start();
+    });
+  }
+
   /** A sustained weapon sound. Cancellation also covers an in-flight decode. */
   loop(cue: Cue, fade = .06): () => void {
     const graph = this.ensureGraph();
@@ -188,6 +223,20 @@ class AudioEngine {
       if (keep) this.buffers.set(url, pending);
     }
     return pending;
+  }
+
+  /** Build the hall reverb ahead of the first processed cue. */
+  warmReverb(): void { this.hall(this.ensureGraph().context); }
+  private hallImpulse?: AudioBuffer;
+  /** A 3 s decaying noise impulse standing in for a large stone space; built once. */
+  private hall(ctx: AudioContext): AudioBuffer {
+    if (this.hallImpulse) return this.hallImpulse;
+    const length = Math.floor(ctx.sampleRate * 3), impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const data = impulse.getChannelData(c);
+      for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 2.6;
+    }
+    return this.hallImpulse = impulse;
   }
 
   private ensureGraph(): Graph {

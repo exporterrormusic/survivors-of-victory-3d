@@ -64,7 +64,7 @@ Surface detail is diffuse paint; there are no generated normal or roughness maps
 
 ## Review and validation
 
-With the Vite development server running, open `/weapon-review.html`. Drag to orbit, scroll
+With the Vite development server running, open `/tools/review/weapon-review.html`. Drag to orbit, scroll
 to zoom, select front/back/top views, or toggle the neutral blockout. The rocket is displayed at
 2× scale in that viewer; gameplay uses its normal size. This is a development review entry,
 like the existing Rapture review page; the normal production entry remains the game.

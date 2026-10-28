@@ -1,3 +1,5 @@
+> **Superseded 2026-10-26:** The approved loop is now 20-minute survival rounds with ordered talents that reset each round and Rapture Core rewards for permanent character/skin unlocks. See [SURVIVAL_ROUNDS.md](SURVIVAL_ROUNDS.md). The older sortie proposal below is historical reference, including its permanent-build assumptions.
+
 # Survivors of Victory 3D — game plan
 
 2026-10-25 · Proposal for review · Replaces the Phaser draft's run structure and enemy list.
@@ -761,7 +763,7 @@ Each step is playable on its own.
    from banked salvage), or fold their stats into leveling? And what do levels past 31 do?
 4. **HP between sorties:** a 30% heal plus paid repairs (recommended), or a full heal?
 5. **Dash:** add i-frames plus a cooldown or two charges? Right now it can be chained freely.
-6. **Rapture review:** any model you reject on `/rapture-review.html` gives its role to another
+6. **Rapture review:** any model you reject on `/tools/review/rapture-review.html` gives its role to another
    one. The roles above are based on each model's shape.
 7. **Field kits:** a proposal that follows from a permanent build (§10). Keep, change or drop?
    *NIPMH as owned gear: decided, not in the first version.*

@@ -1,0 +1,11 @@
+body.relay-run #run-clock small, body.relay-run #run-objective, body.relay-run #range-environments { display:none; }
+body.relay-run .rx-upgrades { display:none; }
+body.relay-run #weather-lab { display:none; }
+.relay-panel { position:absolute; left:24px; top:24px; width:280px; padding:16px 20px; background:#12202ce8; border-left:3px solid #88e3e7; color:#f3f5ef; font:18px Rajdhani,sans-serif; pointer-events:none; }
+.relay-panel b { display:block; font-size:25px; letter-spacing:2px; }
+.relay-panel small { display:block; color:#b6c8cc; margin-top:6px; }
+.relay-map { position:absolute; right:24px; top:100px; width:180px; height:180px; background:#12202cdd; border:1px solid #779098; pointer-events:none; }
+.relay-result { position:absolute; inset:0; display:grid; place-items:center; background:#07131cbb; z-index:100; pointer-events:auto; }
+.relay-result section { padding:40px; width:min(480px,85%); background:#162631; border-top:3px solid #88e3e7; color:white; font:22px Rajdhani,sans-serif; }
+.relay-result h1 { margin:0 0 16px; font-size:38px; }
+.relay-result button { padding:12px 22px; margin:18px 12px 0 0; cursor:pointer; color:#10202b; background:#b5ece9; border:0; font:700 18px Rajdhani,sans-serif; }

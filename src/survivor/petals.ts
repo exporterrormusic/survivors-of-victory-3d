@@ -1,4 +1,4 @@
-import { elevatorGroundMaskGLSL } from './elevator-footprint';
+import { elevatorGroundMaskGLSL, ELEVATOR_ORIGIN } from './elevator-footprint';
 import { Effect, Mesh, ShaderMaterial, type Scene, Vector3 } from '@babylonjs/core';
 
 Effect.ShadersStore.groundPetalsVertexShader = `
@@ -84,9 +84,10 @@ export class GroundPetals {
     this.mesh.setIndices(indices);
     this.mesh.isPickable=false;this.mesh.alwaysSelectAsActiveMesh=true;
     this.material=new ShaderMaterial('ground-sakura-material',scene,'groundPetals',{
-      attributes:['position','petalState','petalStyle'],uniforms:['viewProjection','clock','amount','night','excludeElevatorGround'],needAlphaBlending:true,
+      attributes:['position','petalState','petalStyle'],uniforms:['viewProjection','clock','amount','night','excludeElevatorGround','elevatorOrigin'],needAlphaBlending:true,
     });
     this.material.setFloat('excludeElevatorGround', excludeElevatorGround ? 1 : 0);
+    this.material.onBindObservable.add(()=>this.material.getEffect()?.setFloat2('elevatorOrigin',ELEVATOR_ORIGIN.x,ELEVATOR_ORIGIN.z));
     this.material.backFaceCulling=false;this.material.disableDepthWrite=true;
     this.mesh.material=this.material;
   }

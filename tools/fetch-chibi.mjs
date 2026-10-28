@@ -18,11 +18,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = join(ROOT, 'raw');
 const OUT = join(ROOT, 'public', 'chibi');
 
-// Snow White: base, alt outfit, Innocent Days, Heavy Arms; Red Hood, Rapunzel, Scarlet: base.
+// All available field-model appearances for the roster, plus Red Hood (hidden).
 // Character names/ids: https://nkas-l2d.pages.dev/characters.json
 // Hero field models referenced by src/characters/*/index.ts (plus Red Hood, currently hidden).
 const DEFAULT = ['c220_00', 'c220_01', 'c224_00', 'c471_00', 'c470_00', 'c221_00', 'c222_00',
-  'c223_00', 'c013_00', 'c260_00', 'c260_01', 'c260_02', 'c330_00', 'c361_00', 'c401_00'];
+  'c222_01', 'c225_00', 'c225_01', 'c226_00', 'c223_00', 'c223_01',
+  'c013_00', 'c260_00', 'c260_01', 'c260_02', 'c330_00', 'c330_01', 'c330_02',
+  'c361_00', 'c401_00', 'c401_01', 'c405_00', 'c302_00',
+  'c261_00']; // Nihilister: forest easter egg
 const MINIONS = JSON.parse(await readFile(join(ROOT, 'src', 'minion-roster.json'), 'utf8')).map(unit => unit.id);
 
 const exists = (p) => access(p).then(() => true, () => false);

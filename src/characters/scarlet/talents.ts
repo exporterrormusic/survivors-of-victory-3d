@@ -18,7 +18,7 @@ export const talents = [
   {
     id: "dodge",
     name: "Dodge",
-    desc: "Invincible while dashing",
+    desc: "Pass through enemies while dashing",
     col: 0,
     row: 0,
     requires: ["basic_attack"],
@@ -26,7 +26,7 @@ export const talents = [
     cost: 1,
     tree: "attack",
     tooltip:
-      "Dashing (Shift) makes Scarlet invincible during the dash and for 0.5 seconds afterward. A red scanline shows while invincible.",
+      "Dashing (Shift) lets Scarlet pass through enemies. Walls and terrain still block her.",
   },
   {
     id: "eviscerate",
@@ -52,7 +52,7 @@ export const talents = [
     cost: 1,
     tree: "attack",
     tooltip:
-      "Enemy bullets caught in your sword's arc are knocked straight back the way they came instead of destroyed.",
+      "Enemy bullets caught in your sword's arc are knocked straight back the way they came.",
   },
   {
     id: "evasion",

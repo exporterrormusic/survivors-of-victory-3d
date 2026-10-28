@@ -8,7 +8,10 @@ export const character: CharacterModule = {
   name: 'Rapunzel',
   profile,
   talents,
-  model: { variant: 'c221_00', aim: 'head', muzzle: 'body' }, // launcher carried sideways
+  model: {
+    variant: 'c221_00', aim: 'head', muzzle: 'body', // launcher carried sideways
+    skins: [{ variant: 'c226_00', name: 'Rapunzel: Pure Grace' }],
+  },
   weapon: 'rocket',
   voices: [{ file: 'burst.wav', offsetDb: -0.3, weight: 1 }],
   kit,

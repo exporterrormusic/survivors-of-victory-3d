@@ -2,7 +2,7 @@
 // Reference, generated surface atlas and exact prompt: assets/weapons-source/snow-white/.
 import {
   Color3, Constants, Mesh, MeshBuilder, StandardMaterial, Texture, TransformNode, Vector3, VertexBuffer, VertexData,
-  type Scene, type ShadowGenerator,
+  type Node, type Scene, type ShadowGenerator,
 } from '@babylonjs/core';
 
 export const LAUNCHER_HEAD_HEIGHT = 1.04;
@@ -258,4 +258,39 @@ export function buildSnowWhiteMissile(scene: Scene, options: ModelOptions = {}) 
   core.parent = exhaust; core.rotation.x = Math.PI / 2; core.position.z = -.065; core.material = m.hot; core.isPickable = false;
   options.glow?.(flame); options.glow?.(core);
   return { root, exhaust, flame, meshes: [...meshes, flame, core] };
+}
+
+export type LauncherModel = ReturnType<typeof buildSnowWhiteLauncher>;
+export type MissileModel = ReturnType<typeof buildSnowWhiteMissile>;
+
+// Copies share the source's geometry and materials: about a millisecond, where building and
+// merging the parts again takes ten or more (four turrets land at once with Century of Prep).
+export function cloneSnowWhiteLauncher(source: LauncherModel, options: ModelOptions = {}): LauncherModel {
+  const { root, find } = cloneHierarchy(source.root);
+  const caps = source.caps.map(find), pips = source.pips.map(find), meshes = source.meshes.map(find);
+  register(meshes.filter((mesh) => !caps.includes(mesh)), options);
+  return { root, yaw: find(source.yaw), head: find(source.head), pods: source.pods.map(find), sockets: source.sockets.map(find), caps, pips, meshes };
+}
+
+export function cloneSnowWhiteMissile(source: MissileModel, options: ModelOptions = {}): MissileModel {
+  const { root, find } = cloneHierarchy(source.root);
+  const meshes = source.meshes.map(find);
+  register(meshes, options);
+  return { root, exhaust: find(source.exhaust), flame: find(source.flame), meshes };
+}
+
+function cloneHierarchy(source: TransformNode) {
+  const root = source.clone(source.name, null)!;
+  root.setEnabled(true);
+  const from = source.getDescendants(false), to = root.getDescendants(false);
+  const copies = new Map<Node, Node>(from.map((node, i) => [node, to[i]]));
+  return { root, find: <T extends Node>(node: T) => copies.get(node) as T };
+}
+
+/** The builder's rule: emissive parts glow, lit parts cast shadows. */
+function register(meshes: Mesh[], options: ModelOptions): void {
+  for (const mesh of meshes) {
+    if ((mesh.material as StandardMaterial).disableLighting) options.glow?.(mesh);
+    else options.shadows?.addShadowCaster(mesh, false);
+  }
 }

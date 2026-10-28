@@ -1,0 +1,7 @@
+Generated with the built-in image_gen tool, 2026-10-27.
+
+crater-soil.png
+Create a square seamless tileable video game terrain albedo texture, orthographic top-down flat surface only: churned soil inside a realistic artillery bomb crater, crushed dark brown earth, angular small shattered shale stones embedded in compacted dusty soil, charcoal grit, subtle ashy gray dust and occasional very faint rusty ember fissures. Natural irregular scale, detailed but readable in a stylized realistic isometric game. Flat diffuse neutral lighting, no cast shadows, no baked ambient occlusion, no crater silhouette, no rim, no perspective, no objects, no plants, no text. Texture fills entire square edge to edge. This is a material texture for mapping onto a 3D crater bowl, NOT an illustration of a crater.
+
+scorched-cracks.png
+Square seamless tileable terrain albedo texture of bomb-blasted scorched ground, viewed perfectly overhead, flat material swatch. Carbon-black burnt soil and dark umber ash, large irregular dried-earth plates separated by branching deep black cracks, fine pale gray ash dust embedded in crevices, a few tiny muted rusty orange ember cracks. Strong readable crack pattern at game camera distance, realistic earth rather than lava or stone pavement. Uniform diffuse illumination, no perspective or directional shadows, no crater shape, no rim, no vegetation, no objects, no text. Edge-to-edge surface texture for a stylized realistic 3D game's broad burnt blast zone.

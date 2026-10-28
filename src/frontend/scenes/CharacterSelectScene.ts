@@ -1,5 +1,9 @@
+import { KIT_INFO } from "../../survivor/kit-info";
+import { cores } from "../ui/cores";
+import { openSkinSelection } from '../ui/SkinSelection';
+import { characterSkins, equippedSkin, ownsSkin } from '../profile/Skins';
 import Phaser from "phaser";
-import { openCapstoneLoadout } from "../ui/CapstoneLoadout";
+import { openLobbyTalentTree } from "../ui/LobbyTalentTree";
 
 import {
   gameAudio,
@@ -101,6 +105,9 @@ export class CharacterSelectScene extends Phaser.Scene {
   public preload(): void {
     CHARACTERS.forEach((character) => {
       this.load.image(this.portraitKey(character), character.portraitPath);
+      characterSkins(character.id).forEach((skin) => {
+        this.load.image(`skin-preview-${skin.id}`, skin.icon);
+      });
     });
     const selectedId = loadRosterState().selectedCharacterId;
     this.load.image(
@@ -393,7 +400,7 @@ export class CharacterSelectScene extends Phaser.Scene {
       232,
       locked
         ? (characterLockReason(character.id) ??
-            `${character.unlockCost} CORES // SHOP`)
+            `${cores(character.unlockCost)} // SHOP`)
         : "AVAILABLE",
       {
         color: locked ? "#9a6c35" : "#1f8fe0",
@@ -668,10 +675,10 @@ export class CharacterSelectScene extends Phaser.Scene {
 
   private renderDetailPanel(animate: boolean): void {
     this.detailLayer?.destroy(true);
-    const root = this.add.container(1370, 198).setDepth(22);
+    const root = this.add.container(1370, 166).setDepth(22);
     this.detailLayer = root;
     const width = 484;
-    const height = 828;
+    const height = 860;
     const unlocked = this.isUnlocked(this.currentCharacter);
     const surface = this.add.graphics();
     surface.fillStyle(0xf8fafb, 0.98);
@@ -736,15 +743,36 @@ export class CharacterSelectScene extends Phaser.Scene {
         wordWrap: { width: 414 },
       }),
     );
+    const kit = KIT_INFO[this.currentCharacter.id as keyof typeof KIT_INFO];
+    if (kit) {
+      root.add(
+        this.add.text(36, 148, `PASSIVE // ${kit.passiveName.toUpperCase()}`, {
+          color: "#9a7310",
+          fontFamily: "Rajdhani",
+          fontSize: "13px",
+          fontStyle: "bold",
+          letterSpacing: 1.7,
+        }),
+      );
+      root.add(
+        this.add.text(36, 165, kit.passiveSummary, {
+          color: "#59646f",
+          fontFamily: "Rajdhani",
+          fontSize: "14px",
+          fontStyle: "500",
+          wordWrap: { width: 414 },
+        }),
+      );
+    }
     const rule = this.add.graphics();
     rule.fillStyle(0x35c5f2, 1);
-    rule.fillRect(36, 176, 70, 3);
+    rule.fillRect(36, 190, 70, 3);
     rule.fillStyle(0x8d98a3, 0.28);
-    rule.fillRect(106, 177, 340, 1);
+    rule.fillRect(106, 191, 340, 1);
     root.add(rule);
 
     root.add(
-      this.add.text(36, 194, "COMBAT PARAMETERS", {
+      this.add.text(36, 201, "COMBAT PARAMETERS", {
         color: "#87919b",
         fontFamily: "Rajdhani",
         fontSize: "14px",
@@ -776,31 +804,17 @@ export class CharacterSelectScene extends Phaser.Scene {
       0xffd23f,
     );
 
-    const statusY = 606;
-    const status = this.add.graphics();
-    status.fillStyle(unlocked ? 0xe6f7fc : 0xeee6dc, 1);
-    status.fillRect(36, statusY, 412, 44);
-    status.fillStyle(unlocked ? 0x35c5f2 : 0xb27a35, 1);
-    status.fillRect(36, statusY, 5, 44);
-    root.add(status);
-    root.add(
-      this.add.text(
-        58,
-        statusY + 12,
-        unlocked
-          ? "AVAILABLE // READY FOR DEPLOYMENT"
-          : `LOCKED // ${characterLockReason(this.currentCharacter.id) ?? `RECRUIT FROM SHOP // ${this.currentCharacter.unlockCost} CORES`}`,
-        {
-          color: unlocked ? "#23738f" : "#7e5930",
-          fontFamily: "Rajdhani",
-          fontSize: unlocked ? "15px" : "14px",
-          fontStyle: "bold",
-          letterSpacing: 1.2,
-        },
-      ),
-    );
-    root.add(this.createTalentTreeButton(36, 664, 412, 58));
-    root.add(this.createDeployButton(36, 738, 412, 58, unlocked));
+    if (unlocked) {
+      this.addSkinPreviews(root);
+    } else {
+      root.add(this.add.text(36, 620,
+        `LOCKED // ${characterLockReason(this.currentCharacter.id) ?? `RECRUIT FROM SHOP // ${cores(this.currentCharacter.unlockCost)}`}`, {
+          color: "#7e5930", fontFamily: "Rajdhani", fontSize: "16px",
+          fontStyle: "bold", wordWrap: { width: 412 },
+        }));
+    }
+    root.add(this.createTalentTreeButton(36, 708, 412, 42));
+    root.add(this.createDeployButton(36, 772, 412, 72, unlocked));
 
     if (animate) {
       root.setAlpha(0).setX(1404);
@@ -812,6 +826,50 @@ export class CharacterSelectScene extends Phaser.Scene {
         x: 1370,
       });
     }
+  }
+
+  private addSkinPreviews(root: Phaser.GameObjects.Container): void {
+    const skins = characterSkins(this.currentCharacter.id);
+    const equipped = equippedSkin(this.currentCharacter.id);
+    const heading = this.add.text(36, 608, `SKINS / ${equipped?.name.toUpperCase() ?? 'DEFAULT'}`, {
+      color: "#65717c", fontFamily: "Rajdhani", fontSize: "14px",
+      fontStyle: "bold", letterSpacing: 1,
+    });
+    root.add(heading);
+    skins.forEach((skin, index) => {
+      const x = 36 + index * 104;
+      const selected = skin.id === equipped?.id;
+      const owned = ownsSkin(skin);
+      const surface = this.add.graphics();
+      const draw = (hovered: boolean): void => {
+        surface.clear();
+        surface.fillStyle(selected ? 0xe0f5fc : 0xe9edf1, 1);
+        surface.fillRect(x, 632, 96, 60);
+        surface.lineStyle(selected || hovered ? 2 : 1, selected || hovered ? 0x238eb8 : 0xb6c1ca, 1);
+        surface.strokeRect(x, 632, 96, 60);
+        if (selected) surface.fillStyle(0x238eb8, 1).fillRect(x, 689, 96, 3);
+      };
+      draw(false);
+      const icon = this.add.image(x + 48, 662, `skin-preview-${skin.id}`);
+      icon.setScale(Math.min(88 / icon.width, 56 / icon.height));
+      const lockOverlay = this.add.graphics();
+      if (!owned) {
+        icon.setTint(0x8b9299);
+        lockOverlay.fillStyle(0x101820, 0.58);
+        lockOverlay.fillRect(x + 2, 634, 92, 56);
+      }
+      const hit = this.add.rectangle(x, 632, 96, 60, 0xffffff, 0)
+        .setOrigin(0).setInteractive({ useHandCursor: true });
+      hit.on('pointerover', () => { draw(true); heading.setText(`SKINS / ${skin.name.toUpperCase()}`); });
+      hit.on('pointerout', () => { draw(false); heading.setText(`SKINS / ${equipped?.name.toUpperCase() ?? 'DEFAULT'}`); });
+      hit.on('pointerup', () => {
+        const dialog = openSkinSelection(this.currentCharacter.id, () => this.renderDetailPanel(false), skin.id);
+        const cleanup = () => dialog.remove();
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
+        dialog.addEventListener('close', () => this.events.off(Phaser.Scenes.Events.SHUTDOWN, cleanup), { once: true });
+      });
+      root.add([surface, icon, lockOverlay, hit]);
+    });
   }
 
   private addStat(
@@ -907,7 +965,7 @@ export class CharacterSelectScene extends Phaser.Scene {
     const container = this.add.container(x, y);
     const surface = this.add.graphics();
     const label = this.add
-      .text(width / 2, height / 2, this.currentCharacter.id === "snow-white" ? "CAPSTONE LOADOUT" : "VIEW TALENT TREE", {
+      .text(width / 2, height / 2, "TALENT TREE", {
         color: "#26313a",
         fontFamily: "Rajdhani",
         fontSize: "19px",
@@ -932,8 +990,8 @@ export class CharacterSelectScene extends Phaser.Scene {
     hit.on("pointerover", () => redraw(true));
     hit.on("pointerout", () => redraw(false));
     hit.on("pointerup", () => {
-      if (this.currentCharacter.id !== "snow-white") { this.openTalentTree(); return; }
-      const dialog = openCapstoneLoadout();
+      if (this.currentCharacter.id !== "snow-white" && this.currentCharacter.id !== "scarlet" && this.currentCharacter.id !== "rapunzel") { this.openTalentTree(); return; }
+      const dialog = openLobbyTalentTree(this.currentCharacter.id);
       const cleanup = () => dialog.remove();
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
       dialog.addEventListener('close', () => this.events.off(Phaser.Scenes.Events.SHUTDOWN, cleanup), { once: true });
@@ -956,14 +1014,14 @@ export class CharacterSelectScene extends Phaser.Scene {
         width / 2,
         height / 2,
         enabled
-          ? "DEPLOY // SELECT STAGE"
+          ? "DEPLOY"
           : characterLockReason(this.currentCharacter.id) !== undefined
             ? "NOT YET DEPLOYABLE"
             : "RECRUIT IN SHOP",
         {
           color: enabled ? "#ffffff" : "#838c94",
           fontFamily: "Rajdhani",
-          fontSize: "20px",
+          fontSize: enabled ? "30px" : "24px",
           fontStyle: "bold",
           letterSpacing: 1.3,
         },

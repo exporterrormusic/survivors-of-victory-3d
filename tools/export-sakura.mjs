@@ -5,7 +5,7 @@ const errors=[];
 try {
   const page=await browser.newPage({viewport:{width:1200,height:1000}});
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`${process.env.SAKURA_REVIEW_URL??'http://127.0.0.1:5183'}/sakura-review.html`);
+  await page.goto(`${process.env.SAKURA_REVIEW_URL??'http://127.0.0.1:5183'}/tools/review/sakura-review.html`);
   await page.waitForFunction(()=>window.sakuraReview?.scene.isReady(),{},{timeout:120000});
   await page.evaluate(()=>window.sakuraReview.pause());
   await fs.mkdir('artifacts/sakura-v1',{recursive:true});

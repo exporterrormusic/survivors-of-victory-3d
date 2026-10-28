@@ -1,0 +1,83 @@
+<div id="sw-choice-plan">
+  <h2>Snow White · seven decisions per run</h2>
+  <div class="text-muted">Build planner · proposed effects · tuning values are provisional</div>
+  <div id="sw-tiers"></div>
+  <hr>
+  <div id="sw-build" aria-live="polite"></div>
+</div>
+<style>
+  #sw-choice-plan .sw-tier { margin-block: 20px; }
+  #sw-choice-plan .sw-option { min-width: 0; }
+  #sw-choice-plan .sw-description { margin-block: 8px; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('sw-choice-plan');
+  const tiers = [
+    {level:1, theme:'Rifle · priority target or crowd clear', options:[
+      ['Weak Point','Rifle hits expose enemies for 3 seconds: +20% damage taken from Snow White. Refreshes; never stacks.'],
+      ['Explosive Rounds','Direct rifle kills explode for 75% rifle damage nearby. Explosions cannot trigger more explosions.']]},
+    {level:4, theme:'Emplacement · hold position or keep moving', options:[
+      ['Ammo Cache','Each turret carries 8 missiles instead of 4. Best when enemies keep entering its firing range.'],
+      ['Field Deployment','Turret charges recharge in 5 seconds instead of 8. Charge storage and active turret cap remain 2.']]},
+    {level:7, theme:'Survival · sustained recovery or emergency protection', options:[
+      ['Unyielding','Direct rifle hits restore 1% maximum health, at most once each second. Works against bosses.'],
+      ['Emergency Plating','Dash grants a shield equal to 12% maximum health for 3 seconds. Cannot trigger again for 8 seconds.']]},
+    {level:10, theme:'Burst evolution · precise execution or area denial', options:[
+      ['Focused Fire','Hold Burst up to 2 seconds to narrow its cone from 90° to 15° and increase damage up to 3×. Tap retains the base blast.'],
+      ['Scorched Earth','Burst retains its wide cone and leaves a burning field for 4 seconds. Total fire damage is 60% of the base blast; enemies inside are slowed 20%. Bosses ignore the slow.']]},
+    {level:13, theme:'Control · rifle corridors or turret strongpoints', options:[
+      ['Afterburn','Rifle shots leave a 2-second fire trail. Enemies inside take 20% rifle damage per second and are slowed 20%. Overlapping trails do not stack; bosses ignore the slow.'],
+      ['Defensive Line','Turrets gain an aura that deals 25% missile damage per second and slows enemies 20%. Overlapping auras do not stack; bosses ignore the slow.']]},
+    {level:16, theme:'Turret lifecycle · lasting battery or disposable ordnance', options:[
+      ['Permanent Emplacement','Empty turrets reload in 6 seconds instead of expiring. Cap remains 2; deploying at cap replaces the oldest.'],
+      ['Detonation','Turrets explode when emptied, destroyed, or replaced, for 2× missile damage. Explosions do not apply marks or trigger other explosions.']]},
+    {level:20, theme:'Final payoff · more firepower or faster Burst access', options:[
+      ['A Century of Prep Time','Burst deploys 2 temporary turrets near Snow White for 8 seconds. They inherit chosen turret upgrades but cannot reload; at most 2 bonus turrets can exist.'],
+      ['A Goddess Who Cannot Yield','Burst refunds 25% of its gauge after firing. Guaranteed refund; no random free casts.']]}
+  ];
+  let selections = Array(7).fill(null);
+  const restore = state => {
+    const saved = state?.privateContent?.selections;
+    if (Array.isArray(saved) && saved.length === 7) selections = saved.map(x => x === 0 || x === 1 ? x : null);
+  };
+  restore(window.openai?.widgetState);
+  function render() {
+    const host = root.querySelector('#sw-tiers');
+    host.replaceChildren();
+    tiers.forEach((tier, i) => {
+      const section = document.createElement('section');
+      section.className = 'sw-tier';
+      const title = document.createElement('h3');
+      title.textContent = `Level ${tier.level} · ${tier.theme}`;
+      section.append(title);
+      const options = document.createElement('div');
+      options.className = 'viz-grid';
+      tier.options.forEach(([name, description], j) => {
+        const option = document.createElement('div');
+        option.className = 'sw-option';
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'btn';
+        button.textContent = name;
+        button.setAttribute('aria-pressed', String(selections[i] === j));
+        button.onclick = () => {
+          selections[i] = j;
+          render();
+          const modelContent = {snowWhiteTalentPlan: tiers.map((t,k) => ({level:t.level, choice:selections[k] === null ? null : t.options[selections[k]][0]}))};
+          if(window.openai?.setWidgetState) window.openai.setWidgetState({modelContent,privateContent:{selections}}).catch(() => {});
+        };
+        const detail = document.createElement('p');
+        detail.className = 'sw-description'; detail.textContent = description;
+        option.append(button, detail); options.append(option);
+      });
+      section.append(options); host.append(section);
+    });
+    const chosen = tiers.flatMap((t,i) => selections[i] === null ? [] : [t.options[selections[i]][0]]);
+    root.querySelector('#sw-build').textContent = `${chosen.length}/7 selected${chosen.length ? ' · ' + chosen.join(' → ') : ''}`;
+  }
+  window.addEventListener('openai:set_globals', e => {
+    if(e.detail?.globals?.widgetState) { restore(e.detail.globals.widgetState); render(); }
+  });
+  render();
+})();
+</script>

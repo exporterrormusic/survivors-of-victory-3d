@@ -1,9 +1,16 @@
 import { NavigationMap, type GroundPoint } from '../navigation';
 import { traceScenery, type SceneryObstacle } from './range-collision';
 import type { SnowField } from './snow-field';
+import type { StormField } from './storm-field';
+import type { FrozenLake } from './frozen-lake';
 
 /** Arena navigation and crowd steering. Snow affects speed, never walkability. */
 export class SnowNavigationMap extends NavigationMap {
+  storm?:StormField;
+  lake?:FrozenLake;
+  /** Short-lived danger zones every unit flees and will not step into (falling meteors, burning craters). */
+  dangers:{x:number;z:number;r:number}[]=[];
+  override setExtent(radius:number):void {if(this.extent===radius)return;super.setExtent(radius);this.version++;}
   readonly snow: SnowField | undefined;
   version = 0;
   setScenery(obstacles:readonly SceneryObstacle[]):void {

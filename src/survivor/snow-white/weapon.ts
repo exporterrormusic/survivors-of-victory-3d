@@ -9,6 +9,7 @@ import { PX, type KitContext } from '../kit';
 import type { Target } from '../targets';
 import type { Effect } from '../vfx';
 import { SNOW } from './palette';
+import { afterburnHalfWidth, blueFireTrail } from './blue-fire';
 import { snowShieldsTarget } from '../projectile-collision';
 
 const SPEED = 1650 * PX * 1.5; // a touch faster than the 2D round reads better at 3D scale
@@ -23,13 +24,29 @@ const LAYERS = [
   { color: SNOW.core, width: .13, alpha: 1 },
 ] as const;
 
-export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage: number, charge = 0): void {
+/** Weak Point: +50% damage taken for 4 s (one mark per target; Armor Break is stronger). */
+const WEAK_POINT_BONUS = .5, WEAK_POINT_TIME = 4;
+const INFERNO_TIME = 5;
+/** Unyielding heals once per this many rifle hits on heavies and bosses. */
+const UNYIELDING_HITS = 10;
+
+/** Per-kit rifle state shared by every shot. `attack` is the unscaled base damage. */
+export interface LanceState { readonly attack: number; heavyHits: number }
+
+/**
+ * One rifle round. `damage` is this shot's hit damage (charge and Seventh Dwarf already applied);
+ * fire, explosions and burns scale from the base attack so a big shot doesn't multiply them.
+ */
+export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage: number, width: number, state: LanceState): void {
   const { vfx, targets, run } = ctx;
   const dir = aim.subtract(muzzle);
   dir.y = 0;
   if (dir.lengthSquared() < 1e-6) return;
   dir.normalize();
+  run.beginShot();
   const origin = muzzle.clone();
+  const attack = state.attack;
+  let refunded = false;
   muzzleFlash(ctx, origin, dir);
   ctx.sound(WEAPON_FIRE.sniper, origin);
 
@@ -43,14 +60,15 @@ export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage
   let travelled = 0;
   let wakeFade = 0;
   let done = false;
-  const width = 1 + 4 * Math.max(0, Math.min(1, charge));
-  if (run.talents.has('afterburn')) fireTrail(ctx, origin, dir, damage, width, () => travelled);
+  if (run.talents.has('afterburn')) fireTrail(ctx, origin, dir, attack, width, () => travelled);
   const effect: Effect = {
     update: (dt, age) => {
       if (!done) {
         const step = Math.min(SPEED * dt, RANGE - travelled);
         const from = origin.add(dir.scale(travelled)), to = from.add(dir.scale(step));
-        const snowHit = ctx.targets.navigation.traceCover(from, to, HIT_PAD * width) ?? null;
+        const cover = ctx.targets.navigation.traceCover(from, to, HIT_PAD * width) ?? null;
+        const shield = targets.shieldContact(from, to);
+        const snowHit = shield && shield.t < (cover ?? 1) ? shield.t : cover;
         const allowed = step * (snowHit ?? 1);
         // hits along this frame's step
         for (const { target, at } of targets.alongSegment(from, dir, allowed, HIT_PAD * width)) {
@@ -61,14 +79,18 @@ export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage
           const point = origin.add(dir.scale(travelled + at));
           point.y = Math.min(point.y, target.barHeight * .5);
           run.damage(target, damage, 'attack', dir.scale(1.2));
-          if (target.alive && run.talents.has('weak_point')) target.marks.add('weak-point');
+          if (target.alive && run.talents.has('weak_point')) target.marks.add('weak-point', WEAK_POINT_BONUS, WEAK_POINT_TIME);
+          if (target.alive && run.talents.has('inferno')) run.burn(target, 'inferno', attack, INFERNO_TIME);
+          if (run.talents.has('unyielding') && target.alive && (target.combatTier === 'heavy' || target.combatTier === 'boss')
+            && ++state.heavyHits % UNYIELDING_HITS === 0) ctx.heal(1);
           if (!target.alive) {
-            if (run.talents.has('unyielding') && Math.random() < .2) ctx.heal(1);
+            if (run.talents.has('unyielding')) ctx.heal(1);
+            if (run.talents.has('quick_hands') && !refunded) { refunded = true; ctx.refundRound?.(); }
             if (run.talents.has('explosive_rounds') && Math.random() < .25) {
               vfx.ring(target.position, SNOW.cyan, .2, 2, .3, .8);
               vfx.flashSprite(point, SNOW.core, 2, .2, .9);
               for (const nearby of targets.inRadius(target.position, 2))
-                if (!snowShieldsTarget(ctx, point, nearby)) run.damage(nearby, damage, 'effect');
+                if (!snowShieldsTarget(ctx, point, nearby)) run.damage(nearby, attack, 'effect');
             }
           }
           impact(ctx, point, dir);
@@ -77,7 +99,8 @@ export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage
         if (snowHit !== null) {
           const contact = from.add(dir.scale(allowed));
           impact(ctx, contact, dir.scale(-1));
-          vfx.vapour(contact, 7, [.82, .92, 1], .65, .65, .6);
+          if (shield && snowHit === shield.t) shield.shield.block(contact, damage);
+          else vfx.vapour(contact, 7, [.82, .92, 1], .65, .65, .6);
           done = true;
         } else if (travelled >= RANGE) done = true;
       } else {
@@ -108,30 +131,27 @@ export function fireLance(ctx: KitContext, muzzle: Vector3, aim: Vector3, damage
 /** A continuous, damaging ground trail. Its reach follows the actual projectile. */
 function fireTrail(ctx: KitContext, origin: Vector3, dir: Vector3, damage: number, width: number, distance: () => number): void {
   const { vfx, run, targets } = ctx;
-  const glow = vfx.quad('streak', SNOW.cyan, .5);
   const from = new Vector3(origin.x, .08, origin.z);
-  const to = from.clone();
+  const fire = blueFireTrail(ctx, from, dir, width, RANGE);
   let tick = 0;
   const life = RANGE / SPEED + 3;
   vfx.add({
     update: (dt, age) => {
       if (age >= life) return false;
-      to.copyFrom(from).addInPlace(dir.scale(Math.min(distance(), RANGE)));
-      vfx.streak(glow, from, to, width * .65);
-      vfx.tint(glow, SNOW.cyan, .45 * Math.min(1, life - age));
+      fire.update(age, Math.min(distance(), RANGE), Math.min(1, (life - age) / .7) * .85);
       tick += dt;
       if (tick >= .5) {
         tick -= .5;
-        for (const { target } of targets.alongSegment(from, dir, Math.min(distance(), RANGE), width * .3)) {
+        for (const { target } of targets.alongSegment(from, dir, Math.min(distance(), RANGE), afterburnHalfWidth(width))) {
           if (snowShieldsTarget(ctx, origin, target, origin.y - target.position.y)) continue;
           run.damage(target, damage * .5, 'effect');
-          if (run.talents.has('burning')) run.burn(target, 'afterburn', damage, 5);
-          if (run.talents.has('inferno')) target.slowed = .6;
+          // Inferno sets anything the trail touches alight too (its slow is applied to every burn).
+          if (run.talents.has('inferno')) run.burn(target, 'inferno', damage, INFERNO_TIME);
         }
       }
       return true;
     },
-    dispose: () => vfx.release(glow),
+    dispose: () => fire.dispose(),
   });
 }
 

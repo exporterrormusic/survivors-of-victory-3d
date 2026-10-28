@@ -61,6 +61,8 @@ export const SFX = {
   burstBeam: cue('gameplay/enemies/beam.wav', .5, 1),
   /** Snow White's Burst voice, using her existing +1.1 dB voice-line mix. */
   snowWhiteBurst: cue('voice/characters/snow-white/burst.wav', .5 * 10 ** (1.1 / 20), 1),
+  scarletBurst: cue('voice/characters/scarlet/burst.wav', .5 * 10 ** (.1 / 20), 1),
+  rapunzelBurst: cue('voice/characters/rapunzel/burst.wav', .5 * 10 ** (-.3 / 20), 1),
   /** Player turrets must not share cues with Rapture attacks. */
   snowWhiteTurretFire: cue('gameplay/weapons/fire-rocket.mp3', .18, 2, .12),
   /** many minions fire at once, so these are quiet and tightly limited */

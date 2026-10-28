@@ -8,8 +8,6 @@ import {
 import { CHARACTER_IDS, isCharacterId, type CharacterId } from "./Ids";
 import {
   CHARACTER_MODULES,
-  PLAYABLE_CHARACTER_IDS,
-  isPlayable,
   type CharacterProfile,
 } from "../../characters";
 import {
@@ -33,16 +31,19 @@ export const CHARACTERS: readonly CharacterDefinition[] = CHARACTER_IDS.map(
   (id) => CHARACTER_MODULES[id].profile,
 );
 
-/** Why a character cannot be deployed at all (no field model), or undefined. */
+/** Characters with a survivor runtime kit. */
 export function characterLockReason(id: CharacterId): string | undefined {
-  return isPlayable(id) ? undefined : CHARACTER_MODULES[id].lockedReason ?? "LOCKED";
+  return id === "snow-white" || id === "scarlet" || id === "rapunzel" ? undefined : "COMING SOON";
 }
 
 export const STARTER_CHARACTER_ID: CharacterId = "snow-white";
-// Testing build: every character with a field model starts unlocked.
+// Unfinished kits remain locked regardless of saved unlocks.
 export const DEFAULT_UNLOCKED_CHARACTER_IDS: readonly CharacterId[] =
-  PLAYABLE_CHARACTER_IDS;
+  [STARTER_CHARACTER_ID, "scarlet", "rapunzel"];
 interface StoredRoster {
+  readonly roundCoreReceipts?: unknown;
+  readonly ownedSkinIds?: unknown;
+  readonly equippedSkins?: unknown;
   readonly permanentUpgradeLevels?: unknown;
   readonly pristineCores?: unknown;
   readonly selectedCharacterId?: unknown;
@@ -51,6 +52,9 @@ interface StoredRoster {
 }
 
 export interface RosterState {
+  roundCoreReceipts: string[];
+  ownedSkinIds: string[];
+  equippedSkins: Record<string, string>;
   permanentUpgradeLevels: PermanentUpgradeLevels;
   pristineCores: number;
   selectedCharacterId: CharacterId;
@@ -61,7 +65,7 @@ export interface RosterState {
 export function loadRosterState(): RosterState {
   const stored = readProfileSection<StoredRoster>("roster", {});
 
-  // Testing build: expose the complete roster even when an older save only unlocked Snow White.
+  // Normalize older saves that selected an unfinished character.
   const unlockedCharacterIds = [...DEFAULT_UNLOCKED_CHARACTER_IDS];
   const selectedCharacterId =
     isCharacterId(stored.selectedCharacterId) &&
@@ -70,6 +74,9 @@ export function loadRosterState(): RosterState {
       : STARTER_CHARACTER_ID;
 
   return {
+    roundCoreReceipts: Array.isArray(stored.roundCoreReceipts) ? stored.roundCoreReceipts.filter((id):id is string=>typeof id==='string').slice(-100) : [],
+    ownedSkinIds: Array.isArray(stored.ownedSkinIds) ? stored.ownedSkinIds.filter((id): id is string => typeof id === 'string') : [],
+    equippedSkins: stored.equippedSkins && typeof stored.equippedSkins === 'object' && !Array.isArray(stored.equippedSkins) ? Object.fromEntries(Object.entries(stored.equippedSkins).filter(([, value]) => typeof value === 'string')) : {},
     permanentUpgradeLevels: normalizeUpgradeLevels(
       stored.permanentUpgradeLevels,
     ),
@@ -94,7 +101,7 @@ export function saveSelectedCharacter(characterId: CharacterId): void {
 
 export function unlockCharacter(characterId: CharacterId): boolean {
   const character = CHARACTERS.find((entry) => entry.id === characterId);
-  if (character === undefined || !isPlayable(characterId)) return false;
+  if (character === undefined || characterLockReason(characterId) !== undefined) return false;
   const state = loadRosterState();
   if (
     state.unlockedCharacterIds.includes(characterId) ||
@@ -142,9 +149,7 @@ export function awardPristineCores(amount: number): number {
 
 export function setAllContentUnlocked(unlocked: boolean): RosterState {
   const state = loadRosterState();
-  state.unlockedCharacterIds = unlocked
-    ? [...PLAYABLE_CHARACTER_IDS]
-    : [STARTER_CHARACTER_ID];
+  state.unlockedCharacterIds = [...DEFAULT_UNLOCKED_CHARACTER_IDS];
   if (!state.unlockedCharacterIds.includes(state.selectedCharacterId))
     state.selectedCharacterId = STARTER_CHARACTER_ID;
   state.unlockedNipmhIds = unlocked
@@ -175,6 +180,6 @@ function normalizeUpgradeLevels(value: unknown): PermanentUpgradeLevels {
   return levels;
 }
 
-function saveRosterState(state: RosterState): void {
-  writeProfileSection("roster", state);
+export function saveRosterState(state: RosterState): boolean {
+  return writeProfileSection("roster", state);
 }

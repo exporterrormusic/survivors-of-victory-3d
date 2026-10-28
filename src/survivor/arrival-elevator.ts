@@ -1,6 +1,14 @@
+import { FrozenVault, vaultObstacles } from './frozen-vault';
 import { Color3, DynamicTexture, Mesh, MeshBuilder, StandardMaterial, Texture, TransformNode, Vector3, VertexData, type GlowLayer, type Scene, type ShadowGenerator } from '@babylonjs/core';
 
 import { buildLiftTower, ELEVATOR_YAW } from './lift-tower-geometry';
+
+/** Open gates swing 270° out around the front corners and fold flat against the outside of the side walls. */
+const GATE_SWING = Math.PI * 1.5;
+/** how far the hinge slides outward as a gate folds, so it lies outside the side wall (outer face ≈ 3.05 m) */
+const GATE_OUT = .55;
+const gateAngle = (open: number) => open * GATE_SWING;
+const gateShift = (open: number) => { const t = Math.max(0, Math.min(1, (open - .5) / .5)); return GATE_OUT * t * t * (3 - 2 * t); };
 
 import type { SceneryObstacle } from './range-collision';
 import { ElevatorMotion, type ElevatorAction } from './elevator-motion';
@@ -51,6 +59,39 @@ export class ArrivalElevator {
   private panel?: HTMLElement;
   private status?: HTMLElement;
   private time = 0;
+  private towerScale=1;
+  private vault:FrozenVault|null=null;
+  private vaultMode=false;
+  private vaultOpenAfterRise=false;
+  get isVault():boolean{return this.vaultMode;}
+  get transportHeight():number{return this.vaultMode?0:this.motion.height;}
+  get transportHidden():boolean{return this.vaultMode?this.motion.gateOpen<.02:this.motion.seal>=.999;}
+  setVault(enabled:boolean):void{
+    this.vaultMode=enabled;
+    if(enabled&&!this.vault){
+      const texture=new Texture(`${import.meta.env.BASE_URL}environment/frozen-kit-v1/material-atlas.png`,this.scene);this.textures.push(texture);
+      this.vault=new FrozenVault(this.scene,this.root,texture);
+      for(const mesh of this.vault.root.getChildMeshes())this.shadows.addShadowCaster(mesh);
+    }
+    for(const child of this.root.getChildren())child.setEnabled(child===this.vault?.root?enabled:!enabled);
+    this.pose();this.updatePanel();
+  }
+  private vaultCollision(closed:boolean):SceneryObstacle[]{return vaultObstacles(closed).map(o=>({...o,x:o.x+this.root.position.x,z:o.z+this.root.position.z}));}
+  private updatePanel():void{
+    if(!this.panel)return;
+    this.panel.querySelector('h3')!.textContent=this.vaultMode?'Mountain vault':'Restored lift tower';
+    this.panel.querySelector('p')!.textContent=this.vaultMode?'Rock entrance ? rolling blast door ? ground-level chamber':'Arrival deck ? lift tower';
+    const labels=this.vaultMode?['Open vault','Close vault','Extract & seal','Reopen vault','Preview supply cycle']:['Open gates','Close gates','Extract & seal','Unseal & raise','Preview full cycle'];
+    this.panel.querySelectorAll('button').forEach((b,i)=>b.textContent=labels[i]);
+  }
+
+  setTowerScale(scale:number):void{
+    this.towerScale=scale;
+    const mast=this.root.getChildTransformNodes(true).find(n=>n.name==='elevator-fixed-mast')!;
+    mast.scaling.setAll(scale);
+    // Shrink around the mast's footprint centre, keeping it behind the cage.
+    mast.position.z=.95+4.38*(1-scale);
+  }
 
   constructor(private readonly scene: Scene, private readonly shadows: ShadowGenerator, private readonly glow: GlowLayer) {
     this.root = new TransformNode('arrival-elevator', scene);
@@ -136,17 +177,43 @@ export class ArrivalElevator {
     for(const [parent,byMat] of groups)for(const [mat,parts] of byMat) {
       const merged=Mesh.MergeMeshes(parts,true,true)!;merged.name=`elevator-${parent.name}-${mat.name}`;merged.parent=parent;
       merged.isPickable=false;merged.receiveShadows=true;
+      merged.metadata={...merged.metadata,cameraOcclusionDisabled:parent.name!=='elevator-fixed-mast',occlusionGroup:parent.uniqueId};
       // The 20 m mast would shade much of the play area, so only the platform, cage and gates cast.
       if(mat!==this.cyan&&mat!==this.amber&&parent.name!=='elevator-fixed-mast')shadows.addShadowCaster(merged);
     }
     this.gates.forEach((gate,i)=>gate.setPivotPoint(new Vector3((i===0?-1:1)*2.62,0,-2.86)));
     this.root.getChildTransformNodes(true).find(n=>n.name==='elevator-fixed-mast')!.position.z=.95;
     this.root.rotation.y=ELEVATOR_YAW;
+    this.setTowerScale(.5);
     this.pose();
   }
 
   /** Capsules share the same navigation and swept projectile tests as range cover. */
+  /**
+   * The whole footprint as one solid block (deck, gates and shaft), plus the tower legs: used while
+   * the lift is moving, so its collision changes twice per cycle instead of with every gate swing
+   * (each change rebuilds the navigation grids, ~60 ms per unit size).
+   */
+  sealedObstacles(): SceneryObstacle[] {
+    if(this.vaultMode)return this.vaultCollision(true);
+    const out: SceneryObstacle[] = [];
+    for (let x = -3.2; x <= 3.2; x += .4) for (let z = -3.2; z <= 3.2; z += .4) out.push({ x, z, r: .3, height: 2 });
+    for (const x of [-1.95, 1.95]) for (const z of [4, 6.65]) {
+      const sx=x*this.towerScale,sz=5.33+(z-5.33)*this.towerScale;
+      out.push({x:Math.cos(ELEVATOR_YAW)*sx+Math.sin(ELEVATOR_YAW)*sz,z:-Math.sin(ELEVATOR_YAW)*sx+Math.cos(ELEVATOR_YAW)*sz,r:.48*this.towerScale,height:20*this.towerScale});
+    }
+    return out.map(o=>({...o,x:o.x+this.root.position.x,z:o.z+this.root.position.z}));
+  }
+
+  /** Collision of the cage at the top with its gates open, whatever it's doing now. */
+  restingObstacles(): SceneryObstacle[] {
+    const { height, gateOpen } = this.motion;
+    this.motion.height = 0; this.motion.gateOpen = 1;
+    try { return this.collisionObstacles(); } finally { this.motion.height = height; this.motion.gateOpen = gateOpen; }
+  }
+
   collisionObstacles(): SceneryObstacle[] {
+    if(this.vaultMode)return this.vaultCollision(this.motion.gateOpen<.99);
     const out:SceneryObstacle[]=[];
     const add=(x:number,z:number,r:number,height:number)=>out.push({x:Math.cos(ELEVATOR_YAW)*x+Math.sin(ELEVATOR_YAW)*z,z:-Math.sin(ELEVATOR_YAW)*x+Math.cos(ELEVATOR_YAW)*z,r,height});
     const wall=(ax:number,az:number,bx:number,bz:number,r:number,height:number)=>{
@@ -157,43 +224,58 @@ export class ArrivalElevator {
       const h=Math.max(.1,1.9+this.motion.height);
       wall(-2.95,-2.7,-2.95,2.85,.2,h);wall(2.95,-2.7,2.95,2.85,.2,h);
       wall(-2.95,2.84,2.95,2.84,.16,h);
-      const a=this.motion.gateOpen*Math.PI/2;
-      for(const side of [-1,1])wall(side*2.62,-2.86,side*(2.62-2.62*Math.cos(a)),-2.86+2.62*Math.sin(a),.14,h);
+      const a=gateAngle(this.motion.gateOpen),hinge=2.62+gateShift(this.motion.gateOpen);
+      // Gates swing out around the front corners, never through the deck or across the entry.
+      for(const side of [-1,1])wall(side*hinge,-2.86,side*hinge-side*2.62*Math.cos(a),-2.86-2.62*Math.sin(a),.14,h);
     }
     // No actor may walk into the exposed shaft after the cage leaves the surface.
     if(this.motion.height<-.1)for(let x=-3.2;x<=3.2;x+=.4)for(let z=-3.2;z<=3.2;z+=.4)add(x,z,.3,0);
-    for(const x of [-1.95,1.95])for(const z of [4,6.65])add(x,z,.48,20);
-    return out;
+    for(const x of [-1.95,1.95])for(const z of [4,6.65])add(x*this.towerScale,5.33+(z-5.33)*this.towerScale,.48*this.towerScale,20*this.towerScale);
+    return out.map(o=>({...o,x:o.x+this.root.position.x,z:o.z+this.root.position.z}));
   }
 
+  /** Whether a world point stands on the deck (6 × 6 m), for camera framing. */
+  onDeck(point: Vector3): boolean {
+    const m=this.root.computeWorldMatrix(true).clone().invert();
+    const local=Vector3.TransformCoordinates(point,m);
+    return Math.abs(local.x)<3&&Math.abs(local.z)<3;
+  }
   get state() { return { action:this.motion.phase, gateOpen:this.motion.gateOpen, height:this.motion.height, seal:this.motion.seal, cycling:this.motion.cycling, departing:this.motion.departing }; }
-  command(action: ElevatorAction): void { this.motion.command(action); this.onCommand?.(action); }
+  /** While set (a cutscene owns the player), commands are ignored. */
+  locked = false;
+  command(action: ElevatorAction): void { if (this.locked) return; this.vaultOpenAfterRise=this.vaultMode&&action==='rise';this.motion.command(action); this.onCommand?.(action); }
   update(dt: number): void {
     this.time+=dt;this.motion.update(dt);
+    if(this.vaultOpenAfterRise&&this.motion.phase==='idle'&&this.motion.height===0){this.vaultOpenAfterRise=false;this.motion.command('open');}
     const moving=this.motion.phase!=='idle'&&this.motion.phase!=='sealed';
     this.amber.emissiveColor.set(1,.25,.025).scaleInPlace(moving ? 1.4+2.6*Math.pow(Math.max(0,Math.sin(this.time*8)),4) : 2.2);
     this.pose();
-    if(this.status)this.status.textContent=this.motion.phase==='sealed'?'SHAFT SEALED':this.motion.phase==='idle'?(this.motion.gateOpen>.99?'GATES OPEN':'GATES CLOSED'):this.motion.phase.toUpperCase();
+    if(this.status)this.status.textContent=this.motion.phase==='sealed'?(this.vaultMode?'VAULT SEALED':'SHAFT SEALED'):this.motion.phase==='idle'?(this.motion.gateOpen>.99?'GATES OPEN':'GATES CLOSED'):this.motion.phase.toUpperCase();
   }
   private pose(): void {
+    this.vault?.pose(this.motion.gateOpen);
     this.platform.position.y=this.motion.height;
-    this.gates.forEach((g,i)=>g.rotation.y=(i===0?-1:1)*this.motion.gateOpen*Math.PI/2);
+    this.gates.forEach((g,i)=>{
+      const side=i===0?-1:1;
+      g.rotation.y=-side*gateAngle(this.motion.gateOpen);
+      g.position.x=side*gateShift(this.motion.gateOpen);
+    });
     this.seals.forEach((g,i)=>g.position.x=(i===0?-1:1)*(1-this.motion.seal)*3.55);
   }
   mount(): void {
     const body=document.querySelector('#weather-lab .weather-lab-body');if(!body)return;
     const panel=document.createElement('section');panel.className='elevator-controls';
-    panel.innerHTML='<h3>Restored lift tower</h3><p>Center of range � 6 � 6 m deck � 20 m tower</p>';
+    panel.innerHTML='<h3>Restored lift tower</h3><p>Center of range · 6 × 6 m deck · 20 m tower</p>';
     for(const [action,label] of [['open','Open gates'],['close','Close gates'],['descend','Extract & seal'],['rise','Unseal & raise'],['cycle','Preview full cycle']] as const) {
       const button=document.createElement('button');button.textContent=label;button.dataset.elevator=action;
       button.style.cssText='margin:3px;padding:5px 9px;color:#d7f4fa;background:#172832;border:1px solid #45616b;cursor:pointer';
       button.onclick=()=>this.command(action);panel.append(button);
     }
-    this.status=document.createElement('p');panel.append(this.status);body.prepend(panel);this.panel=panel;
+    this.status=document.createElement('p');panel.append(this.status);body.prepend(panel);this.panel=panel;this.updatePanel();
   }
   dispose(): void {
     for(const m of this.root.getChildMeshes()){this.glow.removeIncludedOnlyMesh(m as Mesh);this.shadows.removeShadowCaster(m);}
-    this.root.dispose();this.materials.forEach(m=>m.dispose());this.textures.forEach(t=>t.dispose());this.panel?.remove();
+    this.vault?.dispose();this.root.dispose();this.materials.forEach(m=>m.dispose());this.textures.forEach(t=>t.dispose());this.panel?.remove();
   }
 }
 

@@ -39,7 +39,7 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: Pick<W
   let ambientShadows = true;
   let polish = true;
   let current: VisualPreset = 'original';
-  const atmosphere = { night: 0, dusk: 0, clouds: 0, flash: 0, petals: 0 };
+  const atmosphere = { night: 0, dusk: 0, clouds: 0, flash: 0, petals: 0, overcast: 0, ashen: 0 };
   const base = { sun: new Color3(), sky: new Color3(), ground: new Color3(), direction: new Vector3(), sunPower: 1, skyPower: 1, rimPower: 0, exposure: 1 };
   const sunsetDirection = new Vector3(-.85,-.36,.32).normalize();
   const moonDirection = new Vector3(.5,-.85,.3).normalize();
@@ -48,9 +48,11 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: Pick<W
   let playerFill: HemisphericLight | null = null;
   let baseReady = false;
 
+  const ashSun = new Color3(1, .7, .5), ashSky = new Color3(.56, .48, .45), ashBounce = new Color3(.62, .26, .1);
+  const ashToonLight = new Color3(.88, .76, .7), ashToonShade = new Color3(.78, .62, .56);
   function applyAtmosphere(): void {
     if (!baseReady) return;
-    const { night, dusk, clouds, flash, petals } = atmosphere;
+    const { night, dusk, clouds, flash, petals, overcast, ashen } = atmosphere;
     // Night already supplies the dark palette. Cloud cover only nudges it further.
     const cloudShade = clouds * (1 - night * .8);
     Vector3.LerpToRef(base.direction,sunsetDirection,dusk,sun.direction);sun.direction.normalize();
@@ -83,6 +85,24 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: Pick<W
     hemi.groundColor.r *= 1 + petals * .16;
     toonLight.r *= 1 + petals * .045;toonLight.g *= 1 - petals * .045;
     toonShade.r *= 1 + petals * .09;toonShade.g *= 1 - petals * .04;
+    if(overcast){
+      sun.diffuse.set(.84,.85,.86);sun.intensity=.45;
+      sun.direction.set(-.3,-1,.2).normalize();
+      hemi.diffuse.set(.74,.75,.76);hemi.groundColor.set(.33,.34,.35);hemi.intensity=.8;
+      rim.intensity=0;image.exposure=.92;
+      // Compensate the anime shader's warm highlights and blue shadow base.
+      toonLight.set(.80,.82,.86);toonShade.set(.91,.84,.73);
+    }
+    if(ashen){
+      // Ashen Caldera: smoke clouds choke the sun to a dim, rust-filtered light; the lava below
+      // becomes the main light, so the ambient bounce from the ground runs red.
+      Color3.LerpToRef(sun.diffuse,ashSun,ashen,sun.diffuse);sun.intensity*=1-.4*ashen;
+      Color3.LerpToRef(hemi.diffuse,ashSky,ashen,hemi.diffuse);Color3.LerpToRef(hemi.groundColor,ashBounce,ashen,hemi.groundColor);
+      hemi.intensity*=1-.12*ashen;rim.intensity*=1-.5*ashen;
+      image.exposure*=1-.07*ashen;
+      image.vignetteEnabled=true;image.vignetteWeight=Math.max(image.vignetteWeight,.3*ashen);
+      Color3.LerpToRef(toonLight,ashToonLight,ashen,toonLight);Color3.LerpToRef(toonShade,ashToonShade,ashen,toonShade);
+    }
     toon.setAtmosphere(toonLight,toonShade);
     toon.setPlayerFill(night * 1.3);
     if (playerFill) {
@@ -184,9 +204,9 @@ export function createVisualSettings(scene: Scene, camera: Camera, world: Pick<W
       applyAtmosphere();
     },
     /** Compose world atmosphere with the chosen art preset; never rebuild postprocessing. */
-    setAtmosphere(night: number, dusk: number, clouds: number, flash: number, petals = 0): void {
-      if (atmosphere.night === night && atmosphere.dusk === dusk && atmosphere.clouds === clouds && atmosphere.flash === flash && atmosphere.petals === petals) return;
-      Object.assign(atmosphere, { night, dusk, clouds, flash, petals });
+    setAtmosphere(night: number, dusk: number, clouds: number, flash: number, petals = 0, overcast = 0, ashen = 0): void {
+      if (atmosphere.night === night && atmosphere.dusk === dusk && atmosphere.clouds === clouds && atmosphere.flash === flash && atmosphere.petals === petals && atmosphere.overcast === overcast && atmosphere.ashen === ashen) return;
+      Object.assign(atmosphere, { night, dusk, clouds, flash, petals, overcast, ashen });
       applyAtmosphere();
     },
     setAmbientShadows(enabled: boolean): void {

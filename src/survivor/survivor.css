@@ -8,7 +8,7 @@
   --edge: calc(16 * var(--k));
   --tool-size: max(44px, calc(46 * var(--k)));
   --info: calc(340 * var(--k));
-  --hud-shade-height: calc(320 * var(--k));
+  --hud-shade-height: min(calc(260 * var(--k)), 36cqh);
   --line: rgba(232, 235, 236, .5);
   --line-soft: rgba(232, 235, 236, .22);
   --bracket: #eef0ef;
@@ -19,11 +19,10 @@
   font-family: Rajdhani, 'Segoe UI', sans-serif;
   color: #f2f5f7;
 }
-/* A bottom-anchored fade plus local panel shadows separate the HUD from bright terrain.
-   Its height follows the HUD rather than the viewport, so it rises behind the whole row. */
+/* Keep the bottom edge dark for HUD contrast, with a soft, shorter fade into the field. */
 #hud.survivor::before {
   background:
-    linear-gradient(to top, #05090bf5 0%, #05090be6 14%, #05090bbf 36%, #05090b80 57%, #05090b33 77%, #05090b00 100%) bottom / 100% var(--hud-shade-height) no-repeat,
+    linear-gradient(to top, #05090be6 0%, #05090bb3 18%, #05090b66 42%, #05090b26 68%, #05090b00 100%) bottom / 100% var(--hud-shade-height) no-repeat,
     linear-gradient(#080b0c40, transparent 14%);
 }
 #hud.survivor small { display: block; font-size: max(11px, calc(13 * var(--k))); font-weight: 600; line-height: 1; letter-spacing: .12em; text-transform: uppercase; color: var(--label); }
@@ -93,7 +92,8 @@
 
 /* bottom left: portrait and numbers */
 #run-hero { position: absolute; isolation: isolate; left: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(60 * var(--k)); display: flex; align-items: flex-end; gap: calc(16 * var(--k)); }
-#run-hero::before { content: ''; position: absolute; z-index: -1; inset: 0 calc(-18 * var(--k)) calc(-14 * var(--k)) calc(-8 * var(--k)); background: radial-gradient(ellipse at 45% 75%, #03070be6 0%, #03070b99 42%, #03070b00 74%); filter: blur(calc(12 * var(--k))); pointer-events: none; }
+/* Starts below the portrait's top so the empty space above the name and its rule stays clear. */
+#run-hero::before { content: ''; position: absolute; z-index: -1; inset: calc(58 * var(--k)) calc(-18 * var(--k)) calc(-14 * var(--k)) calc(-8 * var(--k)); background: radial-gradient(ellipse at 45% 70%, #03070be6 0%, #03070b8c 45%, #03070b00 76%); filter: blur(calc(12 * var(--k))); pointer-events: none; }
 .rh-face { width: calc(220 * var(--k)); height: calc(178 * var(--k)); border: 0; background: transparent; }
 .rh-face.run-frame::before, .rh-face.run-frame::after { display: none; }
 .rh-face img { position: relative; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 30% 22%; clip-path: polygon(var(--portrait-edge) 0, 100% 0, 100% 100%, 0 100%, 0 var(--portrait-edge)); }
@@ -144,7 +144,7 @@
 .rd-icon svg { display: block; height: calc(58 * var(--k)); width: auto; }
 .rd-card[data-slot='weapon'] .rd-icon svg { width: calc(134 * var(--k)); height: auto; }
 .rd-card[data-slot='dash'] .rd-icon svg { height: calc(54 * var(--k)); }
-.rd-count { font-size: calc(30 * var(--k)); font-weight: 700; line-height: 1; text-shadow: 0 2px 4px #000a; }
+.rd-count { position: absolute; top: calc(9 * var(--k)); right: calc(16 * var(--k)); font-size: max(13px, calc(24 * var(--k))); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 4px #000a; }
 .rd-card .run-key { position: absolute; left: 50%; bottom: calc(-3 * var(--k)); transform: translateX(-50%); }
 .rd-meter { position: absolute; left: calc(5 * var(--k)); bottom: calc(4 * var(--k)); max-width: calc(100% - 20 * var(--k)); height: calc(2 * var(--k)); width: 0; background: var(--gold); }
 .rd-card.busy .rd-icon, .rd-card.busy .rd-count { opacity: .4; }
@@ -204,7 +204,7 @@
 
 /* Compact desktop and landscape: keep readable text and fit the dock on its own row. */
 @container game (max-width: 1000px) {
-  #hud.survivor { --k: .7px; --hud-inset: 0px; --edge: 12px; --tool-size: 44px; --hud-shade-height: min(310px, 60cqh); }
+  #hud.survivor { --k: .7px; --hud-inset: 0px; --edge: 12px; --tool-size: 44px; --hud-shade-height: min(260px, 45cqh); }
   #run-objective { width: 210px; padding: 8px 10px; gap: 10px; }
   #run-objective { height: 48px; }
   #run-clock { grid-template-columns: 24px auto 24px; column-gap: 10px; }
@@ -263,7 +263,7 @@
 }
 /* Portrait: two quiet top rows and a two-row action dock leave the centre clear. */
 @container game (max-width: 500px) {
-  #hud.survivor { --hud-shade-height: min(350px, 60cqh); }
+  #hud.survivor { --hud-shade-height: min(310px, 45cqh); }
   #run-objective { top: 12px; left: 12px; width: 180px; }
   #run-clock { top: 12px; left: auto; right: 12px; transform: none; grid-template-columns: auto; }
   .rc-line { display: none; }
@@ -291,4 +291,19 @@
 }
 @media (prefers-reduced-motion: reduce) {
   #hud.survivor i { transition: none; }
+}
+
+/* Weapon charge stays explicit while the trigger is held. */
+.rd-card.charging .rd-meter { background: #32cfff; height: calc(4 * var(--k)); }
+.rd-card.charged .rf-surface { stroke: #b8f8ff; fill: #123c4bea; }
+.rd-card.charged .rd-meter { background: #f2ffff; box-shadow: 0 0 10px #32cfff; }
+.rd-card.charged .rd-label { color: #f2ffff; }
+
+/* Square rocket art uses the same vertical budget as the other HUD icons. */
+.rd-card[data-slot='weapon']:is([data-icon='rocket'], [data-icon='halo']) .rd-icon svg { width: auto; height: calc(58 * var(--k)); max-height: 100%; }
+@container game (max-width: 1000px) {
+  .rd-card[data-slot='weapon']:is([data-icon='rocket'], [data-icon='halo']) .rd-icon svg { height: 38px; }
+}
+@container game (max-width: 760px) {
+  .rd-card[data-slot='weapon']:is([data-icon='rocket'], [data-icon='halo']) .rd-icon svg { height: 30px; }
 }

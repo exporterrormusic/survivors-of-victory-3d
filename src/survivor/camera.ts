@@ -6,7 +6,7 @@ import { Scene, UniversalCamera, Vector3 } from '@babylonjs/core';
 import { clamp } from './math';
 
 const DEG = Math.PI / 180;
-export const CAMERA_LIMITS = { min: 9, max: 24, default: 13 };
+export const CAMERA_LIMITS = { min: 9, max: 28, default: 18 };
 /**
  * Camera angle settings: pitch at the nearest and farthest zoom (degrees). Lower shows more of the
  * chibi (from above, her hair hides her face whenever she aims away from the camera); higher shows
@@ -27,6 +27,7 @@ const LOOK_HEIGHT = .9;
 const FOLLOW = 14;
 
 export class SurvivorCamera {
+  groundHeight:(x:number,z:number)=>number=()=>0;
   readonly camera: UniversalCamera;
   readonly focus = new Vector3();
   /** pitch (radians) at the nearest and farthest zoom */
@@ -34,12 +35,16 @@ export class SurvivorCamera {
   pitchFar = PITCH_FAR;
   private dist = CAMERA_LIMITS.default;
   private distTarget = CAMERA_LIMITS.default;
+  /** A scripted zoom (zoomTo): eases in and out over its duration; the wheel cancels it. */
+  private glide: { from: number; to: number; age: number; time: number } | null = null;
   private shakeTime = 0;
   private shakeStrength = 0;
   private readonly target = new Vector3();
   private held: Vector3 | null = null;
   private heldX = .5;
   private distBeforeHold = CAMERA_LIMITS.default;
+  /** A cutscene takes the camera: called after the normal follow, it places the camera itself. */
+  override: ((camera: UniversalCamera, dt: number) => void) | null = null;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.camera = new UniversalCamera('survivor-cam', new Vector3(0, 12, -10), scene);
@@ -49,9 +54,13 @@ export class SurvivorCamera {
     this.camera.inputs.clear();
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
+      this.glide = null;
       this.distTarget = clamp(this.distTarget * (e.deltaY > 0 ? 1.1 : 1 / 1.1), CAMERA_LIMITS.min, CAMERA_LIMITS.max);
     }, { passive: false });
   }
+
+  /** Actual eased distance, so atmosphere compensation follows the visible zoom. */
+  get distance(): number { return this.dist; }
 
   setAngle(angle: CameraAngle): void {
     this.pitchNear = CAMERA_ANGLES[angle].near * DEG;
@@ -60,7 +69,13 @@ export class SurvivorCamera {
 
   /** Set an initial framing for large art previews; wheel zoom remains available. */
   setDistance(distance: number): void {
+    this.glide = null;
     this.dist = this.distTarget = clamp(distance, CAMERA_LIMITS.min, CAMERA_LIMITS.max);
+  }
+
+  /** Glide to a distance over `seconds`, easing in and out (slower and softer than a wheel zoom). */
+  zoomTo(distance: number, seconds = 1.8): void {
+    this.glide = { from: this.dist, to: clamp(distance, CAMERA_LIMITS.min, CAMERA_LIMITS.max), age: 0, time: seconds };
   }
 
   /** Brief screen shake; stronger requests override weaker ones. */
@@ -99,10 +114,17 @@ export class SurvivorCamera {
     }
     this.focus.x += (goalX - this.focus.x) * k;
     this.focus.z += (goalZ - this.focus.z) * k;
-    this.dist += (this.distTarget - this.dist) * (dt > 0 ? Math.min(1, dt * 10) : 1);
+    // Follow terrain descent without tracking the elevator's underground ride.
+    const goalY=this.held?this.held.y:this.groundHeight(follow.x,follow.z);
+    this.focus.y += (goalY-this.focus.y)*(dt>0?1-Math.exp(-5*dt):1);
+    if (this.glide && !this.held) {
+      const g = this.glide, t = Math.min(1, (g.age += dt) / g.time), e = t * t * (3 - 2 * t);
+      this.dist = this.distTarget = g.from + (g.to - g.from) * e;
+      if (t >= 1) this.glide = null;
+    } else this.dist += (this.distTarget - this.dist) * (dt > 0 ? Math.min(1, dt * 10) : 1);
     const t = (this.dist - CAMERA_LIMITS.min) / (CAMERA_LIMITS.max - CAMERA_LIMITS.min);
     const pitch = this.pitchNear + (this.pitchFar - this.pitchNear) * t;
-    this.target.set(this.focus.x, LOOK_HEIGHT, this.focus.z);
+    this.target.set(this.focus.x, this.focus.y+LOOK_HEIGHT, this.focus.z);
     if (this.shakeTime > 0) {
       this.shakeTime -= dt;
       const s = this.shakeStrength * Math.max(0, this.shakeTime) * 6;
@@ -112,5 +134,6 @@ export class SurvivorCamera {
     }
     this.camera.position.set(this.target.x, this.target.y + Math.sin(pitch) * this.dist, this.target.z - Math.cos(pitch) * this.dist);
     this.camera.setTarget(this.target);
+    this.override?.(this.camera, dt);
   }
 }

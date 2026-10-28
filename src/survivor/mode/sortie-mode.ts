@@ -30,7 +30,7 @@ import { SortieHud, type Marker } from './sortie-hud';
 import { FEATURES } from '../../features';
 import { SITE_KINDS, SiteSet, type SiteInit } from './sites';
 import { SiteView } from './site-view';
-import { TelegraphLayer } from './telegraph';
+import { TelegraphLayer, groundHeight } from './telegraph';
 
 export interface SortieModeInit {
   readonly scene: Scene;
@@ -49,6 +49,8 @@ export interface SortieModeInit {
   readonly characterId: CharacterId;
   /** name and banner art (a path under public/) for the results screen */
   readonly nikke: { readonly name: string; readonly art: string | null };
+  /** give newly loaded unit models (the supply squad) the anime unit materials */
+  readonly refreshUnits?: () => void;
 }
 
 /** Test-range layout: arrival lift south, a dormant tower north, sites around the plaza. */
@@ -74,8 +76,8 @@ const TEST_RANGE_SITES: SiteInit[] = [
 ];
 /** The test plaza is ~68 m across, so the horde is thinner than a full 160 m sector's. */
 const TEST_RANGE_TUNING = { ...DEFAULT_TUNING, budgetPerSecond: [1, 1.5, 2.1, 2.8, 3.5], maxAlive: [24, 36, 50, 66, 80] };
-const SPAWN_TYPES = ['lure', 'crawler', 'pelican', 'solaris', 'capra', 'phalanx', 'hardHat'];
-const HUNTER = 'hardHat';
+const SPAWN_TYPES = ['lure', 'crawler', 'pelican', 'capra', 'tripod', 'thermite'];
+const HUNTER = 'thermite';
 
 interface PendingSpawn { type: string; count: number; tries: number }
 
@@ -140,7 +142,7 @@ export class SortieMode {
   }
 
   static async create(init: SortieModeInit): Promise<SortieMode> {
-    const tells = new TelegraphLayer(init.scene);
+    const tells = new TelegraphLayer(init.scene, groundHeight(init.snow));
     const pacing = new EnemyAttackPacing();
     const horde = new Horde(init.field, {
       player: init.player, field: init.field, run: init.run, vfx: init.vfx, tells, snow: init.snow,

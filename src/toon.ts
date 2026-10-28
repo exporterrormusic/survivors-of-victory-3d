@@ -1,7 +1,7 @@
 import {
   type AbstractMesh, type Camera, Color3, type DirectionalLight, Material,
   type MaterialDefines, MaterialPluginBase, Mesh, PBRMaterial, RegisterMaterialPlugin,
-  type Scene, StandardMaterial, type UniformBuffer, Vector3,
+  type Scene, StandardMaterial, type UniformBuffer, type Vector3,
 } from '@babylonjs/core';
 
 interface ToonState {
@@ -14,6 +14,44 @@ interface ToonState {
   plugins: Set<AnimeToon>;
 }
 const states = new WeakMap<Scene, ToonState>();
+
+/** Local combat light supplements cel lighting without changing the global anime palette.
+ * A Babylon PointLight fits; plain objects light cel surfaces without adding scene lights. */
+export interface AnimeEffectLight { readonly position: Vector3; readonly diffuse: Color3; intensity: number; range: number }
+
+const EFFECT_LIGHTS = 6;
+interface EffectLights { lights: Set<AnimeEffectLight>; frame: number; position: Float32Array; color: Float32Array }
+const effectLights = new WeakMap<Scene, EffectLights>();
+function effectLightsOf(scene: Scene): EffectLights {
+  let entry = effectLights.get(scene);
+  if (!entry) {
+    entry = { lights: new Set(), frame: -1, position: new Float32Array(EFFECT_LIGHTS * 4), color: new Float32Array(EFFECT_LIGHTS * 4) };
+    effectLights.set(scene, entry);
+  }
+  return entry;
+}
+
+/** The first few registered lights that are on reach cel surfaces, in registration order,
+ * so the earliest keep their slot rather than trading it frame to frame. */
+export function addAnimeEffectLight(scene: Scene, light: AnimeEffectLight): void { effectLightsOf(scene).lights.add(light); }
+export function removeAnimeEffectLight(scene: Scene, light: AnimeEffectLight): void { effectLightsOf(scene).lights.delete(light); }
+
+/** Packed once per frame: xyz position with range in w, and color scaled by intensity. */
+function packEffectLights(scene: Scene): EffectLights {
+  const entry = effectLightsOf(scene);
+  if (entry.frame === scene.getFrameId()) return entry;
+  entry.frame = scene.getFrameId();
+  entry.position.fill(0); entry.color.fill(0);
+  let slot = 0;
+  for (const light of entry.lights) {
+    if (light.intensity <= 0) continue;
+    const i = slot * 4, strength = light.intensity * .35;
+    entry.position[i] = light.position.x; entry.position[i + 1] = light.position.y; entry.position[i + 2] = light.position.z; entry.position[i + 3] = light.range;
+    entry.color[i] = light.diffuse.r * strength; entry.color[i + 1] = light.diffuse.g * strength; entry.color[i + 2] = light.diffuse.b * strength;
+    if (++slot === EFFECT_LIGHTS) break;
+  }
+  return entry;
+}
 
 /** Keep the original materials, UVs, alpha tests and skinning. Only replace their
  * lighting before fog/grading; terrain and range-ground plugins still paint the albedo. */
@@ -39,12 +77,15 @@ class AnimeToon extends MaterialPluginBase {
 
   override getUniforms() {
     return {
-      ubo: [{ name: 'animeSun', size: 3, type: 'vec3' }, { name: 'animePainted', size: 1, type: 'float' }, { name: 'animeSoft', size: 1, type: 'float' }, { name: 'animeAtmosphere', size: 3, type: 'vec3' }, { name: 'animeAtmosphereShade', size: 3, type: 'vec3' }, { name: 'animePlayerFill', size: 1, type: 'float' }],
-      fragment: '#ifdef ANIME_TOON\nuniform vec3 animeSun;\nuniform float animePainted;\nuniform float animeSoft;\nuniform vec3 animeAtmosphere;\nuniform vec3 animeAtmosphereShade;\nuniform float animePlayerFill;\n#endif',
+      ubo: [{ name: 'animeEffectPosition', size: 4, type: 'vec4', arraySize: EFFECT_LIGHTS }, { name: 'animeEffectColor', size: 4, type: 'vec4', arraySize: EFFECT_LIGHTS }, { name: 'animeSun', size: 3, type: 'vec3' }, { name: 'animePainted', size: 1, type: 'float' }, { name: 'animeSoft', size: 1, type: 'float' }, { name: 'animeAtmosphere', size: 3, type: 'vec3' }, { name: 'animeAtmosphereShade', size: 3, type: 'vec3' }, { name: 'animePlayerFill', size: 1, type: 'float' }],
+      fragment: `#ifdef ANIME_TOON\nuniform vec4 animeEffectPosition[${EFFECT_LIGHTS}];\nuniform vec4 animeEffectColor[${EFFECT_LIGHTS}];\nuniform vec3 animeSun;\nuniform float animePainted;\nuniform float animeSoft;\nuniform vec3 animeAtmosphere;\nuniform vec3 animeAtmosphereShade;\nuniform float animePlayerFill;\n#endif`,
     };
   }
 
   override bindForSubMesh(buffer: UniformBuffer): void {
+    const local = packEffectLights(this._material.getScene());
+    buffer.updateFloatArray('animeEffectPosition', local.position);
+    buffer.updateFloatArray('animeEffectColor', local.color);
     const direction = this.state.sun.direction;
     buffer.updateFloat3('animeSun', -direction.x, -direction.y, -direction.z);
     buffer.updateFloat('animeSoft', this._material.metadata?.softEnvironment ? 1 : 0);
@@ -92,6 +133,13 @@ class AnimeToon extends MaterialPluginBase {
           // surfaces without flattening the cel bands or emitting a glowing silhouette.
           float facingCamera = max(0.0, dot(normal, viewDirection));
           light += vec3(0.38, 0.36, 0.30) * animePlayerFill * (0.75 + 0.25 * facingCamera);
+          for (int i = 0; i < ${EFFECT_LIGHTS}; i++) {
+            vec3 toEffect = animeEffectPosition[i].xyz - vPositionW;
+            float effectDistance = length(toEffect);
+            float falloff = pow(max(0.0, 1.0 - effectDistance / max(.001, animeEffectPosition[i].w)), 2.0);
+            float facingEffect = max(0.0, dot(normal, toEffect / max(.001, effectDistance)));
+            light += animeEffectColor[i].rgb * falloff * (.2 + .8 * facingEffect);
+          }
           return light + vec3(0.04, 0.05, 0.07) * rim * animeShadow * animeAtmosphere;
         }
         vec3 animePalette(vec3 paint) {

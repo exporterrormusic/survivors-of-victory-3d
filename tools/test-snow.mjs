@@ -43,7 +43,7 @@ const travelByFps = [20, 60, 120].map(fps => walk(uniform(.65), { x: -4, z: 0 },
 assert.ok(Math.max(...travelByFps) - Math.min(...travelByFps) < .12, JSON.stringify(travelByFps));
 assert.ok(rangeSnowDepth('drifts', -4, 3.4) > 1.5);
 assert.equal(rangeSnowDepth('off', 0, 0), 0);
-assert.equal(rangeSnowDepth('drifts', 38, 0), 0);
+assert.ok(rangeSnowDepth('drifts', 38, 0)>.08,'snow remains continuous at the former overlay edge');
 
 const shapes = ['boot', 'spike', 'hook'].map(shape => {
   const f = uniform(.4); f.stampFoot(0, 0, 0, shape); return f;

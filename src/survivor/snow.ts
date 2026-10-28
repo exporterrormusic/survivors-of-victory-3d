@@ -3,6 +3,7 @@ import {
   type Observer, type Scene, StandardMaterial, Texture, type UniformBuffer, Vector3, VertexData,
 } from '@babylonjs/core';
 import { MAX_SNOW_DEPTH, SnowField, type SnowFieldOptions } from './snow-field';
+import { snowGridAxis } from './snow-grid';
 
 export interface SnowLayerOptions extends SnowFieldOptions {
   /** World-space floor height, sampled once when building the overlay. Default: y = 0.
@@ -11,14 +12,26 @@ export interface SnowLayerOptions extends SnowFieldOptions {
   subdivisions?: number;
   /** Align grid edges to a rectangular opening; field sampling stays in world space. */
   gridRotation?: number;
+  /** Snow scenery beyond the editable field; edge depths extend without reducing trail detail. */
+  outerExtent?: number;
 }
 
 const uniforms = 'uniform vec4 snowBounds;\nuniform vec2 snowGrid;';
 const sampling = `
   uniform sampler2D snowField;
   vec2 snowUV(vec2 p) { return (p - snowBounds.xy) / snowBounds.zw * (1.0 - snowGrid.x) + snowGrid.x * .5; }
+  vec4 snowSample(vec2 p) {
+    vec4 data=texture2D(snowField,snowUV(p));
+    vec2 outside=max(max(snowBounds.xy-p,p-(snowBounds.xy+snowBounds.zw)),vec2(0.));
+    float blend=smoothstep(0.,8.,length(outside));
+    // Blend into world-space powder beyond the editable field instead of stretching
+    // its final row of texels into long ridges toward the horizon.
+    float base=texture2D(snowField,vec2(.98,.98)).r;
+    float wind=sin(p.x*.73+sin(p.y*.41))*cos(p.y*.57)*.018/snowGrid.y;
+    return mix(data,vec4(max(.01,base+wind),0.,0.,0.),blend);
+  }
   float snowHeight(vec4 field) { float fresh = field.r * snowGrid.y; return fresh - min(fresh * .88, .24) * field.g; }
-  float snowAt(vec2 p) { return snowHeight(texture2D(snowField, snowUV(p))); }
+  float snowAt(vec2 p) { return snowHeight(snowSample(p)); }
 `;
 
 /** Uses Babylon's normal lighting / shadows / fog, including the game's toon plugin. */
@@ -57,7 +70,7 @@ class SnowMaterial extends MaterialPluginBase {
       `,
       CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `
         vec2 snowP = vPositionW.xz;
-        vec4 snowData = texture2D(snowField, snowUV(snowP));
+        vec4 snowData = snowSample(snowP);
         float snowDepth = snowHeight(snowData);
         // Worn powder reveals the actual floor below. Deep paths retain packed snow.
         if (snowDepth < .006) discard;
@@ -116,21 +129,23 @@ export class SnowLayer {
     const b = options.bounds, segments = options.subdivisions ?? 512;
     const angle=options.gridRotation??0,c=Math.cos(angle),s=Math.sin(angle);
     const cx=b.minX+b.width/2,cz=b.minZ+b.depth/2;
+    const xs=snowGridAxis(b.width,segments,options.outerExtent),zs=snowGridAxis(b.depth,segments,options.outerExtent);
+    const nx=xs.length-1,nz=zs.length-1;
     const gridPoint=(x:number,z:number):[number,number]=>{
-      const px=(x/segments-.5)*b.width,pz=(z/segments-.5)*b.depth;
+      const px=xs[x],pz=zs[z];
       return [cx+c*px+s*pz,cz-s*px+c*pz];
     };
     const positions: number[] = [], indices: number[] = [], normals: number[] = [];
-    for (let z = 0; z <= segments; z++) for (let x = 0; x <= segments; x++) {
+    for (let z = 0; z <= nz; z++) for (let x = 0; x <= nx; x++) {
       const [wx,wz]=gridPoint(x,z);
       positions.push(wx, options.heightAt?.(wx, wz) ?? 0, wz);
     }
-    for (let z = 0; z < segments; z++) for (let x = 0; x < segments; x++) {
+    for (let z = 0; z < nz; z++) for (let x = 0; x < nx; x++) {
       // Remove geometry as well as depth: depth/SSAO passes must see the open shaft.
       if (options.excludeAt && [[x,z],[x+1,z],[x,z+1],[x+1,z+1]].some(([gx,gz]) =>
         options.excludeAt!(...gridPoint(gx,gz)))) continue;
-      const i = z * (segments + 1) + x;
-      indices.push(i, i + 1, i + segments + 1, i + 1, i + segments + 2, i + segments + 1);
+      const i = z * (nx + 1) + x;
+      indices.push(i, i + 1, i + nx + 1, i + 1, i + nx + 2, i + nx + 1);
     }
     VertexData.ComputeNormals(positions, indices, normals);
     const data = new VertexData(); data.positions = positions; data.normals = normals; data.indices = indices;

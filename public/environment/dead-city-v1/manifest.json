@@ -1,0 +1,55 @@
+{
+  "units": "metres",
+  "style": "painted anime ruins",
+  "assets": [
+    {
+      "id": "city-office",
+      "file": "city-office.glb",
+      "triangles": 2352,
+      "bytes": 8073084,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-tower",
+      "file": "city-tower.glb",
+      "triangles": 3828,
+      "bytes": 8176404,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-shaft",
+      "file": "city-shaft.glb",
+      "triangles": 1344,
+      "bytes": 8002504,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-corner",
+      "file": "city-corner.glb",
+      "triangles": 876,
+      "bytes": 7969752,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-collapse",
+      "file": "city-collapse.glb",
+      "triangles": 204,
+      "bytes": 7921784,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-rubble",
+      "file": "city-rubble.glb",
+      "triangles": 84,
+      "bytes": 4011260,
+      "validationErrors": 0
+    },
+    {
+      "id": "city-long-collapse",
+      "file": "city-long-collapse.glb",
+      "triangles": 240,
+      "bytes": 7924288,
+      "validationErrors": 0
+    }
+  ]
+}

@@ -129,7 +129,7 @@ Tasks that depend on one of these say so. **Wave 1 doesn't need any of them.**
 | Q3 | **HP between trips:** 30% heal plus paid repairs, or a full heal | TRIP-1 | 30% plus repairs |
 | Q4 | **Account upgrades** (ATK/HP/SPD/CRT/XP) bought with Core Dust, as U01 shows | META-2 | **Parked 2026-10-25:** the user wants to revisit the upgrade/loadout concept |
 | Q5 | **NIPMH modules as owned gear,** equipped before going up, as U01 shows | META-3, the LOOP-5 gear panel | **Decided 2026-10-25:** no NIPMH in the first version (it may come back; switched off in `src/features.ts`) |
-| Q6 | **Rapture review:** any model rejected on `/rapture-review.html` passes its role to another | FIGHT-5…19 | Use the plan's assignments |
+| Q6 | **Rapture review:** any model rejected on `/tools/review/rapture-review.html` passes its role to another | FIGHT-5…19 | Use the plan's assignments |
 | Q7 | **Approve the 160 m graybox** after playing it | MAP-7, MAP-8 | — |
 | Q8 | **Leaving from the pause menu mid-sortie:** count it as a defeat (carried loot lost)? | LOOP-3 | **Decided 2026-10-25:** counts as dying (XP kept, carried loot lost) |
 | Q9 | **The [M] sector map screen** (S03) is in the mockups but not in GAME_PLAN. Build it? | SORTIE-4 | Build it |
@@ -513,14 +513,14 @@ Needs MAP-5, Q7, ART-1 to ART-4
 - Keep draw calls in budget: merge statics and use thin instances (`docs/PERFORMANCE.md`).
 
 ### ART: assets
-Each art task delivers a review page like `environment-kit-review.html` for the user's
+Each art task delivers a review page like `tools/review/environment-kit-review.html` for the user's
 approval. Build procedurally in the style of `src/environment-kit.ts`, or another method the
 user approves. **Check for reusable ruins in `src/environment.ts` (the MOBA kit) and
 `assets/environment-source/paintover-v1/` first.**
 
 #### ART-1 · Arrival lift · M
 2026-10-25 preview: the user selected **S06's tall restored tower**, replacing the initial S01-only
-interpretation. See `/elevator-review.html` and the Test Range center. Model and motion are in visual
+interpretation. See `/tools/review/elevator-review.html` and the Test Range center. Model and motion are in visual
 review; ART-2's dormant/restoring states and sortie integration are still pending.
 
 Mockups S01, S06 · BRIEF "Recurring objects"

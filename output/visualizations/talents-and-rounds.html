@@ -1,0 +1,81 @@
+<div id="talent-round-explainer">
+  <style>
+    #talent-round-explainer .comparison { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin:20px 0; }
+    #talent-round-explainer .branch { display:grid; gap:12px; margin:16px 0; padding-left:16px; border-left:2px solid var(--border); }
+    #talent-round-explainer .talent { display:flex; gap:8px; align-items:center; color:var(--foreground); }
+    #talent-round-explainer .choice-list { display:grid; gap:8px; margin:16px 0; }
+    #talent-round-explainer .active-list { display:grid; gap:8px; padding:0; list-style:none; min-height:48px; }
+    #talent-round-explainer .lane-label { display:flex; gap:8px; align-items:center; }
+    #talent-round-explainer .flow { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:18px; }
+    #talent-round-explainer h3 { margin-bottom:8px; }
+    @media(max-width:540px) { #talent-round-explainer .comparison { grid-template-columns:1fr; gap:12px; } }
+  </style>
+  <h2>Keep the tree. Build differently each round.</h2>
+  <div class="text-small text-muted">Proposed change · Snow White example · Not implemented</div>
+  <div class="comparison">
+    <section>
+      <h3 class="lane-label"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Permanent: your talent tree</h3>
+      <div>Unlocked = available in future rounds</div>
+      <div class="branch">
+        <div class="talent"><i data-lucide="check" aria-hidden="true"></i> Extra turret capacity</div>
+        <div class="talent"><i data-lucide="check" aria-hidden="true"></i> Incendiary missiles</div>
+        <div class="talent"><i data-lucide="check" aria-hidden="true"></i> Turrets reload themselves</div>
+      </div>
+      <div class="text-small text-muted">These unlocks stay yours after every round.</div>
+      <hr>
+      <h3>Always available at deployment</h3>
+      <div>Rifle · Auto-Turret · Burst</div>
+      <div class="text-small text-muted">Starting specialization: Turret focus</div>
+    </section>
+    <section>
+      <h3 class="lane-label"><i data-lucide="zap" aria-hidden="true"></i> Temporary: this round's build</h3>
+      <div id="tr-status" aria-live="polite">Round 1 · Level up: choose one talent</div>
+      <div class="choice-list" id="tr-choices">
+        <button class="btn" type="button" data-pick="0">Extra turret capacity</button>
+        <button class="btn" type="button" data-pick="1">Incendiary missiles</button>
+        <button class="btn" type="button" data-pick="2">Turrets reload themselves</button>
+      </div>
+      <div class="text-small text-muted">Illustrative level-up offer from your unlocked tree</div>
+      <hr>
+      <h3>Active upgrades this round</h3>
+      <ul id="tr-active" class="active-list" aria-live="polite"><li>None yet — basic kit only</li></ul>
+      <button class="btn btn-primary" id="tr-next" type="button" disabled>End round → deploy again</button>
+    </section>
+  </div>
+  <hr>
+  <div class="flow" aria-label="Permanent unlocks remain; temporary choices reset">
+    <span><i data-lucide="shield-check" aria-hidden="true"></i> Tree unlocks: kept</span>
+    <span><i data-lucide="rotate-ccw" aria-hidden="true"></i> Round upgrades: reset</span>
+  </div>
+  <script>
+  (() => {
+    const root=document.getElementById('talent-round-explainer');
+    const names=['Extra turret capacity','Incendiary missiles','Turrets reload themselves'];
+    let round=1, picked=[];
+    const status=root.querySelector('#tr-status'), active=root.querySelector('#tr-active'), next=root.querySelector('#tr-next');
+    const buttons=Array.from(root.querySelectorAll('[data-pick]'));
+    function render(){
+      status.textContent='Round '+round+' · '+(picked.length===0?'Level up: choose one talent':picked.length===1?'Next level up: choose another talent':'Two upgrades selected for this example');
+      active.replaceChildren();
+      const entries=picked.length?picked.map(i=>names[i]):['None yet — basic kit only'];
+      entries.forEach(name=>{const li=document.createElement('li');li.textContent=name;active.append(li);});
+      buttons.forEach((button,i)=>{button.disabled=picked.includes(i)||picked.length>=2;button.textContent=(picked.includes(i)?'Selected · ':'')+names[i];});
+      next.disabled=picked.length===0;
+    }
+    function restore(saved){
+      const s=saved?.modelContent;
+      if(!s||s.example!=='permanent-unlocks-temporary-builds')return;
+      round=Number.isInteger(s.round)&&s.round>0?s.round:1;
+      picked=Array.isArray(s.picked)?[...new Set(s.picked.filter(i=>Number.isInteger(i)&&i>=0&&i<3))].slice(0,2):[];
+      render();
+    }
+    function save(){
+      if(window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{example:'permanent-unlocks-temporary-builds',round,picked,activeTalents:picked.map(i=>names[i])},privateContent:null}).catch(()=>{});
+    }
+    buttons.forEach((button,i)=>button.addEventListener('click',()=>{if(picked.length<2&&!picked.includes(i)){picked.push(i);render();save();}}));
+    next.addEventListener('click',()=>{round++;picked=[];render();save();});
+    restore(window.openai?.widgetState);
+    window.addEventListener('openai:set_globals',event=>restore(event.detail?.globals?.widgetState));
+  })();
+  </script>
+</div>

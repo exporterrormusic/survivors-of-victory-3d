@@ -1,0 +1,8 @@
+{
+  "mode": "built-in image_gen edit",
+  "asset": "public/assets/menus/stage-select/caldera-day-v2.png",
+  "references": [
+    "public/assets/menus/stage-select/caldera-day-v1.png",
+    "artifacts/elevator-ground-outskirts.png"
+  ]
+}

@@ -3,7 +3,7 @@ import {
   writeProfileSection,
 } from "../persistence/ProfileStorage";
 
-export type MissionModeId = "salvage_run" | "stage_1" | "stage_3";
+export type MissionModeId = "ark_siege" | "survival_round" | "endless_round" | "relay_run" | "salvage_run" | "stage_1" | "stage_3";
 
 export interface MissionModeDefinition {
   readonly description: string;
@@ -21,7 +21,7 @@ export interface OperationZoneDefinition {
   readonly name: string;
   readonly previewPath: string;
   readonly subtitle: string;
-  readonly time: "day" | "night";
+  readonly time: "day" | "dusk" | "night";
   readonly worldSize: number;
 }
 
@@ -30,44 +30,76 @@ export interface StageSelection {
   readonly difficulty: number;
   readonly goddessFall: boolean;
   readonly modeId: MissionModeId;
-  readonly time: "day" | "night";
+  readonly time: "day" | "dusk" | "night";
   readonly zoneId: string;
 }
 
-// Salvage Run is the sortie loop (src/survivor/mode/). It runs on the test-range plaza until the
-// first sector map exists; the zone only sets the weather and time of day for now.
-// The archived MOBA battlegrounds still open from ?hero=<id>&map=three-lane|single-lane.
+// The deploy screen offers the two survival modes. Ark Siege (?mission=ark_siege), the Test Range
+// (?run=test-range) and the archived MOBA battlegrounds (?hero=<id>&map=three-lane|single-lane)
+// still open from their links.
 export const MISSION_MODES: readonly MissionModeDefinition[] = [
   {
-    description:
-      "Search the surface, recover the priority crates and get back to a lift.",
+    description: "Survive 10 minutes, then defeat Obelisk. Win for 1 Rapture Core.",
     endless: false,
-    id: "salvage_run",
-    name: "SALVAGE RUN",
+    id: "survival_round",
+    name: "WAVE",
     unlockAfter: null,
   },
   {
-    description:
-      "Open plaza with training Raptures. Tune the camera, controls and kits.",
+    description: "The horde never stops. Obelisk returns every 10 minutes. First kill earns 1 Rapture Core.",
     endless: true,
-    id: "stage_1",
-    name: "TEST RANGE",
+    id: "endless_round",
+    name: "ENDLESS",
     unlockAfter: null,
   },
 ] as const;
 
 const preview = (file: string): string => `assets/menus/stage-select/${file}`;
 
-export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
+/** Every zone, including ones kept out of Stage Select (still reachable by saved id and test links). */
+export const ALL_OPERATION_ZONES: readonly OperationZoneDefinition[] = [
+  {
+    biome: "ark_outskirts",
+    id: "volcano_day",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "ASHEN CALDERA",
+    previewPath: preview("caldera-day-v3.png"),
+    subtitle: "ERUPTING",
+    time: "day",
+    worldSize: 4000,
+  },
   {
     biome: "ark_outskirts",
     id: "outskirts_day",
     mapScale: "standard",
     matchDurationSeconds: 600,
     name: "ARK OUTSKIRTS",
-    previewPath: preview("forest.jpg"),
-    subtitle: "DAY",
+    previewPath: preview("outskirts-day-v2.png"),
+    subtitle: "OVERCAST",
     time: "day",
+    worldSize: 4000,
+  },
+  {
+    biome: "ark_outskirts",
+    id: "outskirts_dusk",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "ARK OUTSKIRTS",
+    previewPath: preview("outskirts-dusk-v2.png"),
+    subtitle: "DUSK",
+    time: "dusk",
+    worldSize: 4000,
+  },
+  {
+    biome: "ark_outskirts",
+    id: "outskirts_night",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "ARK OUTSKIRTS",
+    previewPath: preview("outskirts-night-v2.png"),
+    subtitle: "NIGHT",
+    time: "night",
     worldSize: 4000,
   },
   {
@@ -76,9 +108,20 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
     mapScale: "standard",
     matchDurationSeconds: 600,
     name: "SAKURA GROVE",
-    previewPath: preview("forest.jpg"),
-    subtitle: "DAY",
+    previewPath: preview("sakura-day.png"),
+    subtitle: "OVERCAST",
     time: "day",
+    worldSize: 4000,
+  },
+  {
+    biome: "sakura_grove",
+    id: "sakura_dusk",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "SAKURA GROVE",
+    previewPath: preview("sakura-dusk.png"),
+    subtitle: "DUSK",
+    time: "dusk",
     worldSize: 4000,
   },
   {
@@ -87,7 +130,7 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
     mapScale: "large",
     matchDurationSeconds: 600,
     name: "SAKURA GROVE",
-    previewPath: preview("rapturefield2.jpg"),
+    previewPath: preview("sakura-night.png"),
     subtitle: "NIGHT",
     time: "night",
     worldSize: 6200,
@@ -98,7 +141,7 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
     mapScale: "large",
     matchDurationSeconds: 600,
     name: "THE FROZEN NORTH",
-    previewPath: preview("snow-day.jpg"),
+    previewPath: preview("frozen-day-v2.png"),
     subtitle: "DAY",
     time: "day",
     worldSize: 6800,
@@ -106,13 +149,24 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
   {
     biome: "snowfield",
     id: "snow_night",
-    mapScale: "standard",
+    mapScale: "large",
     matchDurationSeconds: 600,
     name: "THE FROZEN NORTH",
-    previewPath: preview("snow-night.jpg"),
+    previewPath: preview("frozen-night-v2.png"),
     subtitle: "NIGHT",
     time: "night",
     worldSize: 4400,
+  },
+  {
+    biome: "dead_city",
+    id: "city_day",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "GREY RUINS",
+    previewPath: preview("grey-ruins.png"),
+    subtitle: "OVERCAST",
+    time: "day",
+    worldSize: 4000,
   },
   {
     biome: "rain_forest",
@@ -120,16 +174,39 @@ export const OPERATION_ZONES: readonly OperationZoneDefinition[] = [
     mapScale: "large",
     matchDurationSeconds: 600,
     name: "STORMBRINGER",
-    previewPath: preview("rapturefield1.jpg"),
+    previewPath: preview("stormbringer.png"),
     subtitle: "NIGHT",
     time: "night",
     worldSize: 6400,
   },
+  {
+    biome: "haunted_forest",
+    id: "haunted-forest",
+    mapScale: "standard",
+    matchDurationSeconds: 600,
+    name: "HAUNTED PINE FOREST",
+    previewPath: preview("forest-night-v3.png"),
+    subtitle: "NIGHT",
+    time: "night",
+    worldSize: 4000,
+  },
 ] as const;
 
+/** Kept, but not offered at first launch. */
+// Ark Outskirts is being reworked into the Ashen Caldera; its zones stay for saved ids and links.
+const SHELVED_ZONES = new Set(["city_day", "outskirts_day", "outskirts_dusk", "outskirts_night", "sakura_dusk"]);
+/** The zones Stage Select offers. */
+export const OPERATION_ZONES: readonly OperationZoneDefinition[] =
+  ALL_OPERATION_ZONES.filter((zone) => !SHELVED_ZONES.has(zone.id));
+
 export function operationZone(zoneId: string): OperationZoneDefinition {
+  if(zoneId === "snow_dusk") zoneId = "snow_day";
+  // Retired Hollow saves retain their time variation in the consolidated city.
+  if(['city_dusk','city_night','grey-ruins','grey_ruins'].includes(zoneId))zoneId='city_day';
+  if(zoneId==='hollow'||zoneId==='the_hollow')zoneId='city_day';
+  else if(zoneId.startsWith('hollow_'))zoneId='city_day';
   return (
-    OPERATION_ZONES.find((zone) => zone.id === zoneId) ?? OPERATION_ZONES[0]!
+    ALL_OPERATION_ZONES.find((zone) => zone.id === zoneId) ?? OPERATION_ZONES[0]!
   );
 }
 
@@ -165,3 +242,5 @@ export function enemyHealthScale(difficulty: number): number {
 export function formatScale(value: number): string {
   return `x${Number.isInteger(value) ? value : value.toFixed(2)}`;
 }
+
+

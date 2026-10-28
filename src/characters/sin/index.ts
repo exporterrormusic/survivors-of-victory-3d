@@ -8,7 +8,13 @@ export const character: CharacterModule = {
   name: 'Sin',
   profile,
   talents,
-  model: { variant: 'c401_00', aim: 'weapon' },
+  model: {
+    variant: 'c401_00', aim: 'weapon',
+    skins: [
+      { variant: 'c401_01', name: 'Sin: Backstreet Dream' },
+      { variant: 'c405_00', name: 'Sin: Swift Bunny' },
+    ],
+  },
   weapon: 'smg',
   voices: [{ file: 'burst.wav', offsetDb: 1.8, weight: 1 }],
   theme: 'sin',

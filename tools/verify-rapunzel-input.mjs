@@ -1,0 +1,30 @@
+import { chromium } from 'file:///C:/Users/rmdou/Desktop/GAME%20DEV/NIKKE%20POKEMON/node_modules/playwright-core/index.mjs';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true});
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:5196/?run=test-range&character=rapunzel&enemies=inactive');
+ await page.waitForFunction(()=>window.game?.scene?.isReady(),null,{timeout:180000});
+ await page.evaluate(()=>{game.player.ctx.teleport(game.player.position.clone().set(8,0,-9));game.camera.snap(game.player.position);game.player.hp=10;});
+ await page.mouse.move(850,320);await page.mouse.click(850,320);
+ await page.waitForFunction(()=>game.player.ammo===3);
+ await page.mouse.click(850,320,{button:'right'});await page.waitForFunction(()=>game.kit.special().charges===0);
+ await page.waitForFunction(()=>game.player.hp>11);
+ await page.screenshot({path:'artifacts/rapunzel/blessing.png'});
+ const before=await page.evaluate(()=>game.player.position.x);
+ await page.keyboard.down('d');await page.waitForFunction(x=>game.player.position.x>x+.5,before,{timeout:20000});await page.keyboard.up('d');
+ assert.ok(await page.evaluate(x=>game.player.position.x>x+.3,before));
+ await page.keyboard.press('r');await page.waitForFunction(()=>game.player.ammo===4,null,{timeout:60000});
+ await page.evaluate(()=>{for(const track of ['attack','skill','burst'])for(let rank=2;rank<=5;rank++)game.run.talents.purchase(track,rank,game.run);});
+ await page.keyboard.down('e');await page.waitForFunction(()=>game.player.burstCharge>.85);await page.keyboard.up('e');
+ await page.waitForFunction(()=>game.scene.transformNodes.filter(n=>n.name==='sw-turret'&&n.isEnabled()).length===10);
+ await page.screenshot({path:'artifacts/rapunzel/barrage.png'});
+ await page.keyboard.press('Tab');await page.waitForFunction(()=>game.talentMenu.isOpen);
+ await page.screenshot({path:'artifacts/rapunzel/talents.png'});
+ await page.evaluate(()=>localStorage.setItem('nikke-moba.roster-v1',JSON.stringify({ownedSkinIds:['c226_00'],equippedSkins:{rapunzel:'c226_00'}})));
+ await page.reload();await page.waitForFunction(()=>window.game?.scene?.isReady(),null,{timeout:180000});
+ assert.equal(await page.evaluate(()=>game.player.chibi.meta.variant),'c226_00');
+ await page.evaluate(()=>{game.player.ctx.teleport(game.player.position.clone().set(8,0,-9));game.camera.snap(game.player.position);});
+ await page.mouse.click(850,320);await page.waitForFunction(()=>game.player.ammo===3);await page.screenshot({path:'artifacts/rapunzel/pure-grace.png'});
+ assert.deepEqual(errors,[]);console.log('PASS: live fire, healing, WASD, reload, hold/release barrage, paused talent UI, Pure Grace skin and no browser errors.');
+}finally{await browser.close();}

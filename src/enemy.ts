@@ -29,6 +29,10 @@ export interface MinionType {
   damage: number; attack: 'bolt' | 'fan' | 'mortar';
   /** default 300 */
   hp?: number;
+  /** model scale, default 1 (radius is already at this size) */
+  size?: number;
+  /** walk-cycle rate at full speed, default 1 (raise it when a unit moves faster than its clip) */
+  stride?: number;
   /** health bar height above the feet, before modelLift; defaults by team */
   barHeight?: number;
 }

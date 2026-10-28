@@ -4,18 +4,25 @@
 // missiles, it powers down and folds away.
 //
 // Primitive-built Seven Dwarves launcher and textured physical rockets live in weapon-models.ts.
+// Retired turrets and spent missiles (with their smoke) are hidden and reused, per scene: new ones
+// are copies of hidden templates built while loading, never a fresh build mid-fight.
 
 import {
-  Color4, DynamicTexture, Mesh, ParticleSystem, Quaternion, TransformNode, Vector3,
+  Color3, Color4, DynamicTexture, type Mesh, ParticleSystem, Quaternion, type Scene, type TransformNode, Vector3,
 } from '@babylonjs/core';
 import { SFX } from '../../audio/sound-bank';
+import { addAnimeEffectLight, removeAnimeEffectLight, type AnimeEffectLight } from '../../toon';
 import { PX, type KitContext, type SpecialState } from '../kit';
 import type { Target } from '../targets';
 import { SNOW } from './palette';
+import { DEFENSIVE_RADIUS, defensiveField, TurretAmmoCounter } from './turret-ui';
 import { rocketImpact } from './rocket-impact';
 import { snowShieldsTarget, targetContact } from '../projectile-collision';
 import { turnToward } from '../math';
-import { buildSnowWhiteLauncher, buildSnowWhiteMissile, ROCKET_COLORS, weaponMaterials } from './weapon-models';
+import {
+  buildSnowWhiteLauncher, buildSnowWhiteMissile, cloneSnowWhiteLauncher, cloneSnowWhiteMissile, ROCKET_COLORS, weaponMaterials,
+  type LauncherModel, type MissileModel,
+} from './weapon-models';
 
 const BASE_CHARGES = 2;
 const AMMO = 4;
@@ -26,31 +33,48 @@ const DEPLOY_MIN = 92 * PX, DEPLOY_MAX = 120 * PX;
 const MISSILE_RADIUS = 120 * PX;
 const MISSILE_START = 300 * PX, MISSILE_MAX = 2500 * PX, MISSILE_ACCEL = 1200 * PX, MISSILE_TURN = 6.5;
 const MISSILE_LIFE = 3.2;
+/** each missile and the Defensive Line aura deal the hero's attack damage */
+const MISSILE_DAMAGE = 1;
+/** Detonation's warhead: damage and blast-radius multiplier */
+const WARHEAD = 3;
+/** Armor Break: +75% damage taken for 6 s, stronger than Weak Point */
+const ARMOR_BREAK_BONUS = .75, ARMOR_BREAK_TIME = 6;
 const SMOKE_LIFE = 1.15;
 const DROP = .35; // seconds to land
 
-interface Turret {
-  root: TransformNode;
-  /** turns to track */
-  yaw: TransformNode;
-  /** recoils along the barrel */
-  head: TransformNode;
-  sockets: TransformNode[];
-  caps: Mesh[];
-  pips: Mesh[];
+/** A launcher with its ammo badge and aura, kept between deployments. */
+interface TurretParts extends LauncherModel {
+  field: ReturnType<typeof defensiveField>;
+  counter: TurretAmmoCounter;
+  /** the deployment currently using these parts */
+  owner: Turret | null;
+}
+
+interface Turret extends TurretParts {
+  parts: TurretParts;
   ammo: number;
   fireIn: number;
   age: number;
   retiring: number;
   kick: number;
-  meshes: Mesh[];
   scan: number;
   capacity: number;
   reload: number;
   auraIn: number;
 }
 
+/** A rocket model and its smoke plume; busy until the plume of its last flight has faded. */
+interface MissileSlot {
+  model: MissileModel;
+  smoke: ParticleSystem;
+  previousExhaust: Vector3;
+  /** the nozzle fire's light on the ground and Raptures it passes */
+  light: AnimeEffectLight;
+  busy: boolean;
+}
+
 interface Missile {
+  slot: MissileSlot;
   body: TransformNode;
   smoke: ParticleSystem;
   exhaust: TransformNode;
@@ -60,6 +84,37 @@ interface Missile {
   speed: number;
   target: Target | null;
   life: number;
+  done: boolean;
+  /** Detonation: this round explodes bigger */
+  warhead: boolean;
+}
+
+interface Pool {
+  smokeTexture: DynamicTexture;
+  /** hidden templates the live models are copied from */
+  launcher: LauncherModel | null;
+  missile: MissileModel | null;
+  spareTurrets: TurretParts[];
+  missileSlots: MissileSlot[];
+}
+const pools = new WeakMap<Scene, Pool>();
+
+function pool(scene: Scene): Pool {
+  let p = pools.get(scene);
+  if (!p) {
+    const smokeTexture = new DynamicTexture('sw-rocket-smoke', 64, scene, false);
+    const paint = smokeTexture.getContext();
+    const gradient = paint.createRadialGradient(32, 32, 2, 32, 32, 31);
+    gradient.addColorStop(0, 'rgba(255,255,255,.95)');
+    gradient.addColorStop(.35, 'rgba(255,255,255,.72)');
+    gradient.addColorStop(.7, 'rgba(255,255,255,.22)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    paint.fillStyle = gradient; paint.fillRect(0, 0, 64, 64);
+    smokeTexture.hasAlpha = true; smokeTexture.update();
+    p = { smokeTexture, launcher: null, missile: null, spareTurrets: [], missileSlots: [] };
+    pools.set(scene, p);
+  }
+  return p;
 }
 
 export class SnowWhiteTurrets {
@@ -68,23 +123,50 @@ export class SnowWhiteTurrets {
   private readonly turrets: Turret[] = [];
   private readonly missiles: Missile[] = [];
   private readonly materials: ReturnType<typeof weaponMaterials>;
+  private readonly pool: Pool;
   private readonly smokeTexture: DynamicTexture;
 
   constructor(private readonly ctx: KitContext, private readonly baseDamage: number) {
     this.materials = weaponMaterials(ctx.scene);
-    this.smokeTexture = new DynamicTexture('sw-rocket-smoke', 64, ctx.scene, false);
-    const paint = this.smokeTexture.getContext();
-    const gradient = paint.createRadialGradient(32, 32, 2, 32, 32, 31);
-    gradient.addColorStop(0, 'rgba(255,255,255,.95)');
-    gradient.addColorStop(.35, 'rgba(255,255,255,.72)');
-    gradient.addColorStop(.7, 'rgba(255,255,255,.22)');
-    gradient.addColorStop(1, 'rgba(255,255,255,0)');
-    paint.fillStyle = gradient; paint.fillRect(0, 0, 64, 64);
-    this.smokeTexture.hasAlpha = true; this.smokeTexture.update();
+    this.pool = pool(ctx.scene);
+    this.smokeTexture = this.pool.smokeTexture;
   }
 
   private get maxCharges(): number { return BASE_CHARGES + (this.ctx.run.talents.has('special_count') ? 2 : 0); }
   private get capacity(): number { return AMMO + (this.ctx.run.talents.has('special_capacity') ? 4 : 0); }
+
+  /** Build the templates, a spare turret and missile, and compile their materials while loading. */
+  async prepare(): Promise<void> {
+    const { scene, camera } = this.ctx;
+    const parts = this.takeParts(), slot = this.takeSlot();
+    const focus = camera.focus.clone();
+    const at = focus.add(new Vector3(-6, 0, -6));
+    parts.root.position.copyFrom(at);
+    parts.root.setEnabled(true);
+    parts.field.update(at, .5, true);
+    parts.counter.update(at, AMMO, AMMO, 0, true);
+    slot.model.root.position.copyFrom(at).addInPlaceFromFloats(1.2, 1, 0);
+    slot.model.root.setEnabled(true);
+    slot.previousExhaust.copyFrom(slot.model.root.position);
+    (slot.smoke.emitter as Vector3).copyFrom(slot.model.root.position);
+    slot.smoke.start();
+    try {
+      await Promise.all([parts.field.prepare(), parts.counter.prepare()]);
+      // Rendering them once also compiles the shadow and glow passes' variants.
+      camera.snap(at);
+      for (let i = 0; i < 3; i++) {
+        scene.render();
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      }
+      await scene.whenReadyAsync();
+    } finally {
+      parts.root.setEnabled(false); parts.field.hide(); parts.counter.hide();
+      this.pool.spareTurrets.push(parts);
+      slot.smoke.stop(); slot.smoke.reset();
+      slot.model.root.setEnabled(false); slot.busy = false;
+      camera.snap(focus);
+    }
+  }
 
   state(): SpecialState {
     return { charges: this.charges, maxCharges: this.maxCharges, progress: this.charges >= this.maxCharges ? 1 : 1 - this.recharge / RECHARGE };
@@ -131,6 +213,7 @@ export class SnowWhiteTurrets {
     while (active.length >= cap) this.retire(active.shift()!);
     const t = this.build(at);
     this.turrets.push(t);
+    this.talentVisuals(t);
     // a cyan beacon marks the landing spot while it drops in
     vfx.ring(at, SNOW.cyan, .55, .7, DROP, .7);
     vfx.groundGlow(at, SNOW.bloom, .9, DROP + .2, .5);
@@ -139,7 +222,38 @@ export class SnowWhiteTurrets {
   private retire(t: Turret): void {
     if (t.retiring) return;
     t.retiring = .001;
-    if (this.ctx.run.talents.has('detonation')) this.explode(t.root.position.clone(), 3, 3);
+  }
+
+  /** Persistent footprint and reload lamps, owned by the turret's lifetime. */
+  private talentVisuals(t: Turret): void {
+    const { vfx, run } = this.ctx;
+    const { field, counter } = t;
+    const reload = vfx.quad('ring', SNOW.cyan);
+    const at = new Vector3();
+    vfx.add({
+      update: (_dt, age) => {
+        if (t.retiring > 0 || t.parts.owner !== t) return false;
+        counter.update(t.root.position, t.ammo, t.capacity, t.reload, t.age >= DROP);
+        reload.visible = false;
+        if (t.age < DROP) return true;
+        at.copyFrom(t.root.position);
+        at.y = Math.max(at.y, this.ctx.snow?.surfaceHeight(at.x, at.z) ?? 0) + .06;
+        field.update(at, 1 - t.auraIn, run.talents.has('defensive_line'));
+        if (t.reload > 0) {
+          const progress = 1 - t.reload / 6;
+          at.y += .15;
+          vfx.decal(reload, at, .6 + progress * 1.1, age);
+          vfx.tint(reload, SNOW.cyan, .55 + .15 * Math.sin(age * 8));
+          t.pips.forEach((pip, n) => { pip.material = n < Math.floor(progress * t.capacity) ? this.materials.lamp : this.materials.spent; });
+        }
+        return true;
+      },
+      dispose: () => {
+        // a later deployment may already be using these parts
+        if (t.parts.owner === t) { field.hide(); counter.hide(); }
+        vfx.release(reload);
+      },
+    });
   }
 
   private land(t: Turret): void {
@@ -183,8 +297,8 @@ export class SnowWhiteTurrets {
           }
         }
         if (k >= 1) {
-          for (const m of t.meshes) m.dispose();
-          t.root.dispose();
+          t.root.setEnabled(false);
+          this.pool.spareTurrets.push(t.parts);
           this.turrets.splice(i, 1);
         }
         continue;
@@ -198,9 +312,7 @@ export class SnowWhiteTurrets {
         t.auraIn -= dt;
         if (t.auraIn <= 0) {
           t.auraIn = 1;
-          const red = [1, .2, .18] as const;
-          vfx.ring(t.root.position, red, 2.8, 3.2, 1, .45);
-          for (const target of targets.inRadius(t.root.position, 3.2)) this.ctx.run.damage(target, this.baseDamage * .5, 'special');
+          for (const target of targets.inRadius(t.root.position, DEFENSIVE_RADIUS)) this.ctx.run.damage(target, this.baseDamage * MISSILE_DAMAGE, 'special');
         }
       }
       if (t.reload > 0) {
@@ -221,7 +333,9 @@ export class SnowWhiteTurrets {
       if (t.fireIn > 0 || aims.length === 0) continue;
       t.fireIn = FIRE_INTERVAL;
       const volley = Math.min(2, t.ammo, aims.length);
-      for (let s = 0; s < volley; s++) this.launch(t, aims[s], s === 0 ? -1 : 1);
+      // Detonation: the last round of every load is a heavy warhead.
+      const warheads = this.ctx.run.talents.has('detonation');
+      for (let s = 0; s < volley; s++) this.launch(t, aims[s], s === 0 ? -1 : 1, warheads && t.ammo - s === 1);
       t.kick = 1;
       t.ammo -= volley;
       this.updatePips(t);
@@ -245,22 +359,82 @@ export class SnowWhiteTurrets {
     t.caps.forEach((cap, n) => cap.setEnabled(loaded.has(n)));
   }
 
-  private build(at: Vector3): Turret {
-    const model = buildSnowWhiteLauncher(this.ctx.scene, {
+  /** A spare launcher, or a copy of the template. */
+  private takeParts(): TurretParts {
+    const spare = this.pool.spareTurrets.pop();
+    if (spare) return spare;
+    const { scene } = this.ctx;
+    if (!this.pool.launcher) {
+      this.pool.launcher = buildSnowWhiteLauncher(scene);
+      this.pool.launcher.root.setEnabled(false);
+    }
+    const model = cloneSnowWhiteLauncher(this.pool.launcher, {
       shadows: this.ctx.shadows, glow: (mesh) => this.ctx.vfx.glowMesh(mesh),
     });
-    model.root.position.copyFrom(at); model.root.position.y = 3.2;
-    model.yaw.rotation.y = Math.random() * Math.PI * 2;
-    const turret = { ...model, ammo: this.capacity, capacity: this.capacity, reload: 0, auraIn: 0,
+    return { ...model, field: defensiveField(this.ctx), counter: new TurretAmmoCounter(this.ctx), owner: null };
+  }
+
+  private build(at: Vector3): Turret {
+    const parts = this.takeParts();
+    parts.root.position.copyFrom(at); parts.root.position.y = 3.2;
+    parts.root.scaling.setAll(1);
+    parts.head.position.z = 0;
+    parts.yaw.rotation.y = Math.random() * Math.PI * 2;
+    parts.root.setEnabled(true);
+    const turret: Turret = { ...parts, parts, ammo: this.capacity, capacity: this.capacity, reload: 0, auraIn: 0,
       fireIn: .35 + Math.random() * .3 + DROP, age: 0, retiring: 0, kick: 0, scan: Math.random() * 6 };
+    parts.owner = turret;
     this.updatePips(turret);
     return turret;
   }
 
   // --- missiles -------------------------------------------------------------------
 
-  private launch(t: Turret, target: Target, side: -1 | 1): void {
-    const { scene, vfx } = this.ctx;
+  /** A rocket whose last plume has faded, or a new one copied from the template. */
+  private takeSlot(): MissileSlot {
+    let slot = this.pool.missileSlots.find((s) => !s.busy);
+    if (!slot) {
+      const { scene, vfx } = this.ctx;
+      if (!this.pool.missile) {
+        this.pool.missile = buildSnowWhiteMissile(scene);
+        this.pool.missile.root.setEnabled(false);
+      }
+      const model = cloneSnowWhiteMissile(this.pool.missile, { glow: (mesh) => vfx.glowMesh(mesh) });
+      model.root.rotationQuaternion = new Quaternion();
+      const smoke = new ParticleSystem('sw-missile-smoke', 224, scene);
+      smoke.particleTexture = this.pool.smokeTexture;
+      smoke.emitter = new Vector3();
+      smoke.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+      smoke.addColorGradient(0, new Color4(.87, .85, .79, .72), new Color4(.67, .68, .67, .6));
+      smoke.addColorGradient(.45, new Color4(.73, .74, .71, .48));
+      smoke.addColorGradient(1, new Color4(.64, .66, .65, 0));
+      smoke.addSizeGradient(0, .20, .27);
+      smoke.addSizeGradient(.45, .36, .48);
+      smoke.addSizeGradient(1, .6, .75);
+      smoke.minLifeTime = .85; smoke.maxLifeTime = SMOKE_LIFE;
+      smoke.emitRate = 160; smoke.minEmitPower = .1; smoke.maxEmitPower = .3;
+      smoke.direction1.set(-.2, .15, -.2); smoke.direction2.set(.2, .45, .2);
+      smoke.minInitialRotation = 0; smoke.maxInitialRotation = Math.PI * 2;
+      smoke.minAngularSpeed = -.6; smoke.maxAngularSpeed = .6;
+      smoke.gravity.set(0, .12, 0);
+      smoke.isLocal = false;
+      smoke.updateSpeed = 1 / 60;
+      const previousExhaust = new Vector3();
+      // Fill the distance traveled each frame, so fast rockets leave a continuous trail.
+      smoke.startPositionFunction = (_world, position) => {
+        Vector3.LerpToRef(previousExhaust, smoke.emitter as Vector3, Math.random(), position);
+        position.addInPlaceFromFloats((Math.random() - .5) * .035, (Math.random() - .5) * .035, (Math.random() - .5) * .035);
+      };
+      const light = { position: new Vector3(), diffuse: new Color3(...FLAME_LIGHT), intensity: 0, range: FLAME_LIGHT_RANGE };
+      slot = { model, smoke, previousExhaust, light, busy: false };
+      this.pool.missileSlots.push(slot);
+    }
+    slot.busy = true;
+    return slot;
+  }
+
+  private launch(t: Turret, target: Target, side: -1 | 1, warhead = false): void {
+    const { vfx } = this.ctx;
     // Six visible tubes match the reference; upgraded capacity feeds reserve rounds.
     // Alternate the two banks even when only one enemy is available.
     const round = t.capacity - t.ammo + (side > 0 ? 1 : 0);
@@ -271,42 +445,20 @@ export class SnowWhiteTurrets {
     socket.computeWorldMatrix(true);
     const from = socket.getAbsolutePosition().clone();
     const yaw = t.yaw.rotation.y;
-    const model = buildSnowWhiteMissile(scene, { glow: (mesh) => vfx.glowMesh(mesh) });
+    const slot = this.takeSlot();
+    const { model, smoke, previousExhaust } = slot;
     const body = model.root;
     body.position.copyFrom(from);
-    body.rotationQuaternion = new Quaternion();
-    const smoke = new ParticleSystem('sw-missile-smoke', 224, scene);
-    smoke.particleTexture = this.smokeTexture;
-    smoke.emitter = from.clone();
-    smoke.blendMode = ParticleSystem.BLENDMODE_STANDARD;
-    smoke.addColorGradient(0, new Color4(.87, .85, .79, .72), new Color4(.67, .68, .67, .6));
-    smoke.addColorGradient(.45, new Color4(.73, .74, .71, .48));
-    smoke.addColorGradient(1, new Color4(.64, .66, .65, 0));
-    smoke.addSizeGradient(0, .20, .27);
-    smoke.addSizeGradient(.45, .36, .48);
-    smoke.addSizeGradient(1, .6, .75);
-    smoke.minLifeTime = .85; smoke.maxLifeTime = SMOKE_LIFE;
-    smoke.emitRate = 160; smoke.minEmitPower = .1; smoke.maxEmitPower = .3;
-    smoke.direction1.set(-.2, .15, -.2); smoke.direction2.set(.2, .45, .2);
-    smoke.minInitialRotation = 0; smoke.maxInitialRotation = Math.PI * 2;
-    smoke.minAngularSpeed = -.6; smoke.maxAngularSpeed = .6;
-    smoke.gravity.set(0, .12, 0);
-    smoke.isLocal = false;
-    smoke.updateSpeed = 1 / 60;
+    body.setEnabled(true);
     // launched up and out of the pod, then it turns onto the target
     const launchSide = bank === 0 ? -1 : 1;
     const velocity = new Vector3(Math.sin(yaw) * Math.cos(.55) + launchSide * .25 * Math.cos(yaw), Math.sin(.55), Math.cos(yaw) * Math.cos(.55) - launchSide * .25 * Math.sin(yaw)).normalize();
     lookAlong(body, velocity);
     model.exhaust.computeWorldMatrix(true);
-    const previousExhaust = model.exhaust.getAbsolutePosition().clone();
+    previousExhaust.copyFrom(model.exhaust.getAbsolutePosition());
     (smoke.emitter as Vector3).copyFrom(previousExhaust);
-    // Fill the distance traveled each frame, so fast rockets leave a continuous trail.
-    smoke.startPositionFunction = (_world, position) => {
-      Vector3.LerpToRef(previousExhaust, smoke.emitter as Vector3, Math.random(), position);
-      position.addInPlaceFromFloats((Math.random() - .5) * .035, (Math.random() - .5) * .035, (Math.random() - .5) * .035);
-    };
     smoke.start();
-    const missile = { body, smoke, exhaust: model.exhaust, previousExhaust, flame: model.flame, velocity, speed: MISSILE_START, target, life: MISSILE_LIFE };
+    const missile: Missile = { slot, body, smoke, exhaust: model.exhaust, previousExhaust, flame: model.flame, velocity, speed: MISSILE_START, target, life: MISSILE_LIFE, done: false, warhead };
     this.missiles.push(missile);
     this.ignite(missile);
     vfx.flashSprite(from, ROCKET_COLORS.hot, .27, .05, .65, 'star');
@@ -314,34 +466,42 @@ export class SnowWhiteTurrets {
     vfx.vapour(from, 2, ROCKET_COLORS.smoke, .22, .15, .3);
   }
 
-  /** Short camera-facing fire layers keep the nozzle flame readable through its smoke. */
+  /** Short camera-facing fire layers keep the nozzle flame readable through its smoke. The flame
+   * lights what it passes; the impact's own flash takes over at the blast. */
   private ignite(m: Missile): void {
-    const { vfx } = this.ctx;
-    const orange = [1, .3, .035] as const;
-    const yellow = [1, .85, .36] as const;
-    const outer = vfx.quad('tongue', orange, .95);
-    const core = vfx.quad('tongue', yellow, 1);
+    const { vfx, scene } = this.ctx;
+    const outer = vfx.quad('tongue', ROCKET_ORANGE, .95);
+    const core = vfx.quad('tongue', ROCKET_YELLOW, 1);
     const flare = vfx.quad('glow', ROCKET_COLORS.flame, .55);
     vfx.glowing(outer); vfx.glowing(core);
     const at = new Vector3(), tip = new Vector3();
     const phase = Math.random() * Math.PI * 2;
+    const { light } = m.slot;
+    light.intensity = 0; light.range = FLAME_LIGHT_RANGE;
+    addAnimeEffectLight(scene, light);
     vfx.add({
       update: (_dt, age) => {
-        if (m.body.isDisposed()) return false;
+        if (m.done) return false;
         m.exhaust.computeWorldMatrix(true);
         at.copyFrom(m.exhaust.getAbsolutePosition());
         const pulse = 1 + Math.sin(age * 53 + phase) * .12 + Math.sin(age * 91 + phase) * .06;
         m.flame.scaling.y = pulse;
         m.flame.position.z = -.14 * pulse; // keep its broad end attached to the nozzle
         at.addInPlaceFromFloats(m.velocity.x * .025, m.velocity.y * .025, m.velocity.z * .025);
-        tip.copyFrom(at).subtractInPlace(m.velocity.scale(.54 * pulse));
+        m.velocity.scaleToRef(-.54 * pulse, tip).addInPlace(at);
         vfx.streak(outer, at, tip, .24 * pulse);
-        tip.copyFrom(at).subtractInPlace(m.velocity.scale(.31 * pulse));
+        m.velocity.scaleToRef(-.31 * pulse, tip).addInPlace(at);
         vfx.streak(core, at, tip, .13);
         vfx.sprite(flare, at, .3 * pulse);
+        // Centered in the flame, flickering with it but gentler than its size.
+        m.velocity.scaleToRef(-.25, light.position).addInPlace(at);
+        light.intensity = FLAME_LIGHT_INTENSITY * (.6 + .4 * pulse);
         return true;
       },
-      dispose: () => { vfx.release(outer); vfx.release(core); vfx.release(flare); },
+      dispose: () => {
+        vfx.release(outer); vfx.release(core); vfx.release(flare);
+        light.intensity = 0; removeAnimeEffectLight(scene, light);
+      },
     });
   }
 
@@ -373,13 +533,14 @@ export class SnowWhiteTurrets {
       (m.smoke.emitter as Vector3).copyFrom(m.exhaust.getAbsolutePosition());
       const p = m.body.position;
       if (contact <= 1 || m.life <= 0) {
-        this.explode(p.clone());
+        this.explode(p.clone(), m.warhead ? WARHEAD : 1, m.warhead ? WARHEAD : 1);
         if (snowHit !== null && snowHit === contact) this.ctx.vfx.vapour(p, 9, [.82, .92, 1], .8, .8, .7);
+        m.done = true;
         m.smoke.stop();
-        // Particle systems share the smoke texture; disposing a plume must not destroy it.
-        const smoke = m.smoke;
-        this.ctx.vfx.add({ update: (_dt, age) => age < SMOKE_LIFE + .1, dispose: () => smoke.dispose(false) });
-        m.body.dispose();
+        m.body.setEnabled(false);
+        // The rocket is reusable once its plume has faded.
+        const slot = m.slot;
+        this.ctx.vfx.add({ update: (_dt, age) => age < SMOKE_LIFE + .1, dispose: () => { slot.busy = false; } });
         this.missiles.splice(i, 1);
       }
     }
@@ -393,19 +554,26 @@ export class SnowWhiteTurrets {
     if (surface != null && at.y <= surface) at = new Vector3(at.x, surface + .1, at.z);
     const ground = new Vector3(at.x, 0, at.z);
     rocketImpact(vfx, at, MISSILE_RADIUS * radiusScale);
-    camera.shake(.06, .12);
+    camera.shake(radiusScale > 1 ? .14 : .06, .12);
     this.ctx.sound(SFX.explosion, at);
-    const damage = this.baseDamage * .5 * damageScale;
+    const damage = this.baseDamage * MISSILE_DAMAGE * damageScale;
+    targets.areaHit((px, pz, r) => Math.hypot(px - ground.x, pz - ground.z) <= MISSILE_RADIUS * radiusScale + r);
     for (const target of targets.inRadius(ground, MISSILE_RADIUS * radiusScale)) {
       if (snowShieldsTarget(this.ctx, at, target)) continue;
       const push = target.position.subtract(ground);
       push.y = 0;
       run.damage(target, damage, 'special', push.lengthSquared() > 1e-4 ? push.normalize().scale(2) : undefined);
-      if (target.alive && run.talents.has('armor_piercing')) target.marks.add('armor-piercing');
+      if (target.alive && run.talents.has('armor_piercing')) target.breaks.add('armor-break', ARMOR_BREAK_BONUS, ARMOR_BREAK_TIME);
       if (run.talents.has('incendiary_ammo')) run.burn(target, 'incendiary-ammo', damage * 4 / 5, 5);
     }
   }
 }
+
+const ROCKET_ORANGE = [1, .3, .035] as const;
+const ROCKET_YELLOW = [1, .85, .36] as const;
+/** The red-orange of the nozzle fire, as light on cel-lit surfaces. */
+const FLAME_LIGHT = [1, .4, .1] as const;
+const FLAME_LIGHT_INTENSITY = 2.4, FLAME_LIGHT_RANGE = 4.5;
 
 function slerp(a: Vector3, b: Vector3, t: number): Vector3 {
   const dot = Math.max(-1, Math.min(1, Vector3.Dot(a, b)));

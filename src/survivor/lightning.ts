@@ -40,6 +40,8 @@ export class StormLightning {
   private readonly ends = new Float32Array(SEGMENTS * 12);
   private readonly widths = new Float32Array(SEGMENTS * 4);
   private power = 1;
+  /** seconds the bolt stays at full strength before it fades (the altar strike) */
+  hold = 0;
 
   constructor(scene: Scene, private readonly camera: Camera) {
     this.mesh = new Mesh('storm-lightning', scene);
@@ -61,11 +63,12 @@ export class StormLightning {
     this.mesh.material = this.material;this.mesh.setEnabled(false);
   }
 
-  strike(focus: Vector3, strength: number): void {
+  /** `exact` grounds the bolt on `focus` itself (an aimed strike), not beside it. */
+  strike(focus: Vector3, strength: number, exact = false): void {
     // Land inside the visible play area even at the close test-range zoom. Farther strikes
     // put the entire bolt above the viewport (or behind the live controls).
-    const x = focus.x + (Math.random() < .5 ? -1 : 1) * (2 + Math.random() * 1.2);
-    const z = focus.z + 1.5 + Math.random() * 2;
+    const x = exact ? focus.x : focus.x + (Math.random() < .5 ? -1 : 1) * (2 + Math.random() * 1.2);
+    const z = exact ? focus.z : focus.z + 1.5 + Math.random() * 2;
     const main: Vector3[] = [];
     for (let i = 0; i <= 20; i++) {
       const t = i / 20, jitter = i === 0 || i === 20 ? 0 : .75 + Math.sin(t * Math.PI) * .45;
@@ -94,10 +97,11 @@ export class StormLightning {
   }
 
   update(age: number, hidden: boolean): void {
-    const fade = Math.exp(-age * 7) * Math.max(0, 1 - (age / .65) ** 2);
+    const a = Math.max(0, age - this.hold);
+    const fade = Math.exp(-a * 7) * Math.max(0, 1 - (a / .65) ** 2);
     this.material.setVector3('cameraPosition',this.camera.globalPosition);
     this.material.setFloat('power',fade*this.power);
-    this.mesh.setEnabled(!hidden && age < .65);
+    this.mesh.setEnabled(!hidden && a < .65);
   }
   dispose(): void { this.mesh.dispose();this.material.dispose(); }
 }

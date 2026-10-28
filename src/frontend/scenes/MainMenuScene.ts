@@ -1,3 +1,5 @@
+import { cores } from "../ui/cores";
+import { GAME_VERSION, VERSION_LABEL } from "../../version";
 import Phaser from "phaser";
 
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
@@ -66,7 +68,8 @@ export function preloadMainMenuAssets(scene: Phaser.Scene): void {
   preloadLobbyAudio(scene);
 }
 
-const NOTICE_STORAGE_KEY = "nikke-moba.notice.v0.1";
+// One unread dot per release: bumping GAME_VERSION shows the dot again.
+const NOTICE_STORAGE_KEY = `nikke-moba.notice.v${GAME_VERSION}`;
 
 interface PatchRelease {
   readonly sections: readonly {
@@ -77,33 +80,37 @@ interface PatchRelease {
   readonly version: string;
 }
 
+// Newest first. The first entry's version must equal GAME_VERSION (src/version.ts).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
     version: "0.1",
-    title: "INITIAL RELEASE",
+    title: "CLOSED ALPHA",
     sections: [
       {
-        heading: "CLIENT",
+        heading: "WELCOME",
         items: [
-          "Rebuilt the approved disclaimer, lobby, personnel register, and loading handoffs in Phaser.",
-          "Added the Core Exchange, records, achievements, and settings interfaces.",
-          "Prepared browser and portable Windows distribution targets.",
+          "Thanks for testing this early build. Please report bugs and how rounds felt, with the version from the bottom-left corner.",
         ],
       },
       {
-        heading: "ROSTER",
+        heading: "MODES",
         items: [
-          "Registered all eleven current Survivors of Victory operators.",
-          "Imported current stats, specials, Bursts, unlock costs, portraits, and voice lines.",
-          "Snow White remains the sole default unlocked operator.",
+          "WAVE: survive 10 minutes, then defeat Obelisk for a Rapture Core. ENDLESS: the horde never stops.",
+          "Every 60 seconds the lift brings a health crate and a squad of mass-produced NIKKEs to fight beside you.",
         ],
       },
       {
-        heading: "PROGRESSION",
+        heading: "NIKKES",
         items: [
-          "Spend Pristine Rapture Cores on operator recruitment and permanent calibrations.",
-          "Track survivor milestones and character-specific personal records.",
-          "Gameplay is isolated behind a clean survivor-runtime boundary; no RPG battle code is included.",
+          "Playable: Snow White, plus Scarlet and Rapunzel for 3 Rapture Cores each. Others are coming soon.",
+          "Talents are chosen as you level up and reset every round.",
+        ],
+      },
+      {
+        heading: "PROGRESS",
+        items: [
+          "Cores, unlocks, skins, records and settings save on this device.",
+          "Settings > DATA exports a backup file and imports it, e.g. to move from the browser to the download.",
         ],
       },
     ],
@@ -310,7 +317,7 @@ export class MainMenuScene extends Phaser.Scene {
       fontSize: "25px",
       fontStyle: "bold",
     });
-    this.add.text(52, 1038, "SOV-2026 // ARK SYS V0.1", {
+    this.add.text(52, 1038, VERSION_LABEL, {
       color: "#8a949f",
       fontFamily: "Rajdhani",
       fontSize: "15px",
@@ -549,7 +556,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(
         panelX + panelWidth - 42,
         panelY + 89,
-        "PATCH ARCHIVE // 01 ENTRY",
+        `PATCH ARCHIVE // ${String(PATCH_RELEASES.length).padStart(2, "0")} ${PATCH_RELEASES.length === 1 ? "ENTRY" : "ENTRIES"}`,
         {
           color: "#aeb7c1",
           fontFamily: "Rajdhani",
@@ -575,7 +582,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(
         panelX + 42,
         panelY + panelHeight - 43,
-        "VERSION 0.1 // INITIAL RELEASE",
+        `VERSION ${GAME_VERSION} // ${PATCH_RELEASES[0]!.title}`,
         {
           color: "#8b959e",
           fontFamily: "Rajdhani",
@@ -1043,8 +1050,8 @@ export class MainMenuScene extends Phaser.Scene {
     this.coreValueText?.setText(`${state.pristineCores}`);
     this.devMenuStatusText?.setText(
       message === undefined
-        ? `PROFILE BALANCE // ${state.pristineCores} CORES`
-        : `${message} // ${state.pristineCores} CORES`,
+        ? `PROFILE BALANCE // ${cores(state.pristineCores)}`
+        : `${message} // ${cores(state.pristineCores)}`,
     );
   }
 

@@ -1,3 +1,6 @@
+import { cores } from "../ui/cores";
+import { characterSkins } from '../profile/Skins';
+import { createSkinShowroom } from '../ui/SkinShowroom';
 import Phaser from "phaser";
 
 import { FEATURES } from "../../features";
@@ -30,6 +33,7 @@ import {
 import { CombatKeywordText } from "../ui/text/CombatKeywordText";
 import { applyAchievementProgress } from "../profile/AchievementProgress";
 import { RunState } from "../gameplay/model/RunState";
+import { openLobbyTalentTree } from "../ui/LobbyTalentTree";
 import { RunTalentTree } from "../gameplay/ui/RunTalentTree";
 import {
   NIPMH_CATALOG,
@@ -48,7 +52,7 @@ const AUDIO = {
   select: "shop-select",
 } as const;
 
-type ShopTab = "characters" | "nipmhs" | "upgrades";
+type ShopTab = "skins" | "characters" | "nipmhs" | "upgrades";
 type NipmhShopFilter = "all" | "locked" | NipmhCategory;
 type NipmhShopSort = "archive" | "cost-asc" | "cost-desc" | "name";
 
@@ -75,6 +79,7 @@ interface ShopSceneData {
 }
 
 export class ShopScene extends Phaser.Scene {
+  private skinShowroom?: { dispose: () => void };
   private activeTab: ShopTab = "characters";
   private contentLayer?: Phaser.GameObjects.Container;
   private coreValueText?: Phaser.GameObjects.Text;
@@ -91,6 +96,7 @@ export class ShopScene extends Phaser.Scene {
   private selectedUpgradeId: PermanentUpgradeId = PERMANENT_UPGRADES[0]!.id;
   private readonly tabRedraws: Array<() => void> = [];
   private talentPreview?: RunTalentTree;
+  private currentTalentPreview?: HTMLDialogElement;
   private transitionProfile?: HexWipeProfile;
 
   public constructor() {
@@ -131,14 +137,23 @@ export class ShopScene extends Phaser.Scene {
     this.createBackButton();
     this.renderContent();
     gameAudio.playLobby(this);
-    this.input.keyboard?.on("keydown-ESC", () => {
-      if (this.talentPreview?.isOpen === true) {
+    const onEscape = (event: KeyboardEvent): void => {
+      // DOM dialogs own their close gesture, including queued/repeated Escape events.
+      if (event.defaultPrevented || event.repeat ||
+          (event.target instanceof Element && event.target.closest('.st-menu'))) return;
+      if (this.currentTalentPreview?.open) {
+        this.currentTalentPreview.close();
+      } else if (this.talentPreview?.isOpen === true) {
         this.talentPreview.close();
       } else {
         this.leave();
       }
-    });
+    };
+    this.input.keyboard?.on("keydown-ESC", onEscape);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard?.off("keydown-ESC", onEscape);
+      this.currentTalentPreview?.close(); this.currentTalentPreview?.remove(); this.currentTalentPreview = undefined;
+      this.skinShowroom?.dispose(); this.skinShowroom = undefined;
       this.talentPreview?.destroy();
       this.talentPreview = undefined;
     });
@@ -180,7 +195,7 @@ export class ShopScene extends Phaser.Scene {
       fontStyle: "bold",
       letterSpacing: 2.4,
     });
-    this.add.text(430, 80, FEATURES.nipmh ? "UNLOCK OPERATORS AND SUPPLY AUTHORIZATIONS" : "UNLOCK OPERATORS", {
+    this.add.text(430, 80, FEATURES.nipmh ? "OPERATORS, SKINS AND SUPPLY AUTHORIZATIONS" : "UNLOCK OPERATORS AND SKINS", {
       color: "#aeb7c1",
       fontFamily: "Rajdhani",
       fontSize: "19px",
@@ -202,7 +217,7 @@ export class ShopScene extends Phaser.Scene {
       })
       .setOrigin(0, 0.5);
     this.add
-      .text(1838, 73, "PRISTINE RAPTURE CORES", {
+      .text(1838, 73, "RAPTURE CORES", {
         color: "#8f99a5",
         fontFamily: "Rajdhani",
         fontSize: "13px",
@@ -215,8 +230,8 @@ export class ShopScene extends Phaser.Scene {
   private createTabs(): void {
     this.tabRedraws.length = 0;
     this.createTabButton(58, 158, 300, "characters", "CHARACTERS");
-    // NIPMH is switched off for the first version (src/features.ts); the Shop sells characters only.
-    if (FEATURES.nipmh) this.createTabButton(374, 158, 300, "nipmhs", "NIPMHS");
+    this.createTabButton(374, 158, 300, "skins", "SKINS");
+    if (FEATURES.nipmh) this.createTabButton(690, 158, 300, "nipmhs", "NIPMHS");
   }
 
   private createTabButton(
@@ -325,17 +340,43 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private renderContent(): void {
+    this.skinShowroom?.dispose(); this.skinShowroom = undefined;
     this.contentLayer?.destroy(true);
     this.contentLayer = this.add.container(0, 0);
     const state = loadRosterState();
     this.coreValueText?.setText(`${state.pristineCores}`);
     if (this.activeTab === "characters") {
       this.renderCharacters(state.unlockedCharacterIds);
+    } else if (this.activeTab === "skins") {
+      this.renderSkins();
     } else if (this.activeTab === "upgrades") {
       this.renderUpgrades(state.permanentUpgradeLevels);
     } else {
       this.renderNipmhs(state.unlockedNipmhIds);
     }
+  }
+
+  private renderSkins(): void {
+    const state = loadRosterState();
+    CHARACTERS.forEach((character, index) => {
+      this.contentLayer!.add(this.createCharacterCard(character, 58 + index % 4 * 274, 244 + Math.floor(index / 4) * 224,
+        state.unlockedCharacterIds.includes(character.id), character.id === this.selectedCharacterId));
+    });
+    this.contentLayer!.add(this.add.text(58, 940, 'SELECT A CHARACTER TO BROWSE THEIR APPEARANCES', { fontFamily: 'Rajdhani', fontSize: '24px', fontStyle: 'bold', color: '#37657c' }));
+    const showroom = createSkinShowroom(this.selectedCharacterId, 'shop', () => {
+      this.coreValueText?.setText(String(loadRosterState().pristineCores));
+      this.sound.play(AUDIO.confirm, { volume: .2 });
+    });
+    const host = document.createElement('div'); host.className = 'shop-skin-showroom';
+    host.style.width = '674px'; host.style.height = '744px'; host.append(showroom.element); document.body.append(host);
+    const canvas = this.game.canvas;
+    const position = () => {
+      const bounds = canvas.getBoundingClientRect(), scale = bounds.width / WIDTH;
+      host.style.left = `${bounds.left + 1188 * scale}px`; host.style.top = `${bounds.top + 244 * scale}px`;
+      host.style.transform = `scale(${scale})`;
+    };
+    const observer = new ResizeObserver(position); observer.observe(canvas); window.addEventListener('resize', position); position();
+    this.skinShowroom = { dispose: () => { observer.disconnect(); window.removeEventListener('resize', position); showroom.dispose(); host.remove(); } };
   }
 
   private renderCharacters(unlockedIds: readonly string[]): void {
@@ -451,7 +492,7 @@ export class ShopScene extends Phaser.Scene {
     const status = this.add.text(
       150,
       158,
-      unlocked ? "RECRUITED" : `${character.unlockCost} CORES`,
+      unlocked ? "RECRUITED" : cores(character.unlockCost),
       {
         color: unlocked ? "#f7f9fb" : "#fff0ef",
         fontFamily: "Rajdhani",
@@ -471,6 +512,11 @@ export class ShopScene extends Phaser.Scene {
         letterSpacing: 0.7,
       },
     );
+    if (this.activeTab === 'skins') {
+      const count = characterSkins(character.id).filter(skin => skin.cost > 0).length;
+      status.setText(unlocked ? `${count} SKINS` : 'COMING SOON');
+      statusDetail.setText('VIEW APPEARANCES');
+    }
     const hit = this.add
       .rectangle(0, 0, 252, 198, 0xffffff, 0)
       .setOrigin(0)
@@ -677,6 +723,25 @@ export class ShopScene extends Phaser.Scene {
 
   private openTalentPreview(character: CharacterDefinition): void {
     this.talentPreview?.destroy();
+    this.currentTalentPreview?.close(); this.currentTalentPreview?.remove();
+    if (character.id === 'snow-white' || character.id === 'scarlet' || character.id === 'rapunzel') {
+      const dialog = openLobbyTalentTree(character.id);
+      this.currentTalentPreview = dialog;
+      const inputEnabled = this.input.enabled;
+      const keyboard = this.input.keyboard;
+      const keyboardEnabled = keyboard?.enabled;
+      this.input.enabled = false;
+      if (keyboard) keyboard.enabled = false;
+      dialog.addEventListener('close', () => {
+        dialog.remove();
+        if (this.currentTalentPreview !== dialog) return;
+        this.currentTalentPreview = undefined;
+        this.input.enabled = inputEnabled;
+        if (keyboard) { keyboard.resetKeys(); keyboard.enabled = keyboardEnabled ?? true; }
+      }, { once: true });
+      this.sound.play(AUDIO.select, { volume: 0.18 });
+      return;
+    }
     const previewRun = new RunState(false, 1, false);
     this.talentPreview = new RunTalentTree(
       this,
@@ -920,8 +985,8 @@ export class ShopScene extends Phaser.Scene {
         maxed
           ? "MAXIMUM LEVEL"
           : affordable
-            ? `CALIBRATE // ${cost} CORES`
-            : `REQUIRES ${cost} CORES`,
+            ? `CALIBRATE // ${cores(cost)}`
+            : `REQUIRES ${cores(cost)}`,
         {
           color: enabled ? "#252b34" : "#8e99a4",
           fontFamily: "Rajdhani",
@@ -1242,7 +1307,7 @@ export class ShopScene extends Phaser.Scene {
       .text(
         234,
         174,
-        unlocked ? "AVAILABLE" : `${nipmhUnlockCost(definition.id)} CORES`,
+        unlocked ? "AVAILABLE" : cores(nipmhUnlockCost(definition.id)),
         {
           color: unlocked ? "#69d9fb" : "#ff8179",
           fontFamily: "Rajdhani",
@@ -1438,8 +1503,8 @@ export class ShopScene extends Phaser.Scene {
           : cost === 0
             ? "UNLOCK FREE"
             : affordable
-              ? `UNLOCK // ${cost} CORES`
-              : `REQUIRES ${cost} CORES`,
+              ? `UNLOCK // ${cores(cost)}`
+              : `REQUIRES ${cores(cost)}`,
         {
           color: enabled ? "#252b34" : "#8e99a4",
           fontFamily: "Rajdhani",

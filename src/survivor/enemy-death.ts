@@ -65,7 +65,7 @@ export function enemyDeath(vfx: Vfx, feet: Vector3, radius: number, height: numb
         // Cover remains solid until the model is fully gone, then clears the play area.
         const fade = (1 - smoothstep(.13, .4 + i * .04, age)) ** 2;
         vfx.tint(puff.q, smokeColor, fade);
-        puff.q.mesh.setEnabled(fade > 0);
+        puff.q.visible = fade > 0;
       }
       at.copyFrom(origin).addInPlace(towardsCamera.scale(radius * 1.15));
       // The bright body hands off to a warm, faint tail. Squaring the smooth envelope
@@ -76,13 +76,13 @@ export function enemyDeath(vfx: Vfx, feet: Vector3, radius: number, height: numb
       at.y += size * .06 * cooling;
       vfx.sprite(core, at, size * (.9 + .3 * Math.min(1, age / .07)), phase + age * .35);
       vfx.tint(core, fireColor, flash);
-      core.mesh.setEnabled(flash > 0);
+      core.visible = flash > 0;
       at.addInPlace(towardsCamera.scale(radius * .08));
       vfx.sprite(glint, at, size * (1.1 + age * 5), phase);
       vfx.tint(glint, HOT, 1 - smoothstep(0, .085, age));
-      glint.mesh.setEnabled(age < .085);
+      glint.visible = age < .085;
       for (const spark of sparks) {
-        if (age >= spark.life) { spark.q.mesh.setEnabled(false); continue; }
+        if (age >= spark.life) { spark.q.visible = false; continue; }
         const fade = (1 - smoothstep(.06, spark.life, age)) ** 1.5;
         const end = age + .018, start = Math.max(0, end - .055 * (.4 + .6 * fade));
         // Air drag lets the embers linger without spreading the explosion farther out.

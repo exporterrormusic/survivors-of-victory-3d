@@ -42,8 +42,8 @@ export function rangeSnowDepth(preset: SnowPreset, x: number, z: number): number
     depth += mound(-4, 3.4, 3.2, 2.8, 1.65) + mound(11, 7, 4.5, 5, 1.7);
     depth += mound(-13, 0, 4.5, 6, 1.5) + mound(0, -13, 7, 3.5, 1.45);
   }
-  // A soft border keeps the finite overlay from ending in a straight slab.
-  return depth * (1 - smooth((Math.hypot(x, z) - 32) / 5));
+  // Continuous cover: the rendered snow border extends past the editable trail field.
+  return depth;
 }
 
 export class SnowField {

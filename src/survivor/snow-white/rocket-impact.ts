@@ -49,13 +49,13 @@ export function rocketImpact(vfx: Vfx, impact: Vector3, radius: number): void {
       at.copyFrom(origin).addInPlace(towardCamera.scale(radius * .24));
       vfx.sprite(core, at, radius * (.45 + bloom * 1.05), phase + age * .4);
       vfx.tint(core, fireColor, 1 - smoothstep(.2, .59, age));
-      core.mesh.setEnabled(age < .59);
+      core.visible = age < .59;
       vfx.sprite(flash, at, radius * (.9 + bloom * .7), phase);
       vfx.tint(flash, HOT, 1 - smoothstep(.015, .1, age));
-      flash.mesh.setEnabled(age < .1);
+      flash.visible = age < .1;
       vfx.sprite(glow, at, radius * (1.6 + bloom * .7));
       vfx.tint(glow, FIRE, .5 * (1 - smoothstep(.04, .38, age)));
-      glow.mesh.setEnabled(age < .38);
+      glow.visible = age < .38;
 
       const smokeFade = smoothstep(.08, .24, age) * (1 - smoothstep(.55, LIFE, age));
       smokeColor[0] = .38 - cool * .16;
@@ -70,12 +70,12 @@ export function rocketImpact(vfx: Vfx, impact: Vector3, radius: number): void {
         );
         vfx.sprite(lobe.smoke, at, radius * (.65 + Math.sqrt(Math.min(1, age)) * .75), lobe.spin + age * (i % 2 ? .3 : -.3));
         vfx.tint(lobe.smoke, smokeColor, smokeFade * .75);
-        lobe.smoke.mesh.setEnabled(smokeFade > 0);
+        lobe.smoke.visible = smokeFade > 0;
 
         at.addInPlace(towardCamera.scale(radius * .18));
         vfx.sprite(lobe.fire, at, radius * (.25 + bloom * .65), lobe.spin - age * .5);
         vfx.tint(lobe.fire, fireColor, .9 * (1 - smoothstep(.14 + i * .015, .48 + i * .025, age)));
-        lobe.fire.mesh.setEnabled(age < .48 + i * .025);
+        lobe.fire.visible = age < .48 + i * .025;
       }
       vfx.decal(scorch, ground, radius * 1.8, phase);
       vfx.tint(scorch, [.035, .028, .023], .26 * (1 - smoothstep(.45, LIFE, age)));

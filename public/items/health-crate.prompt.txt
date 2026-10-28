@@ -1,0 +1,6 @@
+Generated with the built-in image_gen tool.
+
+Use case: stylized-concept
+Asset type: game-ready square albedo texture for each face of a small 3D health pack box in a stylized sci-fi action game.
+Primary request: a health crate medical hard-case panel. Flat orthographic straight-on square panel filling the ENTIRE image edge to edge. Off-white painted metal, broad dark charcoal reinforced border, mint-green medical plus cross centered prominently in a recessed pale panel, subtle green accent stripe, small corner fasteners, restrained edge scuffs and panel seams. Crisp hand-painted game texture, readable at tiny size. Symmetrical cross and balanced square design works on top and sides of a box. Neutral even illumination, painted surface detail only.
+Constraints: single flat square texture, no perspective, no 3D box render, no background or margin, no cast shadow, no text, no letters, no logos, no watermark.

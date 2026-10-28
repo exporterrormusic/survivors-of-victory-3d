@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { goddessFallUnlocked } from "../../goddess-fall-unlock";
 
 import { bindButtonInteraction } from "../ui/interaction/ButtonInteraction";
 
@@ -35,6 +36,9 @@ const HEIGHT = 1080;
 const CYAN = 0x35c5f2;
 const YELLOW = 0xffd23f;
 const RED = 0xe8392e;
+const CAROUSEL_LEFT = 73;
+const CAROUSEL_RIGHT = 1218;
+const CAROUSEL_MASK_KEY = "stage-select-carousel-mask";
 const GODDESS_CRT_DISPLACEMENT_KEY = "stage-select-goddess-crt-displacement";
 
 interface StageSelectSceneData {
@@ -85,7 +89,7 @@ export class StageSelectScene extends Phaser.Scene {
     this.goddessFall = false;
     this.leaving = false;
     this.modeId = MISSION_MODES[0]!.id;
-    this.zoneIndex = Phaser.Math.Between(0, OPERATION_ZONES.length - 1);
+    this.zoneIndex = 0;
   }
 
   public preload(): void {
@@ -321,8 +325,12 @@ export class StageSelectScene extends Phaser.Scene {
     hit.on("pointerup", () => {
       if (!selected) {
         this.modeId = mode.id;
+        if (mode.id === 'relay_run') this.zoneIndex = 0;
         gameAudio.playUi(this, "select");
         this.renderModes();
+        this.updateBackground();
+        this.renderMapIdentity();
+        this.renderCarousel(1);
       }
     });
     root.add([surface, title, description, hit]);
@@ -385,9 +393,10 @@ export class StageSelectScene extends Phaser.Scene {
     const description = this.add.text(
       x + 61,
       y + 52,
-      "Hardcore protocol. She descends.",
+      // Locked until the forest easter egg is done; this line is the only clue.
+      goddessFallUnlocked() ? "Hardcore protocol. She descends." : "You must revive the Queen...",
       {
-        color: "#aeb6bd",
+        color: goddessFallUnlocked() ? "#aeb6bd" : "#c9878a",
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "500",
@@ -400,6 +409,11 @@ export class StageSelectScene extends Phaser.Scene {
     hit.on("pointerover", () => draw(true));
     hit.on("pointerout", () => draw(false));
     hit.on("pointerup", () => {
+      if (!goddessFallUnlocked()) {
+        gameAudio.playUi(this, "back");
+        this.tweens.add({ targets: root, x: { from: -6, to: 0 }, duration: 260, ease: "Bounce.easeOut" });
+        return;
+      }
       this.goddessFall = !this.goddessFall;
       gameAudio.playUi(this, this.goddessFall ? "select" : "back");
       if (this.goddessFall) gameAudio.playStageHazard(this);
@@ -456,13 +470,34 @@ export class StageSelectScene extends Phaser.Scene {
     const centerX = 668;
     const y = 858;
     const pitch = 252;
+    const strip = this.add.container(0, 0);
+    root.add(strip);
+    // External filters use camera coordinates, keeping the crop fixed as the
+    // thumbnails slide. Leave a gap between the fade and each arrow button.
+    if (!this.textures.exists(CAROUSEL_MASK_KEY)) {
+      const texture = this.textures.createCanvas(CAROUSEL_MASK_KEY, WIDTH, HEIGHT);
+      if (texture !== null) {
+        const context = texture.getContext();
+        const fade = 64 / (CAROUSEL_RIGHT - CAROUSEL_LEFT);
+        const gradient = context.createLinearGradient(CAROUSEL_LEFT, 0, CAROUSEL_RIGHT, 0);
+        gradient.addColorStop(0, "rgba(255,255,255,0)");
+        gradient.addColorStop(fade, "white");
+        gradient.addColorStop(1 - fade, "white");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        context.fillStyle = gradient;
+        context.fillRect(CAROUSEL_LEFT, 0, CAROUSEL_RIGHT - CAROUSEL_LEFT, HEIGHT);
+        texture.refresh();
+      }
+    }
+    strip.enableFilters();
+    strip.filters?.external.addMask(CAROUSEL_MASK_KEY);
     OPERATION_ZONES.forEach((zone, index) => {
       const relative = this.circularDelta(
         index,
         this.zoneIndex,
         OPERATION_ZONES.length,
       );
-      root.add(
+      strip.add(
         this.createZoneThumbnail(
           zone,
           index,
@@ -475,13 +510,13 @@ export class StageSelectScene extends Phaser.Scene {
     root.add(this.createCarouselArrow(9, 869, -1));
     root.add(this.createCarouselArrow(1230, 869, 1));
     if (direction !== 0) {
-      root.x = direction * 24;
-      root.setAlpha(0.72);
+      strip.x = direction * 24;
+      strip.setAlpha(0.72);
       this.tweens.add({
         alpha: 1,
         duration: 180,
         ease: "Cubic.Out",
-        targets: root,
+        targets: strip,
         x: 0,
       });
     }
@@ -542,7 +577,14 @@ export class StageSelectScene extends Phaser.Scene {
     const hit = this.add
       .rectangle(centerX - width / 2, y, width, height, 0xffffff, 0)
       .setOrigin(0)
-      .setInteractive({ useHandCursor: true });
+      .setInteractive({
+        useHandCursor: true,
+        hitArea: new Phaser.Geom.Rectangle(0, 0, width, height),
+        hitAreaCallback: (area: Phaser.Geom.Rectangle, localX: number, localY: number) => {
+          const worldX = hit.getWorldTransformMatrix().transformPoint(localX, localY).x;
+          return worldX > CAROUSEL_LEFT && worldX < CAROUSEL_RIGHT && area.contains(localX, localY);
+        },
+      });
     hit.on("pointerup", () => this.selectZone(index));
     root.add([image, shade, border, label, sub, hit]);
     return root;
@@ -858,6 +900,7 @@ export class StageSelectScene extends Phaser.Scene {
   }
 
   private selectZone(index: number): void {
+    if (this.modeId === 'relay_run') return;
     const normalized = Phaser.Math.Wrap(index, 0, OPERATION_ZONES.length);
     if (normalized === this.zoneIndex) return;
     const direction =

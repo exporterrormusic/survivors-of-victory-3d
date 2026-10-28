@@ -1,0 +1,17 @@
+{
+  "generator": "Built-in imagegen",
+  "prompts": [
+    [
+      "weapon",
+      "Stylized-concept. One landscape 3:2 game talent illustration for Rapunzel's Holy Grace rocket launcher in NIKKE. Closeup large futuristic white ivory and navy rocket launcher with gold trim carried sideways, a physical rocket streaking from barrel, orange explosion and fine golden light particles against dark navy painterly background. Dynamic polished anime game illustration, strong silhouette at small UI size. Equipment only, no person, no text, no UI, no border."
+    ],
+    [
+      "skill",
+      "Stylized-concept. One landscape 3:2 game talent illustration for Rapunzel's Divine Blessing in NIKKE. Blonde adult nun-like sci-fi heroine in white armored bodice, black fitted undersuit, navy veil with gold edges and white forehead cloth. Gentle closed-eyed expression, hands clasped in prayer, luminous gold healing circle and warm floating motes surrounding her, deep navy background, ivory gold and restrained teal palette. Polished painterly anime game illustration, readable at small UI size. No text, no UI, no border."
+    ],
+    [
+      "burst",
+      "Stylized-concept. One landscape 3:2 game talent illustration for Rapunzel's Garden of Shangri-La in NIKKE. A radiant central golden cross of light above a ring of TEN futuristic white navy and gold rocket turrets, rockets launch upward and curve toward distant mechanical enemies, sweeping golden healing energy and orange rocket trails against dark navy battlefield. Equipment and sacred light as main focus, no people. Dramatic polished painterly anime game illustration, strong silhouette at small UI size. No text, no UI, no border."
+    ]
+  ]
+}

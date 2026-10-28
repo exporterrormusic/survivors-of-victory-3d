@@ -1,0 +1,176 @@
+/* Talent tiers: the HotS-style prompt above the bottom-left portrait, and the Tab grid.
+   Same language as the survivor HUD: flat charcoal panels, thin ivory lines, gold for choices. */
+
+.tt-tile { position: relative; display: grid; place-items: center; flex: 0 0 auto; color: #edf0e8; }
+.tt-tile .st-tile-frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tt-tile .st-tile-surface { fill: #141b1e; stroke: #c6cbc3a8; stroke-width: 1.2; }
+.tt-tile .st-tile-brackets { fill: none; stroke: #edf0e8; stroke-width: 2; }
+.tt-tile .st-icon { position: relative; width: 54%; height: 54%; }
+.tt-art { position: absolute; inset: 9%; width: 82%; height: 82%; object-fit: cover; clip-path: polygon(14% 0, 100% 0, 100% 86%, 86% 100%, 0 100%, 0 14%); }
+.tt-tile[data-ability='weapon'] { --ability: #8fd7ff; }
+.tt-tile[data-ability='special'] { --ability: #ffb36b; }
+.tt-tile[data-ability='burst'] { --ability: #ffc329; }
+.tt-tile[data-ability='utility'] { --ability: #8ae6a0; }
+.tt-tile::after { content: ''; position: absolute; left: 12%; right: 12%; bottom: -3px; height: 2px; background: var(--ability, #edf0e8); opacity: .85; }
+
+/* --- HUD prompt, above the portrait ------------------------------------------------- */
+#run-talent-pick {
+  position: absolute; z-index: 3; left: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(256 * var(--k));
+  width: max(300px, calc(400 * var(--k))); display: flex; flex-direction: column; align-items: flex-start; gap: calc(6 * var(--k));
+  pointer-events: none; font-family: Rajdhani, 'Segoe UI', sans-serif;
+}
+#run-talent-pick > * { pointer-events: auto; }
+#run-talent-pick[data-state='idle'] .tp-heading, #run-talent-pick[data-state='idle'] .tp-options { display: none; }
+.tp-heading { display: flex; align-items: baseline; gap: calc(10 * var(--k)); padding: calc(3 * var(--k)) calc(10 * var(--k)); background: linear-gradient(90deg, #0b1013e6, #0b101300); border-left: 3px solid var(--gold); }
+.tp-heading b { font-size: max(14px, calc(20 * var(--k))); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+#hud.survivor .tp-heading small { letter-spacing: .14em; color: #e0e3dd; }
+
+/* HotS-style talent list in the HUD's own language: flat charcoal rows, thin ivory lines,
+   a 45° cut corner like the ability cards, and an ability-coloured edge. The 1/2/3 keys work
+   without a visible tab. */
+.tp-options { display: flex; flex-direction: column; gap: calc(3 * var(--k)); width: 100%; }
+.tp-option {
+  --edge: #ffc329; position: relative; display: flex; flex-direction: column; gap: calc(2 * var(--k)); width: 100%;
+  padding: calc(5 * var(--k)) calc(10 * var(--k)) calc(6 * var(--k)) calc(11 * var(--k));
+  border: 0; border-radius: 0; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer;
+}
+/* The card frame (hud-frames.ts) is an absolute SVG behind the text. */
+.tp-option > :not(svg) { position: relative; }
+.tp-option::before { content: ''; position: absolute; z-index: 1; left: 3px; top: 30%; bottom: 30%; width: 2px; background: var(--edge); }
+.tp-option[data-ability='weapon'] { --edge: #8fd7ff; }
+.tp-option[data-ability='special'] { --edge: #ffb36b; }
+.tp-option[data-ability='utility'] { --edge: #8ae6a0; }
+.tp-option:hover .rf-surface, .tp-option:focus-visible .rf-surface { fill: #22292bef; stroke: var(--gold); }
+#hud.survivor .tp-option:focus-visible { outline: none; }
+.tp-title { display: flex; align-items: center; gap: calc(7 * var(--k)); }
+/* Fixed slot so names line up; the wide rifle silhouette scales down to fit. */
+.tp-icon { flex: 0 0 auto; display: grid; place-items: center; width: max(24px, calc(30 * var(--k))); height: max(15px, calc(18 * var(--k))); color: #edf0e8; }
+.tp-icon svg { display: block; max-width: 100%; max-height: 100%; width: auto; height: 100%; }
+.tp-title b { font-size: max(13px, calc(16 * var(--k))); font-weight: 700; line-height: 1.1; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+#hud.survivor .tp-title small { margin-left: auto; font-size: max(10px, calc(11 * var(--k))); letter-spacing: .14em; color: #a9b5b4; }
+/* Explanations use the full row; avoid one-word last lines. */
+.tp-text, .tp-quest-text { display: block; line-height: 1.2; text-wrap: pretty; }
+.tp-text { font-size: max(11px, calc(13 * var(--k))); color: #d6dcd8; }
+.tp-quest-text { font-size: max(11px, calc(12 * var(--k))); color: var(--mint); }
+.tp-quests { display: grid; gap: calc(4 * var(--k)); }
+.tp-quest { position: relative; display: flex; gap: calc(10 * var(--k)); align-items: baseline; min-width: calc(210 * var(--k)); padding: calc(3 * var(--k)) calc(10 * var(--k)) calc(6 * var(--k)); background: linear-gradient(90deg, #0b1013d9, #0b101300); font-size: max(12px, calc(15 * var(--k))); }
+.tp-quest b { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tp-quest span { margin-left: auto; font-variant-numeric: tabular-nums; color: #f5d992; }
+.tp-quest i { position: absolute; left: calc(10 * var(--k)); right: calc(10 * var(--k)); bottom: 2px; height: 2px; background: #ffffff1f; }
+.tp-quest i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: calc(var(--progress) * 100%); background: var(--gold); }
+.tp-quest[data-done='true'] span, .tp-quest[data-done='true'] b { color: var(--mint); }
+.tp-toast { margin: 0; min-height: 1em; font-size: max(14px, calc(19 * var(--k))); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); text-shadow: 0 1px 4px #000; }
+.tp-toast:empty { display: none; }
+#run-talent-pick.tp-flash .tp-toast { animation: tp-toast 2.6s ease-out; }
+@keyframes tp-toast { 0% { opacity: 0; transform: translateY(6px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* --- Tab grid ------------------------------------------------------------------------ */
+.tt-board {
+  --tt-k: min(1px, calc(100cqh / 900));
+  --tt-tile: calc(62 * var(--tt-k));
+  --tt-line: #c6cbc34a;
+  --tt-gold: #f1c75c;
+  box-sizing: border-box; position: fixed; inset: 0; margin: auto;
+  width: min(1640px, 96cqw); height: min(980px, 96cqh); max-width: none; max-height: none;
+  padding: calc(18 * var(--tt-k)) calc(22 * var(--tt-k)); border: 1px solid #c6cbc399; background: #0e1316f5; color: #edf0e8;
+  font: 500 max(12px, calc(17 * var(--tt-k)))/1.25 Rajdhani, 'Segoe UI', sans-serif; box-shadow: 0 15px 65px #0008; overflow: hidden;
+}
+.tt-board[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: calc(10 * var(--tt-k)); }
+.tt-board::backdrop { background: #04070966; }
+.tt-board * { box-sizing: border-box; }
+.tt-board button { font: inherit; color: inherit; }
+.tt-header { display: flex; align-items: center; gap: calc(18 * var(--tt-k)); padding-bottom: calc(10 * var(--tt-k)); border-bottom: 1px solid var(--tt-line); }
+.tt-face { position: relative; width: calc(88 * var(--tt-k)); height: calc(70 * var(--tt-k)); }
+.tt-face img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: 30% 22%; clip-path: polygon(var(--portrait-edge, 8px) 0, 100% 0, 100% 100%, 0 100%, 0 var(--portrait-edge, 8px)); }
+/* The portrait frame overlays the image; the lobby and shop don't load the HUD stylesheet that also styles it. */
+.tt-face .run-panel-trim { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.tt-face .run-panel-trim path { fill: none; stroke-linejoin: round; }
+.tt-face .rp-outline { stroke: #c6cbc3a8; stroke-width: 1; }
+.tt-face .rp-inset { stroke: #c6cbc347; stroke-width: .7; }
+.tt-face .rp-corners { stroke: #eef0e8; stroke-width: 1.7; }
+.tt-face .rp-etch { stroke: #d7dfcf66; stroke-width: .7; }
+.tt-identity h2 { margin: 0 0 4px; font-size: calc(34 * var(--tt-k)); font-weight: 700; text-transform: uppercase; line-height: 1; }
+.tt-wallet { display: flex; gap: calc(16 * var(--tt-k)); text-transform: uppercase; letter-spacing: .04em; }
+.tt-wallet > * + * { border-left: 1px solid var(--tt-line); padding-left: calc(16 * var(--tt-k)); color: var(--tt-gold); }
+.tt-paused { margin-left: auto; letter-spacing: .2em; text-transform: uppercase; color: #a9b5b4; }
+.tt-close { width: 36px; height: 36px; padding: 0; border: 1px solid var(--tt-line); background: transparent; font-size: 25px !important; line-height: 1; cursor: pointer; }
+.tt-rows { display: grid; grid-auto-rows: minmax(min-content, 1fr); gap: calc(6 * var(--tt-k)); min-height: 0; }
+.tt-row { display: grid; grid-template-columns: calc(110 * var(--tt-k)) repeat(3, minmax(0, 1fr)); gap: calc(8 * var(--tt-k)); align-items: stretch; min-height: 0; }
+/* Level 10's two forms: centred cards with gold flourishes filling the outer half-columns. */
+.tt-row[data-count='2'] { grid-template-columns: calc(110 * var(--tt-k)) minmax(0, .35fr) minmax(0, 1fr) calc(70 * var(--tt-k)) minmax(0, 1fr) minmax(0, .35fr); }
+.tt-divider { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6 * var(--tt-k)); }
+.tt-divider-line { flex: 1 1 auto; width: 1px; background: linear-gradient(180deg, transparent, #f1c75c99); }
+.tt-divider-line:last-child { background: linear-gradient(0deg, transparent, #f1c75c99); }
+.tt-row[data-count='2'] .tt-row-label { border-left-color: var(--tt-gold); }
+.tt-row[data-count='2'] .tt-row-label small { color: var(--tt-gold); }
+.tt-flourish { position: relative; display: flex; align-items: center; gap: calc(6 * var(--tt-k)); min-width: 0; padding: 0 calc(6 * var(--tt-k)); }
+.tt-flourish-right { flex-direction: row-reverse; }
+.tt-flourish-line { flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, transparent, #f1c75c99); }
+.tt-flourish-right .tt-flourish-line { background: linear-gradient(270deg, transparent, #f1c75c99); }
+.tt-flourish-short { flex: 0 0 calc(14 * var(--tt-k)); background: #f1c75c99 !important; }
+.tt-flourish-gem { flex: 0 0 auto; width: calc(10 * var(--tt-k)); height: calc(10 * var(--tt-k)); border: 1px solid var(--tt-gold); transform: rotate(45deg); box-shadow: 0 0 calc(8 * var(--tt-k)) #f1c75c66, inset 0 0 0 calc(2 * var(--tt-k)) #f1c75c33; }
+.tt-flourish::before, .tt-flourish::after { content: ''; position: absolute; left: calc(18 * var(--tt-k)); right: calc(18 * var(--tt-k)); height: 1px; background: linear-gradient(90deg, transparent, #c6cbc333, transparent); }
+.tt-flourish::before { top: 26%; }
+.tt-flourish::after { bottom: 26%; }
+.tt-row-label { display: flex; flex-direction: column; justify-content: center; padding-left: calc(10 * var(--tt-k)); border-left: 2px solid var(--tt-line); }
+.tt-row-label b { font-size: calc(24 * var(--tt-k)); font-weight: 700; line-height: 1; }
+.tt-row-label small { margin-top: 3px; font-size: max(11px, calc(13 * var(--tt-k))); letter-spacing: .14em; text-transform: uppercase; color: #a9b5b4; }
+.tt-row[data-state='pending'] .tt-row-label { border-left-color: var(--tt-gold); }
+.tt-row[data-state='pending'] .tt-row-label b { color: var(--tt-gold); }
+.tt-row[data-state='locked'] { opacity: .45; }
+.tt-talent { display: flex; align-items: center; gap: calc(12 * var(--tt-k)); min-width: 0; min-height: 0; padding: calc(8 * var(--tt-k)) calc(12 * var(--tt-k)); border: 1px solid var(--tt-line); background: #ffffff05; text-align: left; overflow: hidden; }
+.tt-talent .tt-tile { width: var(--tt-tile); height: var(--tt-tile); }
+/* Every line shows in full: a row grows to fit its longest card. Keep descriptions short so seven tiers fit without scrolling. */
+.tt-copy { display: flex; flex-direction: column; justify-content: center; min-width: 0; gap: 1px; }
+.tt-copy small { font-size: max(10px, calc(12 * var(--tt-k))); letter-spacing: .16em; text-transform: uppercase; color: #a9b5b4; }
+.tt-copy b { text-wrap: balance; font-size: max(13px, calc(18 * var(--tt-k))); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; line-height: 1.1; }
+.tt-text { font-size: max(11px, calc(14 * var(--tt-k))); line-height: 1.2; color: #c9d0cc; text-wrap: pretty; }
+.tt-quest { display: flex; flex-direction: column; gap: 1px; margin-top: calc(3 * var(--tt-k)); font-size: max(11px, calc(13 * var(--tt-k))); color: #f5d992; line-height: 1.15; }
+.tt-quest-goal { font-weight: 700; letter-spacing: .04em; }
+.tt-quest-reward { color: #e8dcb8; text-wrap: pretty; }
+.tt-quest-reward b { font-size: inherit; font-weight: 700; text-transform: none; letter-spacing: 0; color: #f5d992; }
+.tt-talent[data-state='chosen'] { border-color: var(--tt-gold); background: #f1c75c14; box-shadow: inset 0 0 0 1px #f1c75c55; }
+.tt-talent[data-state='chosen'] .st-tile-surface { stroke: var(--tt-gold); fill: #252b29; }
+.tt-talent[data-state='passed'] { opacity: .38; }
+.tt-talent[data-state='available'] { cursor: pointer; border-color: #edf0e8aa; }
+.tt-talent[data-state='available']:hover, .tt-talent[data-state='available']:focus-visible { border-color: var(--tt-gold); background: #f1c75c10; outline: none; }
+.tt-kit { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(8 * var(--tt-k)); padding-bottom: calc(10 * var(--tt-k)); border-bottom: 1px solid var(--tt-line); }
+.tt-kit-card { display: flex; align-items: flex-start; gap: calc(10 * var(--tt-k)); min-width: 0; overflow: hidden; padding: calc(8 * var(--tt-k)) calc(12 * var(--tt-k)); border: 1px solid var(--tt-line); border-left: 2px solid #c6cbc399; background: #ffffff05; }
+.tt-kit-card[data-slot='passive'] { border-left-color: var(--tt-gold); background: #f1c75c0d; }
+.tt-kit-card[data-slot='passive'] small { color: var(--tt-gold); }
+.tt-kit-icon { flex: 0 0 auto; width: calc(34 * var(--tt-k)); height: calc(34 * var(--tt-k)); color: #edf0e8; display: grid; place-items: center; }
+.tt-kit-icon svg { width: 100%; height: 100%; }
+.tt-kit-text { font-size: max(10px, calc(13 * var(--tt-k))); line-height: 1.2; color: #c9d0cc; text-wrap: pretty; }
+.tt-footer { display: flex; align-items: center; gap: 18px; font-size: max(11px, calc(13 * var(--tt-k))); color: #a9b5b4; }
+.tt-resume { margin-left: auto; background: transparent; border: 0; padding: 2px 0 2px 8px; text-transform: uppercase; font-weight: 600 !important; cursor: pointer; }
+.tt-resume kbd { padding: 1px 6px; border: 1px solid #cbd0cd; border-radius: 4px; font: inherit; }
+
+/* --- Level-up with a talent choice ------------------------------------------------------
+   A ring bursting from the middle (the camera keeps the player there) and a large LEVEL N title.
+   The choices then slide in one after another and keep a gold glow while they wait. */
+.level-up-burst { position: absolute; inset: 0; z-index: 4; pointer-events: none; display: grid; justify-items: center; align-content: start; padding-top: calc(230 * var(--k)); gap: calc(4 * var(--k)); opacity: 0; }
+.level-up-burst.lu-play { animation: lu-flash 1.6s ease-out forwards; }
+.lu-ring { position: absolute; left: 50%; top: 55%; width: calc(120 * var(--k)); aspect-ratio: 1; margin: calc(-60 * var(--k)) 0 0 calc(-60 * var(--k)); border-radius: 50%;
+  border: calc(4 * var(--k)) solid #ffd36a; box-shadow: 0 0 calc(18 * var(--k)) #ffc329, inset 0 0 calc(12 * var(--k)) #ffc329; }
+.lu-play .lu-ring { animation: lu-ring .9s cubic-bezier(.2, .7, .3, 1) forwards; }
+.lu-title { position: relative; font: 700 max(36px, calc(64 * var(--k))) / 1 Rajdhani, 'Segoe UI', sans-serif; letter-spacing: .12em; text-transform: uppercase;
+  color: #fff4cf; text-shadow: 0 0 calc(14 * var(--k)) #ffc329, 0 3px 6px #000; }
+.lu-play .lu-title { animation: lu-title 1.6s cubic-bezier(.2, .9, .3, 1.2) forwards; }
+.lu-sub { position: relative; font: 700 max(14px, calc(20 * var(--k))) Rajdhani, 'Segoe UI', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: #ffd36a; text-shadow: 0 2px 4px #000; }
+@keyframes lu-flash { 0% { opacity: 0; } 8% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes lu-ring { 0% { transform: scale(.2); opacity: 1; } 100% { transform: scale(7); opacity: 0; } }
+@keyframes lu-title { 0% { transform: scale(1.6); opacity: 0; } 14% { transform: scale(1); opacity: 1; } 75% { transform: scale(1.02); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }
+
+/* The prompt builds in order: heading, then each choice ~70 ms apart. The rows are rebuilt for
+   every new tier, so this replays whenever a choice appears. */
+#run-talent-pick[data-state='ready'] .tp-heading { animation: tp-in .2s cubic-bezier(.2, .9, .3, 1.1) both, tp-heading-pulse 1.2s ease-in-out .4s infinite; }
+#run-talent-pick[data-state='ready'] .tp-option { --delay: .08s; animation: tp-in .22s cubic-bezier(.2, .9, .3, 1.15) var(--delay) both, tp-glow 1.6s ease-in-out calc(var(--delay) + .25s) infinite; }
+#run-talent-pick[data-state='ready'] .tp-option:nth-child(2) { --delay: .15s; }
+#run-talent-pick[data-state='ready'] .tp-option:nth-child(3) { --delay: .22s; }
+#run-talent-pick[data-state='ready'] .tp-option .rf-surface { stroke: var(--gold); }
+@keyframes tp-in { 0% { transform: translateX(calc(-36 * var(--k))); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes tp-glow { 0%, 100% { filter: drop-shadow(0 0 calc(3 * var(--k)) #ffc32980); } 50% { filter: drop-shadow(0 0 calc(9 * var(--k)) #ffc329); } }
+@keyframes tp-heading-pulse { 0%, 100% { box-shadow: none; } 50% { box-shadow: -3px 0 calc(14 * var(--k)) #ffc329; } }
+@media (prefers-reduced-motion: reduce) {
+  .lu-play .lu-ring, #run-talent-pick[data-state='ready'] .tp-option, #run-talent-pick[data-state='ready'] .tp-heading { animation: none; }
+}

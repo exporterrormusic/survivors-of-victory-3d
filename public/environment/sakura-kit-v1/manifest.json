@@ -1,0 +1,49 @@
+{
+  "units": "metres",
+  "source": "src/survivor/sakura-kit.ts",
+  "texture": "material-atlas.png",
+  "assets": [
+    {
+      "id": "sakura-roofed-gate",
+      "file": "sakura-roofed-gate.glb",
+      "triangles": 10916,
+      "bytes": 4001136,
+      "validationErrors": 0
+    },
+    {
+      "id": "sakura-torii",
+      "file": "sakura-torii.glb",
+      "triangles": 996,
+      "bytes": 3739808,
+      "validationErrors": 0
+    },
+    {
+      "id": "sakura-lantern",
+      "file": "sakura-lantern.glb",
+      "triangles": 1896,
+      "bytes": 3746952,
+      "validationErrors": 0
+    },
+    {
+      "id": "sakura-shrine",
+      "file": "sakura-shrine.glb",
+      "triangles": 8792,
+      "bytes": 3956748,
+      "validationErrors": 0
+    },
+    {
+      "id": "sakura-wall",
+      "file": "sakura-wall.glb",
+      "triangles": 3572,
+      "bytes": 3790736,
+      "validationErrors": 0
+    },
+    {
+      "id": "sakura-bench",
+      "file": "sakura-bench.glb",
+      "triangles": 192,
+      "bytes": 3703116,
+      "validationErrors": 0
+    }
+  ]
+}

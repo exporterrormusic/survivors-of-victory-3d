@@ -27,6 +27,13 @@ import {
   scaledSfxVolume,
 } from "../settings/GameSettings";
 import {
+  eraseAllSaveData,
+  exportSaveData,
+  importSaveData,
+  saveStorageAvailable,
+} from "../persistence/ProfileStorage";
+import { GAME_VERSION } from "../../version";
+import {
   nextNikkeTransitionProfile,
   NIKKE_TRANSITION_PROFILES,
   playHexWipeCover,
@@ -42,7 +49,7 @@ const AUDIO = {
   select: "settings-select",
 } as const;
 
-type SettingsCategory = "audio" | "controls" | "gameplay" | "video";
+type SettingsCategory = "audio" | "controls" | "data" | "gameplay" | "video";
 
 interface CategoryDefinition {
   readonly description: string;
@@ -72,6 +79,7 @@ const CATEGORIES: readonly CategoryDefinition[] = [
     index: "04",
     title: "CONTROLS",
   },
+  { description: "SAVE BACKUP & RESET", id: "data", index: "05", title: "DATA" },
 ];
 
 export class SettingsScene extends Phaser.Scene {
@@ -81,6 +89,9 @@ export class SettingsScene extends Phaser.Scene {
   private contentLayer?: Phaser.GameObjects.Container;
   private capturingControl?: ControlAction;
   private currentCategory: SettingsCategory = "audio";
+  /** Erasing everything takes a second press within a few seconds. */
+  private eraseArmedUntil = 0;
+  private dataMessage = "";
   private displaySettings: DisplaySettings = loadDisplaySettings();
   private gameplaySettings: GameplaySettings = loadGameplaySettings();
   private musicVolume = 0.8;
@@ -196,7 +207,7 @@ export class SettingsScene extends Phaser.Scene {
       fontSize: "25px",
       fontStyle: "bold",
     });
-    this.add.text(52, 1038, "SYS CONFIG // ARK SYS V0.2B", {
+    this.add.text(52, 1038, `SYS CONFIG // ARK SYS V${GAME_VERSION}`, {
       color: "#8a949f",
       fontFamily: "Rajdhani",
       fontSize: "15px",
@@ -300,15 +311,15 @@ export class SettingsScene extends Phaser.Scene {
     const layer = this.add.container(0, 0);
     this.categoryLayer = layer;
     CATEGORIES.forEach((category, row) => {
-      layer.add(this.createCategoryButton(category, 70, 280 + row * 138));
+      layer.add(this.createCategoryButton(category, 70, 280 + row * 122));
     });
 
     const readout = this.add.graphics();
     readout.fillStyle(0x202a33, 0.11);
-    readout.fillRect(70, 844, 354, 1);
+    readout.fillRect(70, 904, 354, 1);
     layer.add(readout);
     layer.add(
-      this.add.text(70, 866, "CONFIG REGISTER", {
+      this.add.text(70, 922, "CONFIG REGISTER", {
         color: "#8a949e",
         fontFamily: "Rajdhani",
         fontSize: "13px",
@@ -317,7 +328,7 @@ export class SettingsScene extends Phaser.Scene {
       }),
     );
     layer.add(
-      this.add.text(70, 891, "LOCAL PROFILE // SLOT 01", {
+      this.add.text(70, 945, "LOCAL PROFILE // SLOT 01", {
         color: "#313b45",
         fontFamily: "Rajdhani",
         fontSize: "17px",
@@ -498,6 +509,9 @@ export class SettingsScene extends Phaser.Scene {
         break;
       case "controls":
         this.renderControlsPane(layer, x, y);
+        break;
+      case "data":
+        this.renderDataPane(layer, x, y);
         break;
     }
   }
@@ -836,6 +850,196 @@ export class SettingsScene extends Phaser.Scene {
         )
         .setOrigin(0, 0.5),
     );
+  }
+
+  private renderDataPane(
+    layer: Phaser.GameObjects.Container,
+    x: number,
+    y: number,
+  ): void {
+    const available = saveStorageAvailable();
+    const row = (label: string, rowY: number, text: string, color: string) => {
+      layer.add(
+        this.add.text(x + 52, rowY, label, {
+          color: "#8a949e",
+          fontFamily: "Rajdhani",
+          fontSize: "14px",
+          fontStyle: "bold",
+          letterSpacing: 2,
+        }),
+      );
+      layer.add(
+        this.add.text(x + 256, rowY - 6, text, {
+          color,
+          fontFamily: "Rajdhani",
+          fontSize: "19px",
+          fontStyle: "bold",
+          letterSpacing: 1,
+          wordWrap: { width: 1000 },
+        }),
+      );
+    };
+    row(
+      "SAVE LOCATION",
+      y + 180,
+      available
+        ? "THIS BROWSER / DEVICE // PROGRESS SAVES AUTOMATICALLY"
+        : "BLOCKED // THIS BROWSER IS NOT ALLOWING SAVED DATA",
+      available ? "#313b44" : "#bd352e",
+    );
+    row(
+      "BACKUP",
+      y + 232,
+      "EXPORT A SAVE FILE TO KEEP A BACKUP, OR TO MOVE PROGRESS BETWEEN THE BROWSER VERSION, THE DOWNLOAD AND OTHER COMPUTERS.",
+      "#5d6872",
+    );
+    row("GAME VERSION", y + 306, `V${GAME_VERSION}`, "#313b44");
+
+    const armed = this.time.now < this.eraseArmedUntil;
+    this.createDataButton(layer, x + 52, y + 380, "EXPORT SAVE FILE", 0x1f8fe0, () =>
+      this.exportSave(),
+    );
+    this.createDataButton(layer, x + 472, y + 380, "IMPORT SAVE FILE", 0x1f8fe0, () =>
+      this.importSave(),
+    );
+    this.createDataButton(
+      layer,
+      x + 892,
+      y + 380,
+      armed ? "PRESS AGAIN TO ERASE EVERYTHING" : "ERASE ALL SAVED DATA",
+      0xc63d35,
+      () => this.eraseSave(),
+    );
+    if (this.dataMessage !== "") {
+      layer.add(
+        this.add.text(x + 52, y + 470, this.dataMessage, {
+          color: "#26303a",
+          fontFamily: "Rajdhani",
+          fontSize: "18px",
+          fontStyle: "bold",
+          letterSpacing: 1,
+          wordWrap: { width: 1250 },
+        }),
+      );
+    }
+    layer.add(
+      this.add.text(
+        x + 52,
+        y + 560,
+        "IMPORTING REPLACES THE CURRENT SAVE. ERASING REMOVES CORES, UNLOCKS, SKINS, RECORDS, ACHIEVEMENTS AND SETTINGS.",
+        {
+          color: "#8a949e",
+          fontFamily: "Rajdhani",
+          fontSize: "14px",
+          fontStyle: "bold",
+          letterSpacing: 1.6,
+        },
+      ),
+    );
+  }
+
+  private createDataButton(
+    layer: Phaser.GameObjects.Container,
+    buttonX: number,
+    buttonY: number,
+    text: string,
+    color: number,
+    onClick: () => void,
+  ): void {
+    const width = 390;
+    const height = 52;
+    const surface = this.add.graphics();
+    const draw = (hovered: boolean): void => {
+      surface.clear();
+      surface.fillStyle(hovered ? color : 0xffffff, hovered ? 0.08 : 1);
+      surface.fillRect(buttonX, buttonY, width, height);
+      surface.lineStyle(1, color, 1);
+      surface.strokeRect(buttonX + 0.5, buttonY + 0.5, width - 1, height - 1);
+    };
+    draw(false);
+    layer.add(surface);
+    layer.add(
+      this.add
+        .text(buttonX + width / 2, buttonY + height / 2, text, {
+          color: `#${color.toString(16).padStart(6, "0")}`,
+          fontFamily: "Rajdhani",
+          fontSize: "17px",
+          fontStyle: "bold",
+          letterSpacing: 1.2,
+        })
+        .setOrigin(0.5),
+    );
+    const hitArea = this.add
+      .rectangle(buttonX, buttonY, width, height, 0xffffff, 0)
+      .setOrigin(0)
+      .setInteractive({ useHandCursor: true });
+    hitArea.on("pointerover", () => draw(true));
+    hitArea.on("pointerout", () => draw(false));
+    hitArea.on("pointerup", () => {
+      this.sound.play(AUDIO.confirm, {
+        volume: scaledSfxVolume(0.18, this.audioSettings),
+      });
+      onClick();
+    });
+    layer.add(hitArea);
+  }
+
+  private exportSave(): void {
+    const save = exportSaveData();
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(save, null, 1)], { type: "application/json" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `survivors-of-victory-save-v${GAME_VERSION}-${save.exportedAt.slice(0, 10)}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    this.dataMessage = `SAVE FILE EXPORTED (${Object.keys(save.entries).length} ENTRIES). CHECK YOUR DOWNLOADS FOLDER.`;
+    this.renderContent();
+  }
+
+  private importSave(): void {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (file === undefined) return;
+      void file.text().then((text) => {
+        const result = importSaveData(text);
+        if (result.ok) {
+          // Every screen caches what it loaded, so restart on the imported profile.
+          window.location.reload();
+          return;
+        }
+        this.dataMessage = `IMPORT FAILED: ${result.reason.toUpperCase()}`;
+        this.renderContent();
+      });
+    });
+    input.click();
+  }
+
+  private eraseSave(): void {
+    if (this.time.now >= this.eraseArmedUntil) {
+      this.eraseArmedUntil = this.time.now + 4000;
+      this.dataMessage =
+        "THIS CANNOT BE UNDONE. EXPORT A BACKUP FIRST IF YOU MIGHT WANT IT BACK.";
+      this.renderContent();
+      this.time.delayedCall(4050, () => {
+        if (
+          this.currentCategory === "data" &&
+          this.time.now >= this.eraseArmedUntil
+        ) {
+          this.dataMessage = "";
+          this.renderContent();
+        }
+      });
+      return;
+    }
+    eraseAllSaveData();
+    window.location.reload();
   }
 
   private createChoiceRow(

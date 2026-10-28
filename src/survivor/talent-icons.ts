@@ -1,5 +1,9 @@
 /** Small ivory silhouettes, matching the live HUD's simple equipment icons. */
 const paths: Record<string, string> = {
+  sword: '<path d="M54 4 47 26 24 48 16 40 40 16zm-40 34 12 12-4 4-12-12zm-2 9 5 5-8 9-6-6z"/>',
+  wave: '<path d="M5 50C45 53 61 24 48 4 73 25 54 66 5 50zM7 40C32 42 48 23 41 12 58 26 39 51 7 40z"/>',
+  petal: '<path d="M12 54C-2 28 15 2 34 14l1 10 9-6c25 18 2 42-32 36z"/>',
+  blood: '<path d="M32 4C26 20 12 31 12 42a20 20 0 0 0 40 0C52 31 38 20 32 4zm-9 35c-4 11 1 15 9 17-12 1-17-9-9-17z"/>',
   rifle: '<path d="m7 36 10-5h8v-5h24v6h10v5H41l-4 15h-8l4-15h-9l-9 5H7zm18-15h20v3H25z"/>',
   rounds: '<path d="m12 12 5-8 5 8v40H12zm15 0 5-8 5 8v40H27zm15 0 5-8 5 8v40H42z"/>',
   flame: '<path d="M34 4c3 16-11 19-5 29 6-3 10-8 10-16 14 13 20 27 8 38-9 9-26 7-33-3C2 33 24 26 20 13c7 5 7 10 7 10S35 14 34 4z"/>',

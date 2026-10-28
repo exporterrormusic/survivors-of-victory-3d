@@ -1,8 +1,7 @@
-// Exploder (Solaris): plants within 3 m, a red ring fills for 1 s, then it blows. Shot first, it
-// drops its charge, which goes off 0.6 s later. The blast hurts Raptures too.
+// Exploder (Pelican): plants within 3 m, a red ring fills for 1.7 s, then it blows. Shot first, it
+// drops its charge, which goes off 0.6 s later. The blast only hurts the player.
 
 import { Vector3 } from '@babylonjs/core';
-import { enemyDeath } from '../../enemy-death';
 import type { Target } from '../../targets';
 import type { RaptureSpec } from '../roster';
 import { TELL, type Tell } from '../telegraph';
@@ -19,7 +18,7 @@ class ExploderBehavior implements Behavior {
   private readonly damage: number;
   private static readonly TRIGGER = 3;
   private static readonly RADIUS = 4;
-  private static readonly FUSE = 1;
+  private static readonly FUSE = 1.7;
   private static readonly DROP_RADIUS = 3;
   private static readonly DROP_FUSE = .6;
 
@@ -50,7 +49,7 @@ class ExploderBehavior implements Behavior {
       return;
     }
     this.timer -= dt;
-    target.attackHold = .2;
+    target.rooted = .2;
     const fuse = this.phase === 'fuse' ? ExploderBehavior.FUSE : ExploderBehavior.DROP_FUSE;
     this.tell!.fill = 1 - Math.max(0, this.timer) / fuse;
     if (this.timer > 0) return;
@@ -58,11 +57,11 @@ class ExploderBehavior implements Behavior {
     this.releaseTell();
     this.phase = 'spent';
     if (target.alive) {
-      // Its own blast: no kill credit, but the usual death burst.
+      // Its own blast: no kill credit, and no death burst; the body is consumed by the energy blast.
+      target.scale = 0;
       target.hit(target.hp);
-      enemyDeath(ctx.vfx, target.position, target.radius, target.barHeight);
     }
-    detonate(ctx, this.at, radius, this.damage, 30, target);
+    detonate(ctx, this.at, radius, this.damage);
   }
 
   private releaseTell(): void {

@@ -1,0 +1,28 @@
+{
+  "tool": "built-in image_gen",
+  "basalt": "Use case: stylized-concept. Asset type: production game albedo texture, seamless tile, square 1024x1024. Create a single edge-to-edge orthographic material texture of weathered volcanic basalt bedrock for a polished stylized 3D action RPG, matching hand-painted environment textures with broad readable rock shapes and restrained fine detail. Charcoal slate-grey basalt, subtle desaturated brown iron staining, irregular angular fractured plates, small porous areas, restrained pale ash trapped in crevices. Medium-dark grey readable values, not crushed black. Surface fills entire image uniformly, no perspective, no horizon, no objects, no directional illumination, no cast shadows, no vignette, no text. Broad painted bevel highlights but no baked dramatic lighting. Perfectly seamless repeating texture across all four edges. This is solid cooled rock, absolutely NO orange glowing lava or glowing cracks. Original texture, not copied from any game.",
+  "lava": "Use case: stylized-concept. Asset type: production tileable game lava surface texture, square 1024x1024. Single seamless edge-to-edge orthographic texture of slowly flowing basaltic lava, for a polished hand-painted stylized action RPG. Large irregular dark charcoal crust rafts floating in connected narrow molten orange-red channels. Around 65 percent dark cooled cracked crust, 30 percent orange molten lava, only 5 percent small honey-yellow hotter cores. Subtle directional stretched eddies and viscous folds rather than a regular cellular pattern. Clearly separated readable shapes, painterly medium detail, rough black-purple rock crust with cool grey bevels. Full-frame flat material texture, no perspective, no objects, no horizon, no border, no text, no watermark, no bloom halo, no deep cast shadows. Seamless repeat on all four edges. Original artwork. Keep values controlled; not a white-hot glowing sheet.",
+  "ash": "Use case: stylized-concept. Asset type: square seamless game terrain albedo texture, 1024x1024. Edge-to-edge top-down flat material texture of fine volcanic ash and compacted cinder dust, muted medium warm grey ash with subtle desaturated dusty taupe and sparse tiny dark basalt chips. Gentle wind-ripple streaks, broad smooth areas making a readable traversable floor in a polished hand-painted 3D RPG. Painterly simplification, soft material variation, no strong shadows, no dramatic lighting, no objects, no lava, no glow, no footprints, no border, no labels. Uniform scale and brightness across the tile, seamless on all four sides. Original game-ready texture; not photographic sand and not a landscape.",
+  "sources": [
+    {
+      "title": "Nintendo: Eldin",
+      "url": "https://www.nintendo.com/ph/zelda/botw/discovery/eldin.html",
+      "use": "Readable dark volcanic silhouettes, bright lava against quiet rock."
+    },
+    {
+      "title": "HoYoverse: Great Volcano of Tollan",
+      "url": "https://www.hoyoverse.com/en-us/news/155170",
+      "use": "Reference for layered volcanic terrain and eruptions; no copied assets."
+    },
+    {
+      "title": "Catlike Coding: Texture Distortion",
+      "url": "https://catlikecoding.com/unity/tutorials/flow/texture-distortion/",
+      "use": "Two-phase flow technique; original Babylon GLSL implementation."
+    },
+    {
+      "title": "Babylon.js: Fog with ShaderMaterial",
+      "url": "https://doc.babylonjs.com/features/featuresDeepDive/materials/shaders/Fog%2BShaderMat/",
+      "use": "World-space camera distance for custom lava fog matching."
+    }
+  ]
+}

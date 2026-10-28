@@ -3,9 +3,14 @@
 // directly). The archived MOBA match (src/main.ts) still opens with ?hero=<character id> or
 // ?v=<model id>, and ?preview=<scene> opens a menu screen directly.
 import { isPlayable } from './characters';
+import { requestPersistentStorage } from './frontend/persistence/ProfileStorage';
+
+// Ask the browser to keep the save through storage cleanup (matters most in the itch.io web build).
+void requestPersistentStorage();
 
 const params = new URLSearchParams(location.search);
-if (params.has('run')) startRun();
+if (params.get('mission') === 'ark_siege' || params.get('prototype') === 'ark-siege') void import('./siege/main');
+else if (params.has('run')) startRun();
 else if (params.has('hero') || params.has('v')) startMatch();
 else void startFrontEnd();
 
@@ -19,7 +24,7 @@ async function startFrontEnd(): Promise<void> {
   onDeploy(({ characterId, stageSelection }) => {
     if (!isPlayable(characterId)) return;
     // `mission` picks the run type (salvage_run = the sortie loop); `mode=sortie` is the old dev link.
-    const query = new URLSearchParams({ run: 'test-range', character: characterId, zone: stageSelection.zoneId, mission: stageSelection.modeId });
+    const query = new URLSearchParams({ run: 'test-range', character: characterId, zone: stageSelection.zoneId, time: stageSelection.time, mission: stageSelection.modeId });
     history.replaceState(null, '', `?${query}`);
     game.destroy(true);
     container.remove();
@@ -28,6 +33,10 @@ async function startFrontEnd(): Promise<void> {
 }
 
 function startRun(): void {
+  if (new URLSearchParams(location.search).get('mission') === 'ark_siege') {
+    void import('./siege/main');
+    return;
+  }
   // The survivor run wires its own Leave button (back to Stage Select, or abandon a sortie).
   void import('./survivor/main');
 }

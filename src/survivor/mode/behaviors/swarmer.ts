@@ -32,7 +32,6 @@ class SwarmerBehavior implements Behavior {
       this.flare = ctx.vfx.quad('star', FLARE);
       ctx.vfx.glowing(this.flare);
       this.timer = .35;
-      target.attackHold = .45;
     }
     this.timer -= dt;
     ctx.vfx.sprite(this.flare, target.muzzle(this.at), .5 + .4 * (1 - this.timer / .35));

@@ -1,0 +1,26 @@
+/* The Rapture Lab's spawn list, shown as the Raptures tab inside #weather-lab. */
+.rapture-lab { color:#e8eef4; font:600 13px/1.25 Rajdhani, sans-serif; }
+.rapture-lab * { box-sizing:border-box; }
+.rapture-lab details { border-top:1px solid #9aa8ae44; }
+#weather-lab .rapture-lab summary {
+  display:flex; min-height:0; padding:7px 2px; cursor:pointer; list-style:none;
+  font-size:11px; letter-spacing:.14em; color:#b6c3cb; user-select:none;
+}
+.rapture-lab summary::-webkit-details-marker { display:none; }
+.rapture-lab summary::before { content:'▸'; margin-right:6px; }
+.rapture-lab details[open] > summary::before { content:'▾'; }
+.rapture-lab summary span { margin-left:auto; opacity:.6; }
+#weather-lab .rapture-lab summary:hover { color:#f5d28a; }
+.rapture-lab .lab-list { margin-top:8px; }
+.rapture-lab .lab-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(108px, 1fr)); gap:4px; padding-bottom:8px; }
+.rapture-lab .lab-row { display:flex; flex-wrap:wrap; gap:4px; }
+.rapture-lab .lab-list + .lab-row { margin-top:8px; }
+#weather-lab .rapture-lab button {
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:center; min-width:0; min-height:0; padding:4px 6px; text-align:left;
+}
+#weather-lab .rapture-lab .lab-row button { flex:1 1 0; align-items:center; text-align:center; min-height:32px; }
+.rapture-lab button b, .rapture-lab button small { max-width:100%; overflow-wrap:anywhere; line-height:1.15; }
+#weather-lab .rapture-lab button[aria-pressed="true"] { background:#4a4230; border-color:#f5d28a; color:#ffe3a7; }
+.rapture-lab small { font-size:11px; opacity:.6; font-weight:500; }
+.rapture-lab small.custom { color:#7fd8ff; opacity:1; }
+#weather-lab .rapture-lab p { margin:8px 0 0; }

@@ -8,7 +8,7 @@
 // A canvas under the panels draws Rapture health bars, damage numbers and a thin health line over
 // the hero; a canvas above everything draws the reticle and its reload arc.
 
-import type { Player } from './player';
+import { WEAPON_CHARGE_TIME, type Player } from './player';
 import { NUMBER_LIFE, type Run } from './run';
 import type { TargetField } from './targets';
 import type { CharacterKit } from './kit';
@@ -30,7 +30,12 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', paren
 const RADAR_RANGE = 24;
 
 /** The user's preferred simple white equipment and utility silhouettes. */
-const ICONS: Record<string, string> = {
+export const ICONS: Record<string, string> = {
+  halo: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor"><ellipse cx="32" cy="32" rx="24" ry="14" transform="rotate(-30 32 32)" stroke-width="4"/><ellipse cx="32" cy="32" rx="18" ry="9" transform="rotate(-30 32 32)" stroke-width="1.5"/><path d="m48 8 2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="currentColor" stroke="none"/></svg>', 
+  rocket: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M50 5 59 6 58 15 32 41 23 32zm-29 25 13 13-5 5-13-13zM17 38l9 9-10 13-3-9-9-3zM35 17l-15 1-9 15 13-5zm12 12-1 15-15 9 5-13z"/></svg>',
+  goddess: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M27 8h10v15h15v10H37v23H27V33H12V23h15z"/><circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  sword: '<svg viewBox="0 0 120 64" fill="currentColor"><g transform="translate(60 32) rotate(20) scale(1.35) translate(-56 -35)"><path d="M47 42Q66 26 81 8l-4 10Q65 33 50 45z"/><path d="m43 44 4 4-11 11-4-4z"/><path d="m43 39 10 10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="m40 48 4 1m-7 2 4 1m-7 2 4 1" fill="none" stroke="#0a1220" stroke-width="1.4"/><path d="m32 55 4 4-2 2-4-4z"/></g></svg>',
+  wave: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M5 50C45 53 61 24 48 4 73 25 54 66 5 50zM7 40C32 42 48 23 41 12 58 26 39 51 7 40z"/></svg>',
   rifle: '<svg viewBox="0 0 120 40" fill="currentColor"><path d="M3 21l15-4h12v11l-11 3H5z"/><path d="M30 15h49v12H30z" opacity=".92"/><path d="M79 18.5h30v5H79z"/><path d="M106 16h10v10h-10z"/><path d="M38 7h33v6H38z"/><path d="M45 13h4v3h-4zM60 13h4v3h-4z"/><path d="M47 27h9l-4 10h-8z"/><path d="M61 27h10v7h-8z" opacity=".85"/><path d="M33 19h40v2H33z" fill="#0a1220" opacity=".45"/></svg>',
   turret: '<svg viewBox="0 0 64 64" fill="currentColor"><rect x="14" y="13" width="26" height="17" rx="3"/><path d="M40 17h17v6H40z"/><path d="M9 15h6v13H9z" opacity=".85"/><path d="M27 30h6v8h-6z"/><path d="M30 38L15 55M30 38l15 17M30 38v19" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="30" cy="57" rx="17" ry="3" opacity=".5"/><path d="M18 18h12v3H18z" fill="#0a1220" opacity=".45"/></svg>',
   dash: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M12 14l16 18-16 18h11l16-18-16-18zM31 14l16 18-16 18h11l16-18-16-18z"/></svg>',
@@ -44,6 +49,7 @@ export interface HudCharacter {
   affiliation: string;
   portrait: string | null;
   burstArt: string | null;
+  burstArtPosition?: string;
 }
 
 export class SurvivorHud {
@@ -74,7 +80,11 @@ export class SurvivorHud {
   private shownAmmo = -1;
   private shownReload = false;
 
+  /** drawn over the hero's health line */
+  private readonly heroName: string;
+
   constructor(kit: CharacterKit, hero: HudCharacter, onPause: () => void, onAction: (action: Action) => void) {
+    this.heroName = hero.name;
     const hud = $('hud');
     hud.classList.add('survivor');
     // the MOBA's own frames give way to the survivor layout below
@@ -149,6 +159,7 @@ export class SurvivorHud {
     this.rounds.className = 'rh-rounds';
     this.rounds.setAttribute('aria-hidden', 'true');
     ammo.append(this.rounds, this.roundCount);
+    if (kit.weapon.melee) ammo.style.display = 'none';
     const reload = el('button', 'run-key rh-reload', ammo);
     el('span', '', reload).textContent = 'R';
     actionButton(reload, 'reload', 'Reload (R)');
@@ -167,6 +178,7 @@ export class SurvivorHud {
       const root = el('button', 'rd-card', dock);
       mountHudFrame(root);
       root.dataset.slot = id;
+      root.dataset.icon = icon;
       actionButton(root, id === 'weapon' ? 'fire' : id, `${id === 'special' ? kit.specialName : label} (${key})`);
       const labelEl = el('small', 'rd-label', root);
       labelEl.textContent = label;
@@ -174,7 +186,8 @@ export class SurvivorHud {
       const iconArt = el('div', 'rd-icon', body);
       iconArt.setAttribute('aria-hidden', 'true');
       iconArt.innerHTML = ICONS[icon] ?? '';
-      const value = counted ? el('b', 'rd-count', body) : null;
+      // The charge count sits in the card's top-right corner so the icon stays centred.
+      const value = counted ? el('b', 'rd-count', root) : null;
       const meter = el('i', 'rd-meter', root);
       el('span', '', el('kbd', 'run-key', root)).textContent = key;
       this.cards.set(id, { root, label: labelEl, value, meter });
@@ -185,6 +198,7 @@ export class SurvivorHud {
     mountHudFrame(this.burst, 'burst');
     const burstArt = el('div', 'rb-art', this.burst);
     if (hero.burstArt) burstArt.style.backgroundImage = `url("${import.meta.env.BASE_URL}${hero.burstArt}")`;
+    if (hero.burstArtPosition) burstArt.style.backgroundPosition = hero.burstArtPosition;
     const burstText = el('div', 'rb-text', this.burst);
     el('small', 'rb-name', burstText).textContent = kit.burstName;
     burstText.append(this.burstState);
@@ -221,7 +235,7 @@ export class SurvivorHud {
     const up = el('button', 'rx-upgrades', xp);
     actionButton(up, 'talents', 'Ability ranks (Tab)');
     up.setAttribute('aria-controls', 'run-talents');
-    up.append('[Tab] Upgrades ', this.upgrades);
+    up.append(kit.talentTiers ? '[Tab] Talents ' : '[Tab] Upgrades ', this.upgrades);
 
     this.overlay.id = 'run-overlay';
     this.overlay.setAttribute('aria-hidden', 'true');
@@ -257,9 +271,11 @@ export class SurvivorHud {
     setText(this.level, String(run.level).padStart(2, '0'));
     setWidth(this.xpFill, `${(run.xp / run.xpToNext) * 100}%`);
     setProgress(this.xpFill.parentElement!, run.xp, run.xpToNext);
-    setText(this.upgrades, String(run.skillPoints));
-    this.upgrades.parentElement!.classList.toggle('has-points', run.skillPoints > 0);
-    setAttr(this.upgrades.parentElement!, 'aria-label', `Ability ranks (Tab), ${run.skillPoints} unspent skill points`);
+    // Talent-tier heroes show waiting picks instead of unspent SP.
+    const waiting = run.tiers ? run.tiers.pendingCount(run.level) : run.skillPoints;
+    setText(this.upgrades, String(waiting));
+    this.upgrades.parentElement!.classList.toggle('has-points', waiting > 0);
+    setAttr(this.upgrades.parentElement!, 'aria-label', run.tiers ? `Talents (Tab), ${waiting} talent picks waiting` : `Ability ranks (Tab), ${waiting} unspent skill points`);
 
     // health and magazine
     setWidth(this.hpFill, `${(player.hp / player.maxHp) * 100}%`);
@@ -278,20 +294,33 @@ export class SurvivorHud {
 
     // cards: a line along the bottom shows reload / recharge progress
     const weapon = this.cards.get('weapon')!;
+    const fullyCharged = player.weaponCharge !== null && player.weaponCharge >= WEAPON_CHARGE_TIME - 1e-6;
     weapon.root.classList.toggle('busy', reloading);
-    setAttr(weapon.root, 'aria-label', reloading ? `Reloading (${player.reloading.toFixed(1)} seconds)` : `Weapon (LMB), ${player.ammo} rounds`);
-    setText(weapon.label, reloading ? 'Reloading' : player.weaponCharge !== null ? `Charge ${Math.round(player.weaponCharge / 3 * 100)}%` : 'Weapon');
-    setWidth(weapon.meter, reloading ? `${(1 - player.reloading / kit.weapon.reload) * 100}%` : player.weaponCharge !== null ? `${player.weaponCharge / 3 * 100}%` : '0');
+    weapon.root.classList.toggle('charging', player.weaponCharge !== null);
+    weapon.root.classList.toggle('charged', fullyCharged);
+    setAttr(weapon.root, 'aria-label', reloading ? `Reloading (${player.reloading.toFixed(1)} seconds)` : fullyCharged ? 'Fully charged. Release LMB to fire.' : kit.weapon.melee ? 'Fleetly Fading (LMB). Costs HP down to 50%; no reload.' : `Weapon (LMB), ${player.ammo} rounds`);
+    setText(weapon.label, reloading ? 'Reloading' : fullyCharged ? 'Fully charged' : player.weaponCharge !== null ? `Charge ${Math.floor(player.weaponCharge / WEAPON_CHARGE_TIME * 100)}%` : 'Weapon');
+    setWidth(weapon.meter, reloading ? `${(1 - player.reloading / player.reloadTime) * 100}%` : player.weaponCharge !== null ? `${player.weaponCharge / WEAPON_CHARGE_TIME * 100}%` : '0');
 
     const special = kit.special();
     const sp = this.cards.get('special')!;
-    setText(sp.value!, `${special.charges}`);
+    const specialCharge = special.charge ?? null;
+    const specialFull = specialCharge !== null && specialCharge >= 1 - 1e-6;
+    setText(sp.label, specialFull ? 'Fully charged' : specialCharge !== null ? `Charge ${Math.floor(specialCharge * 100)}%` : 'Special');
+    // Only multi-charge Specials show a count ("x 2"); single-charge ones show none.
+    setText(sp.value!, special.maxCharges > 1 ? `x ${special.charges}` : '');
+    sp.root.classList.toggle('charged', specialFull);
     sp.root.classList.toggle('busy', special.charges <= 0);
     setDisabled(sp.root, special.charges <= 0);
-    setAttr(sp.root, 'aria-label', `${kit.specialName} (RMB), ${special.charges} charges`);
-    setWidth(sp.meter, special.charges < special.maxCharges ? `${special.progress * 100}%` : '0');
+    setAttr(sp.root, 'aria-label', specialFull ? 'Fully charged. Release RMB to fire.' : `${kit.specialName} (RMB), ${special.charges} charges`);
+    setWidth(sp.meter, specialCharge !== null ? `${specialCharge * 100}%` : special.charges < special.maxCharges ? `${special.progress * 100}%` : '0');
 
-    this.cards.get('dash')!.root.classList.toggle('active', player.dashing > 0);
+    const dash = this.cards.get('dash')!;
+    dash.root.classList.toggle('active', player.dashing > 0);
+    setDisabled(dash.root, player.dashCooldown > 0);
+    setText(dash.label, player.dashCooldown > 0 ? `Dash ${player.dashCooldown.toFixed(1)}s` : 'Dash');
+    setWidth(dash.meter, player.dashCooldown > 0 ? `${(1 - player.dashCooldown / player.dashCooldownDuration) * 100}%` : '0');
+    setAttr(dash.root, 'aria-label', player.dashCooldown > 0 ? `Dash recharging, ${player.dashCooldown.toFixed(1)} seconds` : 'Dash ready (Shift)');
 
     const ready = run.burst >= 100;
     this.burst.classList.toggle('ready', ready);
@@ -325,12 +354,27 @@ export class SurvivorHud {
       ctx.textAlign = 'left';
     }
 
-    // Rapture health bars: bars only, no names
+    // Rapture health bars. Common Raptures get a bar only; heavies and bosses are named, in gold,
+    // with a wider bar, so the special ones stand out in a crowd.
     for (const t of targets.targets) {
       if (!t.alive || t.scale < .5) continue;
       const p = project(t.position.x, t.barHeight, t.position.z);
       if (!p.visible) continue;
-      const w = 54 * scale, h = 6 * scale;
+      const named = t.combatTier === 'heavy' || t.combatTier === 'boss';
+      const w = (named ? 84 : 54) * scale, h = 6 * scale;
+      if (named) {
+        ctx.font = `700 ${(t.combatTier === 'boss' ? 17 : 15) * scale}px Rajdhani, 'Segoe UI', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#000c';
+        const label = t.type.name.toUpperCase();
+        ctx.strokeText(label, p.x, p.y - h - 4 * scale);
+        ctx.fillStyle = '#ffd36a';
+        ctx.fillText(label, p.x, p.y - h - 4 * scale);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+      }
       ctx.fillStyle = '#060a0f';
       ctx.fillRect(p.x - w / 2 - 1, p.y - h - 1, w + 2, h + 2);
       ctx.fillStyle = '#ef6c69';
@@ -340,17 +384,32 @@ export class SurvivorHud {
       ctx.strokeRect(p.x - w / 2 - 1.5, p.y - h - 1.5, w + 3, h + 3);
     }
 
-    // the hero: one thin segmented health line, no name
-    const hp = project(player.position.x, player.position.y + 2.55, player.position.z);
-    if (hp.visible && player.chibi.root.isEnabled() && !player.transported) {
-      const w = 64 * scale, h = 6 * scale, segments = 5;
+    // NIKKEs (the hero and the supply squad): name over a segmented health line.
+    const nikkeBar = (x: number, y: number, z: number, hpShare: number, name: string, width: number, color: string): void => {
+      const at = project(x, y, z);
+      if (!at.visible) return;
+      const w = width * scale, h = 6 * scale, segments = 5;
       ctx.fillStyle = '#060a0f';
-      ctx.fillRect(hp.x - w / 2 - 1, hp.y - h - 1, w + 2, h + 2);
-      ctx.fillStyle = '#6edc70';
-      ctx.fillRect(hp.x - w / 2, hp.y - h, w * (player.hp / player.maxHp), h);
+      ctx.fillRect(at.x - w / 2 - 1, at.y - h - 1, w + 2, h + 2);
+      ctx.fillStyle = color;
+      ctx.fillRect(at.x - w / 2, at.y - h, w * Math.max(0, Math.min(1, hpShare)), h);
       ctx.fillStyle = '#0e1727';
-      for (let i = 1; i < segments; i++) ctx.fillRect(hp.x - w / 2 + (w * i) / segments - .5, hp.y - h, 1, h);
-    }
+      for (let i = 1; i < segments; i++) ctx.fillRect(at.x - w / 2 + (w * i) / segments - .5, at.y - h, 1, h);
+      ctx.font = `700 ${13 * scale}px Rajdhani, 'Segoe UI', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000b';
+      ctx.strokeText(name, at.x, at.y - h - 3 * scale);
+      ctx.fillStyle = '#eef3f2';
+      ctx.fillText(name, at.x, at.y - h - 3 * scale);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+    };
+    for (const ally of targets.squad)
+      if (ally.alive) nikkeBar(ally.position.x, ally.position.y + 2.3, ally.position.z, ally.hp / ally.maxHp, ally.name.toUpperCase(), 50, '#5fc7d8');
+    if (player.chibi.root.isEnabled() && !player.transported)
+      nikkeBar(player.position.x, player.position.y + 2.55, player.position.z, player.hp / player.maxHp, this.heroName.toUpperCase(), 64, '#6edc70');
 
     // damage numbers rise and fade; crits are gold with a "!"
     ctx.textAlign = 'center';
@@ -396,12 +455,36 @@ export class SurvivorHud {
       }
       ctx.fillStyle = '#e9fbff';
       ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
-      if (player.reloading > 0) {
+      const heldSpecial = player.kit.special().charge ?? null;
+      if (player.weaponCharge !== null || heldSpecial !== null) {
+        const charge = Math.min(1, heldSpecial ?? player.weaponCharge! / 3), full = charge >= 1 - 1e-6;
+        const chargeColor = heldSpecial !== null ? '#d398ff' : '#32cfff';
+        const radius = r + 11 * scale;
+        ctx.strokeStyle = '#07131ee8';ctx.lineWidth = 6 * scale;
+        ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle = full ? '#f2ffff' : chargeColor;ctx.lineWidth = (full ? 4 : 3) * scale;
+        ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+charge*Math.PI*2);ctx.stroke();
+        if (full) for (let i=0;i<4;i++) {
+          const a=i*Math.PI/2+Math.PI/4;
+          ctx.beginPath();ctx.moveTo(x+Math.cos(a)*(radius+4*scale),y+Math.sin(a)*(radius+4*scale));
+          ctx.lineTo(x+Math.cos(a)*(radius+10*scale),y+Math.sin(a)*(radius+10*scale));ctx.stroke();
+        }
+        ctx.textAlign='center';ctx.textBaseline='top';ctx.font=`700 ${14*scale}px Rajdhani, sans-serif`;
+        const label=full?'FULLY CHARGED':`CHARGING ${Math.floor(charge*100)}%`;
+        const labelY=y+radius+14*scale;
+        ctx.lineWidth=4*scale;ctx.strokeStyle='#07131e';ctx.strokeText(label,x,labelY);
+        ctx.fillStyle=full?'#f2ffff':chargeColor;ctx.fillText(label,x,labelY);
+        if (full) {
+          ctx.font=`600 ${11*scale}px Rajdhani, sans-serif`;
+          const releaseLabel = heldSpecial !== null ? 'RELEASE RMB' : 'RELEASE LMB';
+          ctx.strokeText(releaseLabel,x,labelY+16*scale);ctx.fillText(releaseLabel,x,labelY+16*scale);
+        }
+      } else if (player.reloading > 0) {
         const k = 1 - player.reloading / player.kit.weapon.reload;
         ctx.strokeStyle = '#ffd86b';
         ctx.lineWidth = 3.5;
         ctx.beginPath(); ctx.arc(x, y, r + 9, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke();
-      } else if (player.ammo <= 2) {
+      } else if (!player.kit.weapon.melee && player.ammo <= 2) {
         ctx.fillStyle = player.ammo === 0 ? '#ff6f6f' : '#ffd86b';
         for (let i = 0; i < player.ammo; i++) ctx.fillRect(x + r + 8 + i * 6, y - 5, 3.5, 10);
       }

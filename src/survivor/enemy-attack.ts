@@ -15,9 +15,13 @@ function chargeFade(age: number): number {
 const PROJECTILE: Rgb = [2.8, .18, .28];
 const CORE: Rgb = [3, 1.1, 1.05];
 const RANGE_FIZZLE = .24;
+/** how far a normal Rapture bolt flies, and how far away a Rapture starts shooting (m) */
+const BOLT_RANGE = 28;
+const ENGAGE_RANGE = 26;
 // Deliberately no audio capability: enemy attack sounds are disabled.
 type LaserContext = Pick<KitContext, 'vfx' | 'snow' | 'targets'>;
 interface Barrel {
+  reflected?: number;
   origin: Vector3;
   end: Vector3;
   previous: Vector3;
@@ -36,8 +40,9 @@ export class EnemyAttackPacing {
   update(dt: number): void { this.gap = Math.max(0, this.gap - Math.max(0, dt)); }
   acquire(owner: object): boolean {
     if (this.active.has(owner)) return true;
-    if (this.active.size >= 2 || this.gap > 0) return false;
-    this.active.add(owner); this.gap = .65;
+    // Enough shooters at once that a horde actually fires; the short gap staggers volleys.
+    if (this.active.size >= 6 || this.gap > 0) return false;
+    this.active.add(owner); this.gap = .22;
     return true;
   }
   release(owner: object): void { this.active.delete(owner); }
@@ -62,10 +67,11 @@ export class EnemyLaserAttack {
   private meleeMarker: FxQuad | null = null;
   private meleeGlow: FxQuad | null = null;
 
-  constructor(private readonly ctx: LaserContext, readonly target: Target, private readonly player: Player, delay = 3, private readonly pacing?: EnemyAttackPacing) {
+  /** `barrels` fires one bolt from each of that many muzzles (default: 2 for Crawlers, else 1). */
+  constructor(private readonly ctx: LaserContext, readonly target: Target, private readonly player: Player, delay = 3, private readonly pacing?: EnemyAttackPacing, barrels?: number) {
     const crawler = target.type.attack === 'mortar';
     const pelican = target.type.attack === 'fan';
-    this.count = crawler ? 2 : 1;
+    this.count = barrels ?? (crawler ? 2 : 1);
     this.windup = crawler ? 1.2 : pelican ? 1 : .7;
     this.speed = crawler ? 7 : pelican ? 8 : 9;
     this.damage = crawler ? 8 : pelican ? 6 : 5;
@@ -78,19 +84,18 @@ export class EnemyLaserAttack {
 
   update(dt: number, active = true): void {
     if (!active) { this.reset(); return; }
-    if (dt <= 0) return;
+    if (dt <= 0 || this.player.kit.freezesEnemies || this.target.frozen > 0) return;
     if (this.generation !== this.target.generation) {
       this.reset(); this.generation = this.target.generation; return;
     }
     if (this.player.hp <= 0 || (this.phase !== 'flight' && (!this.target.alive || this.target.stunned > 0))) { this.reset(); return; }
     this.timer -= dt;
     if (this.phase === 'ready') {
-      if (this.timer > 0 || this.target.scale < .99 || Vector3.DistanceSquared(this.target.position, this.player.position) > 12 ** 2) return;
+      if (this.timer > 0 || this.target.scale < .99 || Vector3.DistanceSquared(this.target.position, this.player.position) > ENGAGE_RANGE ** 2) return;
       if (this.pacing && !this.pacing.acquire(this)) return;
       if (this.inMeleeRange()) { this.startMelee(); return; }
-      this.aim.copyFrom(this.player.position).addInPlaceFromFloats(0, .8, 0);
       this.phase = 'charge'; this.timer = this.windup;
-      this.target.attackHold = this.windup + .15;
+      // Keeps walking while it charges: freezing made backing off trivial.
       for (let i = 0; i < this.count; i++) {
         const barrel: Barrel = {
           origin: new Vector3(), end: new Vector3(), previous: new Vector3(), velocity: new Vector3(), distance: 0, fizzle: null,
@@ -112,6 +117,8 @@ export class EnemyLaserAttack {
         this.ctx.vfx.tint(barrel.glow, CHARGE, (.8 + .2 * charge) * chargeFade(this.windup - this.timer));
         this.ctx.vfx.sprite(barrel.glow, barrel.origin, this.chargeSize * (.7 + .3 * charge));
       }
+      // Walk and strafe through the wind-up (Target.attackHold), aim at release.
+      this.target.attackHold = .2;
       if (this.timer <= 0) this.fire();
     } else if (this.phase === 'flight') {
       this.updateProjectiles(dt);
@@ -125,7 +132,7 @@ export class EnemyLaserAttack {
 
   private startMelee(): void {
     this.phase = 'melee'; this.timer = .6;
-    this.target.attackHold = .75;
+    this.target.rooted = .75;
     this.aim.copyFrom(this.player.position);
     this.aim.y = Math.max(.04, this.ctx.snow?.depth(this.aim.x, this.aim.z) ?? 0);
     this.meleeMarker = this.ctx.vfx.quad('warning-ring', RED, .9, 'alpha');
@@ -151,6 +158,11 @@ export class EnemyLaserAttack {
   }
 
   private fire(): void {
+    // Lead the player by part of the flight time: running in a straight line no longer dodges
+    // every bolt, while turning or dashing still does.
+    const flight = Vector3.Distance(this.target.position, this.player.position) / this.speed;
+    const v = this.player.motion;
+    this.aim.copyFrom(this.player.position).addInPlaceFromFloats(v.x * flight * .6, .8, v.z * flight * .6);
     this.phase = 'flight';
     this.volleyHit = false;
     this.target.attackHold = 0;
@@ -180,11 +192,32 @@ export class EnemyLaserAttack {
         continue;
       }
       barrel.previous.copyFrom(barrel.end);
-      const travel = Math.min(this.speed * dt, 14 - barrel.distance);
+      const travel = Math.min(this.speed * dt, BOLT_RANGE - barrel.distance);
       barrel.end.addInPlace(barrel.velocity.scale(travel / this.speed));
       barrel.distance += travel;
       const cover = this.ctx.targets.navigation.traceCover(barrel.previous, barrel.end, this.width * .5) ?? null;
-      const contact = segmentSphereContact(barrel.previous, barrel.end, this.body, .45 + this.width * .5);
+      if (!barrel.reflected && cover == null) {
+        const multiplier = this.player.kit.parry?.(barrel.previous, barrel.end) ?? 0;
+        if (multiplier) {
+          barrel.reflected = multiplier; barrel.velocity.scaleInPlace(-1); barrel.distance = 0;
+          this.ctx.vfx.tint(barrel.beam, [.8, .25, 1], 1);
+          continue;
+        }
+      }
+      if (barrel.reflected) {
+        let victim: Target | undefined, nearest = cover ?? Infinity;
+        for (const target of this.ctx.targets.targets) {
+          if (!target.alive) continue;
+          const center = target.position.add(new Vector3(0, .8, 0));
+          const t = segmentSphereContact(barrel.previous, barrel.end, center, target.radius + .2);
+          if (t != null && t < nearest) { victim = target; nearest = t; }
+        }
+        if (victim) {
+          this.player.damageReflected(victim, this.damage * barrel.reflected);
+          this.release(barrel); this.barrels.splice(i, 1); continue;
+        }
+      }
+      const contact = barrel.reflected ? null : segmentSphereContact(barrel.previous, barrel.end, this.body, .45 + this.width * .5);
       const ground = barrel.end.y <= .04
         ? Math.max(0, (barrel.previous.y - .04) / Math.max(.0001, barrel.previous.y - barrel.end.y)) : null;
       const obstruction = Math.min(cover ?? Infinity, ground ?? Infinity);
@@ -197,7 +230,7 @@ export class EnemyLaserAttack {
         this.release(barrel); this.barrels.splice(i, 1);
         continue;
       }
-      if (barrel.distance >= 14) {
+      if (barrel.distance >= BOLT_RANGE) {
         // Range expiry is visual only: stop movement and collision while the energy withers.
         barrel.fizzle = 0;
         this.drawFizzle(barrel);
@@ -240,7 +273,7 @@ export class EnemyLaserAttack {
     for (const barrel of this.barrels) this.release(barrel);
     this.barrels.length = 0;
     this.phase = 'ready'; this.timer = this.cooldown;
-    this.target.attackHold = 0;
+    this.target.attackHold = 0; this.target.rooted = 0;
   }
 
   dispose(): void { this.reset(); }

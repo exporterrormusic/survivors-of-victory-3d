@@ -1,6 +1,7 @@
 import { ABILITY_RANK_COSTS, type AbilityStage, type AbilityTrack } from './ability-ranks';
 import { abilityIcon, rankFrame } from './talent-icons';
 import { mountPanelTrim } from './hud-frames';
+import type { TalentTreeId } from '../characters/talent-types';
 import type { Run } from './run';
 import './talent-menu.css';
 
@@ -23,7 +24,6 @@ export class TalentMenu {
   private readonly detailName = el('h3', 'st-detail-name');
   private readonly detailText = el('p', 'st-detail-text');
   private readonly requirement = el('p', 'st-requirement');
-  private readonly preview = el('img', 'st-preview-art');
   private readonly purchase = el('button', 'st-purchase');
   private readonly purchaseHint = el('span', 'st-purchase-hint');
   private readonly announcement = el('span', 'st-announcement');
@@ -33,8 +33,10 @@ export class TalentMenu {
   /** Zero-based rank column; column 5 is the exclusive lobby-selected capstone. */
   private selectedColumn = 1;
   private readonly tracks: readonly AbilityTrack[];
+  private lobbyCapstone: TalentTreeId | null = null;
 
-  constructor(private readonly run: Run, portrait: string, private readonly onClose: () => void, private readonly onPurchase: () => void) {
+  constructor(private readonly run: Run, portrait: string, private readonly onClose: () => void, private readonly onPurchase: () => void, private readonly lobby?: { chooseCapstone: (id: TalentTreeId | null) => void }) {
+    this.lobbyCapstone = run.talents.selectedCapstone;
     this.tracks = run.talents.tracks;
     this.dialog.id = 'run-talents';
     this.dialog.setAttribute('aria-labelledby', 'st-title');
@@ -42,21 +44,21 @@ export class TalentMenu {
     const face = el('div', 'st-face');
     const image = el('img', 'st-portrait');
     image.src = asset(portrait);
-    image.alt = 'Snow White';
+    image.alt = run.characterName;
     face.append(image);
     // Same single, slight top-left cut as the actual bottom-left HUD portrait.
     mountPanelTrim(face, 'portrait');
     const identity = el('div', 'st-identity');
-    const title = el('h2', '', 'Ability ranks');
+    const title = el('h2', '', 'Talent Tree');
     title.id = 'st-title';
     const wallet = el('div', 'st-wallet');
-    wallet.append(el('span', 'st-name', 'Snow White'), this.level, this.points);
+    wallet.append(el('span', 'st-name', run.characterName), this.level, this.points);
     identity.append(title, wallet);
     const close = el('button', 'st-close', '×');
     close.type = 'button';
-    close.setAttribute('aria-label', 'Resume test range');
+    close.setAttribute('aria-label', lobby ? 'Back to character select' : 'Resume game');
     close.addEventListener('click', onClose);
-    header.append(face, identity, el('span', 'st-paused', 'Paused'), close);
+    header.append(face, identity, el('span', 'st-paused', lobby ? 'Loadout preview' : 'Paused'), close);
 
     const headings = el('div', 'st-columns');
     headings.setAttribute('aria-hidden', 'true');
@@ -108,9 +110,6 @@ export class TalentMenu {
 
     const detail = el('section', 'st-detail');
     detail.setAttribute('aria-label', 'Selected upgrade');
-    const preview = el('div', 'st-preview');
-    this.preview.alt = '';
-    preview.append(this.preview);
     const copy = el('div', 'st-detail-copy');
     this.detailName.id = 'st-detail-name';
     copy.append(this.detailLabel, this.detailName, this.detailText, this.requirement);
@@ -118,13 +117,14 @@ export class TalentMenu {
     this.purchase.type = 'button';
     this.purchase.addEventListener('click', () => this.buy());
     action.append(this.purchase, this.purchaseHint);
-    detail.append(preview, copy, action);
+    detail.append(copy, action);
     const footer = el('footer', 'st-footer');
     footer.append(el('span', '', 'One capstone / Swap in lobby / Ranks reset each run'));
     const controls = el('span', 'st-key-help', 'Arrows: select · Enter: upgrade');
+    if (lobby) controls.textContent = 'Arrows: browse / Enter: equip capstone';
     const resume = el('button', 'st-resume');
     resume.type = 'button';
-    resume.append(el('kbd', '', 'Tab'), document.createTextNode(' Resume'));
+    resume.append(el('kbd', '', 'Tab'), document.createTextNode(lobby ? ' Back' : ' Resume'));
     resume.addEventListener('click', onClose);
     footer.append(controls, resume);
     this.announcement.setAttribute('role', 'status');
@@ -132,7 +132,7 @@ export class TalentMenu {
     this.dialog.append(header, headings, this.board, detail, footer, this.announcement);
     document.getElementById('frame')!.append(this.dialog);
     this.dialog.addEventListener('cancel', event => { event.preventDefault(); onClose(); });
-    this.dialog.addEventListener('keydown', event => this.keydown(event));
+    this.dialog.addEventListener('keydown', event => { this.keydown(event); event.stopPropagation(); });
   }
 
   get isOpen(): boolean { return this.dialog.open; }
@@ -142,6 +142,8 @@ export class TalentMenu {
     this.dialog.showModal();
     this.focusSelected();
   }
+  get element(): HTMLDialogElement { return this.dialog; }
+  destroy(): void { this.close(); this.dialog.remove(); }
   close(): void { if (this.isOpen) this.dialog.close(); }
 
   private select(row: number, column: number): void {
@@ -152,8 +154,8 @@ export class TalentMenu {
 
   private refresh(): void {
     const { talents, skillPoints } = this.run;
-    this.level.textContent = `LV ${this.run.level}`;
-    this.points.textContent = `${skillPoints} SP`;
+    this.level.textContent = this.lobby ? 'Ranks reset each run' : `LV ${this.run.level}`;
+    this.points.textContent = this.lobby ? '' : `${skillPoints} SP`;
     for (const [index, track] of this.tracks.entries()) this.rankLabels[index].textContent = `${talents.abilityRank(track.id)} / 5`;
     for (const view of this.nodes) {
       const track = this.tracks[view.row], current = talents.abilityRank(track.id);
@@ -167,6 +169,11 @@ export class TalentMenu {
       view.button.tabIndex = selected ? 0 : -1;
       view.check.hidden = !owned;
       view.status.textContent = capstone ? owned ? 'Active' : talents.selectedCapstone === track.id ? 'Equipped / needs Rank 5' : 'Choose in lobby' : owned ? 'Unlocked' : `${ABILITY_RANK_COSTS[view.column]} SP`;
+      if (this.lobby) {
+        view.button.dataset.state = capstone ? this.lobbyCapstone === track.id ? 'owned' : 'available' : rank === 1 ? 'owned' : 'available';
+        view.check.hidden = capstone ? this.lobbyCapstone !== track.id : rank !== 1;
+        view.status.textContent = capstone ? this.lobbyCapstone === track.id ? 'Equipped / needs Rank 5' : 'Choose capstone' : rank === 1 ? 'Base ability' : `${ABILITY_RANK_COSTS[view.column]} SP`;
+      }
       view.button.setAttribute('aria-label', `${track.name}, ${capstone ? 'capstone' : `rank ${rank}`}, ${stage.name}. ${owned ? 'Unlocked' : capstone ? view.status.textContent : available ? 'Available, ' + view.status.textContent : talents.unavailable(track.id, rank, skillPoints)}`);
     }
     this.refreshDetail();
@@ -185,9 +192,14 @@ export class TalentMenu {
     this.detailLabel.textContent = `${track.name} · ${capstone ? 'Capstone' : `Rank ${this.selectedColumn + 1}`}`;
     this.detailName.textContent = stage.name;
     this.detailText.textContent = stage.description;
-    this.preview.src = asset(stage.art);
-    this.preview.alt = `${stage.name} upgrade illustration`;
-    this.preview.parentElement!.dataset.track = track.id;
+    if (this.lobby) {
+      const equipped = this.lobbyCapstone === track.id;
+      this.requirement.textContent = capstone ? `Activates at ${track.name} Rank 5. Only one capstone can be equipped.` : rank === 1 ? 'Base ability available at the start of every run.' : '';
+      this.purchase.disabled = !capstone;
+      this.purchase.textContent = capstone ? equipped ? 'Unequip capstone' : 'Equip capstone' : 'Upgrade during a run';
+      this.purchaseHint.textContent = capstone ? 'Your choice is saved for your next deployment.' : 'Earn SP during gameplay. Ranks reset each run.';
+      return;
+    }
     if (capstone) {
       const equipped = this.run.talents.selectedCapstone === track.id;
       this.requirement.textContent = owned ? 'Active capstone. Only one can be active at a time.'
@@ -208,6 +220,14 @@ export class TalentMenu {
 
   private buy(): void {
     const { track, capstone } = this.selection;
+    if (this.lobby) {
+      if (!capstone) return;
+      this.lobbyCapstone = this.lobbyCapstone === track.id ? null : track.id;
+      this.lobby.chooseCapstone(this.lobbyCapstone);
+      this.announcement.textContent = this.lobbyCapstone ? `${track.capstone.name} equipped for your next run.` : 'Capstone unequipped.';
+      this.refresh();
+      return;
+    }
     if (capstone) return;
     const rank = this.selectedColumn + 1;
     if (!this.run.talents.purchase(track.id, rank, this.run)) return;

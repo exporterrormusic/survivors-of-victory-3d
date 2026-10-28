@@ -5,7 +5,8 @@ import { stripTypeScriptTypes } from 'node:module';
 import { NavigationAgent } from '../src/navigation.ts';
 import { SnowField } from '../src/survivor/snow-field.ts';
 const collisionSource=(await fs.readFile(new URL('../src/survivor/range-collision.ts',import.meta.url),'utf8'))
- .replace("'./range-environments'",JSON.stringify(new URL('../src/survivor/range-environments.ts',import.meta.url).href));
+ .replace("'./range-environments.ts'",JSON.stringify(new URL('../src/survivor/range-environments.ts',import.meta.url).href))
+ .replace("'./city-layout.ts'",JSON.stringify(new URL('../src/survivor/city-layout.ts',import.meta.url).href));
 const collisionURL=`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(collisionSource)).toString('base64')}`;
 const source = (await fs.readFile(new URL('../src/survivor/snow-navigation.ts', import.meta.url), 'utf8'))
   .replace("'../navigation'", JSON.stringify(new URL('../src/navigation.ts', import.meta.url).href))

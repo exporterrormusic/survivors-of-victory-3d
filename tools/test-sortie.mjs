@@ -30,9 +30,9 @@ const step = (fn, seconds, dt = 1 / 30) => { const out = []; for (let t = 0; t <
 {
   assert.equal(RAPTURE_KEYS.length, 22, 'all 22 Outpost Raptures');
   assert.equal(new Set(RAPTURE_KEYS.map((k) => ROSTER[k].model)).size, 22, 'one model each');
-  const tiers = { horde: 0, specialist: 0, heavy: 0, boss: 0 };
+  const tiers = { horde: 0, specialist: 0, heavy: 0, boss: 0, archive: 0 };
   for (const k of RAPTURE_KEYS) tiers[ROSTER[k].tier]++;
-  assert.deepEqual(tiers, { horde: 5, specialist: 10, heavy: 4, boss: 3 });
+  assert.deepEqual(tiers, { horde: 4, specialist: 6, heavy: 3, boss: 3, archive: 6 });
   for (const k of RAPTURE_KEYS) assert.ok(ROSTER[k].tier === 'boss' ? ROSTER[k].cost === 0 : ROSTER[k].cost > 0, `${k} cost`);
   assert.throws(() => raptureSpec('nope'));
 }
@@ -70,7 +70,7 @@ const step = (fn, seconds, dt = 1 / 30) => { const out = []; for (let t = 0; t <
   for (let i = 0; i < 1800; i++) {
     for (const req of director.update(1 / 30, 1, { total: alive, byType })) {
       spent += req.cost;
-      assert.ok(['swarm', 'gun-line', 'pounce'].includes(req.group), `Alert 1 group ${req.group}`);
+      assert.ok(['swarm', 'gun-line', 'kamikaze'].includes(req.group), `Alert 1 group ${req.group}`);
       for (const m of req.members) { alive += m.count; byType.set(m.type, (byType.get(m.type) ?? 0) + m.count); }
     }
   }
@@ -78,9 +78,9 @@ const step = (fn, seconds, dt = 1 / 30) => { const out = []; for (let t = 0; t <
   assert.ok(spent <= expected + 1e-6 && spent > expected * .6, `spent ${spent} of ~${expected}`);
   assert.ok(alive <= DEFAULT_TUNING.maxAlive[0], 'alive limit');
 
-  // Caps: Phalanx 3, heavies 2 combined, even with a huge budget.
+  // Caps: Tripod 3, heavies 2 combined, even with a huge budget.
   const capped = new SpawnDirector(seededRandom(9), [
-    { key: 'p', members: [{ type: 'phalanx', count: [5, 5] }], weight: 1, minAlert: 1 },
+    { key: 'p', members: [{ type: 'tripod', count: [5, 5] }], weight: 1, minAlert: 1 },
     { key: 'h', members: [{ type: 'hardHat', count: [1, 1] }, { type: 'thermite', count: [1, 1] }], weight: 1, minAlert: 1 },
   ]);
   capped.budget = 1e6;
@@ -89,7 +89,7 @@ const step = (fn, seconds, dt = 1 / 30) => { const out = []; for (let t = 0; t <
   for (let i = 0; i < 20; i++) for (const req of capped.update(.1, 5, { total, byType: counts })) for (const m of req.members) {
     counts.set(m.type, (counts.get(m.type) ?? 0) + m.count); total += m.count;
   }
-  assert.equal(counts.get('phalanx'), 3, 'phalanx cap');
+  assert.equal(counts.get('tripod'), 3, 'tripod cap');
   assert.equal((counts.get('hardHat') ?? 0) + (counts.get('thermite') ?? 0), 2, 'shared heavy cap');
 
   // Pulses add a lump of budget.

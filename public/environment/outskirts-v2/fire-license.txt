@@ -1,0 +1,6 @@
+Flame02 flipbook by Thomas Iche / Unity Labs Paris, Unity Technologies.
+License: CC0 1.0 Universal.
+Source announcement: https://unity.com/blog/engine-platform/free-vfx-image-sequences-flipbooks
+Original download: https://unity3d.com/files/labs/downloads/vfx/assets01/Flame02/Flame02-flipbooks.zip
+Project file flame02-16x4.png is a lossless PNG conversion of Flame02_16x4.tga.
+64 frames, 16 columns by 4 rows, 128 x 256 pixels per frame.

@@ -5,6 +5,8 @@ import { ABILITY_RANK_COSTS, ABILITY_TRACKS, type AbilityTrack } from './ability
 export class RunTalents {
   private readonly effects = new Set<string>();
   private readonly levels = new Map<TalentTreeId, number>();
+  /** Other effect owners, such as talent tiers, that combat reads through has(). */
+  private readonly sources: { has(id: string): boolean }[] = [];
 
   constructor(readonly definitions: readonly TalentDefinition[], readonly tracks: readonly AbilityTrack[] = ABILITY_TRACKS, readonly selectedCapstone: TalentTreeId | null = null) {
     for (const track of tracks) {
@@ -26,7 +28,8 @@ export class RunTalents {
   }
 
   rank(id: string): number { return this.has(id) ? 1 : 0; }
-  has(id: string): boolean { return this.effects.has(id); }
+  has(id: string): boolean { return this.effects.has(id) || this.sources.some((source) => source.has(id)); }
+  addSource(source: { has(id: string): boolean }): void { this.sources.push(source); }
   abilityRank(tree: TalentTreeId): number { return this.levels.get(tree) ?? 0; }
 
   unavailable(tree: TalentTreeId, rank: number, points: number): string | null {

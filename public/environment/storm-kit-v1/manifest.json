@@ -1,0 +1,63 @@
+{
+  "units": "metres",
+  "source": "src/survivor/storm-kit.ts",
+  "texture": "material-atlas.png",
+  "assets": [
+    {
+      "id": "great-bridge",
+      "file": "great-bridge.glb",
+      "triangles": 2112,
+      "bytes": 4454360,
+      "validationErrors": 0
+    },
+    {
+      "id": "small-bridge",
+      "file": "small-bridge.glb",
+      "triangles": 1392,
+      "bytes": 4425500,
+      "validationErrors": 0
+    },
+    {
+      "id": "relay-dish",
+      "file": "relay-dish.glb",
+      "triangles": 2746,
+      "bytes": 4402484,
+      "validationErrors": 0
+    },
+    {
+      "id": "flooded-lab",
+      "file": "flooded-lab.glb",
+      "triangles": 778,
+      "bytes": 4362472,
+      "validationErrors": 0
+    },
+    {
+      "id": "generator",
+      "file": "generator.glb",
+      "triangles": 1114,
+      "bytes": 4374824,
+      "validationErrors": 0
+    },
+    {
+      "id": "spillway",
+      "file": "spillway.glb",
+      "triangles": 564,
+      "bytes": 4362196,
+      "validationErrors": 0
+    },
+    {
+      "id": "flood-beacon",
+      "file": "flood-beacon.glb",
+      "triangles": 168,
+      "bytes": 4338404,
+      "validationErrors": 0
+    },
+    {
+      "id": "basalt-stack",
+      "file": "basalt-stack.glb",
+      "triangles": 672,
+      "bytes": 8589576,
+      "validationErrors": 0
+    }
+  ]
+}

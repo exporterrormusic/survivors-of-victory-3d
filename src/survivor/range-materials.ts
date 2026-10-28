@@ -12,12 +12,24 @@ export class RangeMaterials {
     t=new Texture(`${import.meta.env.BASE_URL}environment/${file}`,this.scene);t.anisotropicFilteringLevel=8;
     this.textures.set(file,t);return t;
   }
+  /** Stormbringer swaps the snow-dusted bough card for rain-wet spruce; other maps keep the original.
+   * Pine cards sample u .51-.995 of the original atlas, so the full spruce sheet is remapped onto that band. */
+  pineBoughs(storm:boolean):void {
+    const m=this.material('pine');
+    if(storm){
+      let t=this.textures.get('spruce');
+      if(!t){t=this.texture('storm-kit-v3/spruce-boughs.png');t.hasAlpha=true;t.uScale=1/.485;t.uOffset=-.51/.485;this.textures.set('spruce',t);}
+      m.diffuseTexture=t;m.diffuseColor.set(.95,.98,.95);
+    }else{m.diffuseTexture=this.texture('range-style-v2/pine-boughs.webp');m.diffuseTexture.hasAlpha=true;m.diffuseColor.set(.92,.95,.98);}
+  }
   material(kind:string):StandardMaterial {
     let m=this.materials.get(kind);if(m)return m;
     m=new StandardMaterial(`range-painted-${kind}`,this.scene);m.metadata={softEnvironment:true};
     m.diffuseColor.set(.92,.92,.92);m.emissiveColor.set(0,0,0);m.specularColor.set(.035,.035,.035);
     m.backFaceCulling=false;m.twoSidedLighting=true;
-    if(kind==='stone'||kind==='mossy-stone'||kind==='snowy-stone'){
+    if(kind==='storm-stone'){
+      m.diffuseTexture=this.texture('storm-kit-v3/rock.png');m.diffuseColor.set(.92,.95,.98);m.specularColor.set(.16,.21,.25);m.specularPower=48;
+    }else if(kind==='stone'||kind==='mossy-stone'||kind==='snowy-stone'){
       m.diffuseTexture=this.texture('ruin-concrete.webp');
       if(kind!=='stone')new RockSurface(m,this.texture('forest-floor-tile.webp'),kind==='snowy-stone');
     }
@@ -54,7 +66,7 @@ export class RangeMaterials {
         if(colors){const ci=indices[t+k]*4;projectedColors.push(colors[ci],colors[ci+1],colors[ci+2],colors[ci+3]);}
         else projectedColors.push(1,1,1,1);
         let u=(ay>=ax&&ay>=az?x:ax>=az?z:x),v=ay>=ax&&ay>=az?z:y;
-        if(kind==='wood'||kind==='metal'){
+        if(kind==='wood'||kind==='metal'||kind==='storm-stone'){
           // Smooth bounded mapping across an entire local face, never modulo across a triangle.
           const bounds=mesh.getBoundingInfo().boundingBox;
           const min=ay>=ax&&ay>=az?bounds.minimum.x:ax>=az?bounds.minimum.z:bounds.minimum.x;
@@ -62,7 +74,9 @@ export class RangeMaterials {
           const vmin=ay>=ax&&ay>=az?bounds.minimum.z:bounds.minimum.y;
           const vmax=ay>=ax&&ay>=az?bounds.maximum.z:bounds.maximum.y;
           u=(u-min)/Math.max(.001,max-min);v=(v-vmin)/Math.max(.001,vmax-vmin);
-          uv.push((kind==='wood'?.01:.51)+u*.475,.015+v*.97);
+          // Stormbringer rock tiles freely, about one repeat per 4 m of face.
+          if(kind==='storm-stone')uv.push(u*Math.max(.5,(max-min)/4),v*Math.max(.5,(vmax-vmin)/4));
+          else uv.push((kind==='wood'?.01:.51)+u*.475,.015+v*.97);
         }else uv.push(u/2.4,v/2.4);
       }
     }
@@ -92,29 +106,31 @@ export class RangeMaterials {
         name.endsWith('-wood')||name.endsWith('-end')||name.includes('bark')?'wood':
         name.endsWith('-metal')||name.endsWith('-dark')||name.includes('column')||asset==='cover-crate'?'metal':
         asset.startsWith('patch-')?'soil':'stone';
-      if(kind!=='blossoms')this.project(mesh,kind);
+      if(kind!=='blossoms')this.project(mesh,coatedRock&&finish==='storm'?'storm-stone':kind);
       mesh.material=this.material(coatedRock?`${finish}-stone`:kind);
     }
   }
   /** Painted sprays replace geometric leaf diamonds and solid polygon bushes. */
-  foliage(kind:'bush'|'fern'|'tree'|'pine'):TransformNode {
+  foliage(kind:'bush'|'fern'|'tree'|'pine',lightweight=false):TransformNode {
     const root=new TransformNode(`painted-range-${kind}`,this.scene);
     const spray=(x:number,y:number,z:number,w:number,h:number,yaw:number,tilt:number,cell:number)=>{
       const positions:number[]=[],uvs:number[]=[],indices:number[]=[],normals:number[]=[];
       const [u0,v0,u1,v1]=kind==='pine'?[.51,.01,.995,.99]:[[.008,.515,.513,.995],[.523,.515,.995,.995],[.005,.02,.576,.515]][cell];
-      for(let j=0;j<=3;j++)for(let i=0;i<=3;i++){
-        const u=i/3,v=j/3;positions.push((u-.5)*w,v*h,-.2*Math.sin(u*Math.PI)*Math.sin(v*Math.PI));uvs.push(u0+u*(u1-u0),v0+v*(v1-v0));
+      const segments=lightweight?1:3;
+      for(let j=0;j<=segments;j++)for(let i=0;i<=segments;i++){
+        const u=i/segments,v=j/segments;positions.push((u-.5)*w,v*h,-.2*Math.sin(u*Math.PI)*Math.sin(v*Math.PI));uvs.push(u0+u*(u1-u0),v0+v*(v1-v0));
       }
-      for(let j=0;j<3;j++)for(let i=0;i<3;i++){const a=j*4+i;indices.push(a,a+1,a+4,a+1,a+5,a+4);}
+      for(let j=0;j<segments;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;indices.push(a,a+1,b,a+1,b+1,b);}
       VertexData.ComputeNormals(positions,indices,normals);const mesh=new Mesh('painted-leaf-spray',this.scene),data=new VertexData();
       Object.assign(data,{positions,uvs,indices,normals});data.applyToMesh(mesh);mesh.position.set(x,y,z);mesh.rotation.set(tilt,yaw,0);mesh.parent=root;mesh.material=this.material(kind==='pine'?'pine':'foliage');
     };
     if(kind==='pine'){
       const trunk=MeshBuilder.CreateCylinder('painted-pine-trunk',{height:5.1,diameterBottom:.43,diameterTop:.10,tessellation:10},this.scene);
       trunk.position.y=2.5;this.project(trunk,'wood');trunk.material=this.material('wood');trunk.parent=root;
-      for(let layer=0;layer<5;layer++)for(let i=0;i<5;i++){
-        const a=i*2.399+layer*.63,r=1.05-layer*.19,y=.75+layer*.85;
-        spray(Math.cos(a)*r,y,Math.sin(a)*r,2.6-layer*.35,1.9-layer*.22,a,.65,0);
+      for(let layer=0;layer<(lightweight?3:5);layer++)for(let i=0;i<(lightweight?3:5);i++){
+        const level=lightweight?layer*2:layer;
+        const a=i*2.399+layer*.63,r=1.05-level*.19,y=.75+level*.85;
+        spray(Math.cos(a)*r,y,Math.sin(a)*r,2.6-level*.35,1.9-level*.22,a,.65,0);
       }
     }else if(kind==='tree'){
       const trunk=MeshBuilder.CreateTube('painted-tree-trunk',{path:[new Vector3(0,-.1,0),new Vector3(-.2,2,0),new Vector3(.1,4.5,0)],radius:.27,tessellation:9,cap:Mesh.CAP_ALL},this.scene);

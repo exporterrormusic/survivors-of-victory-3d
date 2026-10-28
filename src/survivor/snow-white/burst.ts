@@ -7,7 +7,7 @@
 // the ground, shake and light. Targets light up as the front reaches them. The cone stays on the
 // gun tip while she moves (the player holds the aim along it); hits resolve from where she fired.
 
-import { Color3, Constants, Effect, Mesh, ShaderMaterial, Vector3, VertexData, type Scene } from '@babylonjs/core';
+import { Color3, Constants, Effect, Mesh, ShaderMaterial, Vector3, VertexBuffer, VertexData, type Scene } from '@babylonjs/core';
 import { SFX } from '../../audio/sound-bank';
 import { PX, type KitContext } from '../kit';
 import type { FxQuad } from '../vfx';
@@ -19,6 +19,14 @@ const HALF = Math.PI / 4;
 const LIFE = .82;
 const GROW = .16; // share of LIFE
 const DAMAGE_MULTIPLIER = 10;
+/** Focused Fire: a full 2.5 s hold deals up to 4× damage. */
+const FOCUS_DAMAGE = 3;
+/** Fully Active: burn for this share of the Burst's damage per second, for BURN_TIME seconds. */
+const BURN_SHARE = .3, BURN_TIME = 3;
+/** Shatter: double damage to marked or burning enemies. */
+const SHATTER = 2;
+/** Shock Blast stun by enemy tier: everything short of a boss stays stunned for good. */
+const STUN = { horde: Infinity, specialist: Infinity, heavy: Infinity, boss: 5 } as const;
 const SNOW_RAYS = 65;
 
 Effect.ShadersStore.coldFireVertexShader = `
@@ -60,6 +68,14 @@ void main() {
   gl_FragColor = vec4(col * 1.35, alpha);
 }`;
 
+/** Build the fans (four layers and a frost mark) and compile their shader while loading;
+ * compiled on first use, the cone appeared a few frames into the first Burst. */
+export async function prepareSevenDwarves(scene: Scene): Promise<void> {
+  const fans = Array.from({ length: 5 }, (_, i) => fanMesh(scene, HALF, RANGE, i));
+  await fans[0].material!.forceCompilationAsync(fans[0]);
+  for (const fan of fans) disposeFan(fan);
+}
+
 export function sevenDwarves(ctx: KitContext, origin: Vector3, yaw: number, baseDamage: number, charge = 0): void {
   const { vfx, scene, targets, run, camera } = ctx;
   // Player passes its live position; damage and knockback retain the original cast origin.
@@ -70,7 +86,8 @@ export function sevenDwarves(ctx: KitContext, origin: Vector3, yaw: number, base
   const castMuzzle = muzzle.clone();
   charge = Math.max(0, Math.min(1, charge));
   const half = HALF + (Math.PI / 24 - HALF) * charge;
-  const damage = baseDamage * DAMAGE_MULTIPLIER * (1 + charge * 5);
+  const damage = baseDamage * DAMAGE_MULTIPLIER * (1 + charge * FOCUS_DAMAGE);
+  run.beginBurst();
   const snowStops = Array<number>(SNOW_RAYS).fill(1);
   const snowTip = new Vector3();
   const stopAt = (offset: number) => {
@@ -80,6 +97,11 @@ export function sevenDwarves(ctx: KitContext, origin: Vector3, yaw: number, base
   };
 
   // the targets it will catch, struck as the front passes them
+  targets.areaHit((px, pz, r) => {
+    const dx = px - origin.x, dz = pz - origin.z, d = Math.hypot(dx, dz);
+    const off = Math.abs(Math.atan2(Math.sin(Math.atan2(dx, dz) - yaw), Math.cos(Math.atan2(dx, dz) - yaw)));
+    return d <= RANGE + r && off <= half + Math.atan2(r, Math.max(d, .01));
+  });
   const pending = targets.inCone(origin, yaw, half, RANGE)
     .map((target) => ({ target, generation: target.generation, at: Math.hypot(target.position.x - origin.x, target.position.z - origin.z) / RANGE }));
 
@@ -112,7 +134,7 @@ export function sevenDwarves(ctx: KitContext, origin: Vector3, yaw: number, base
   const bloom = vfx.quad('glow', SNOW.bloom, .5);
   vfx.glowing(core);
 
-  vfx.flash(muzzle, SNOW.cyan, 9, 22, .6, true);
+  vfx.flash(muzzle, SNOW.cyan, 3, 10, .6, true);
   vfx.flashSprite(muzzle, SNOW.core, 2.6, .18, 1, 'star', true);
   camera.shake(.22, .17);
   ctx.sound(SFX.snowWhiteBurst, origin);
@@ -194,10 +216,10 @@ export function sevenDwarves(ctx: KitContext, origin: Vector3, yaw: number, base
         if (snowShieldsTarget(ctx, castMuzzle, target, castMuzzle.y - target.position.y)) continue;
         const push = target.position.subtract(origin);
         push.y = 0;
-        run.damage(target, damage, 'burst', push.normalize().scale(4));
-        if (target.alive && run.talents.has('pierce_through')) target.marks.add('weak-point');
-        if (target.alive && run.talents.has('burst_stun')) target.stunned = 5;
-        if (run.talents.has('burst_burn')) run.burn(target, 'burst-burn', target.maxHp * .2, 3);
+        const shattered = run.talents.has('shatter') && (target.marked || run.isBurning(target));
+        run.damage(target, damage * (shattered ? SHATTER : 1), 'burst', push.normalize().scale(4));
+        if (target.alive && run.talents.has('burst_stun')) target.stunned = Math.max(target.stunned, STUN[target.combatTier]);
+        if (run.talents.has('burst_burn')) run.burn(target, 'burst-burn', damage * BURN_SHARE, BURN_TIME);
         const hit = target.position.add(new Vector3(0, .8, 0));
         vfx.flashSprite(hit, SNOW.core, 1.4, .14, 1, 'star');
         vfx.flashSprite(hit, SNOW.cyan, 2.6, .3, .7);
@@ -239,38 +261,26 @@ function frostMark(ctx: KitContext, origin: Vector3, yaw: number, half: number, 
   });
 }
 
+const FAN_RINGS = 24, FAN_SPOKES = 28;
+/** Finished fans, per scene: a Burst reshapes these rather than creating meshes and materials. */
+const spareFans = new WeakMap<Scene, Mesh[]>();
+
 /** A flat fan (pie slice) of `half` angle and `length`, with uv = (radius 0..1, across -1..1). */
 function fanMesh(scene: Scene, half: number, length: number, seed: number): Mesh {
-  const rings = 24, spokes = 28;
-  const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
-  for (let r = 0; r <= rings; r++) {
-    const u = r / rings;
-    for (let s = 0; s <= spokes; s++) {
-      const v = (s / spokes) * 2 - 1;
-      const a = v * half;
-      positions.push(Math.sin(a) * u * length, 0, Math.cos(a) * u * length);
-      uvs.push(u, v);
+  let spares = spareFans.get(scene);
+  if (!spares) spareFans.set(scene, spares = []);
+  const mesh = spares.pop() ?? createFan(scene);
+  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+  for (let r = 0, k = 0; r <= FAN_RINGS; r++) {
+    const u = r / FAN_RINGS;
+    for (let s = 0; s <= FAN_SPOKES; s++, k += 3) {
+      const a = ((s / FAN_SPOKES) * 2 - 1) * half;
+      positions[k] = Math.sin(a) * u * length;
+      positions[k + 2] = Math.cos(a) * u * length;
     }
   }
-  for (let r = 0; r < rings; r++) for (let s = 0; s < spokes; s++) {
-    const i = r * (spokes + 1) + s;
-    indices.push(i, i + spokes + 1, i + 1, i + 1, i + spokes + 1, i + spokes + 2);
-  }
-  const mesh = new Mesh('cold-fire-fan', scene);
-  const data = new VertexData();
-  data.positions = positions;
-  data.uvs = uvs;
-  data.indices = indices;
-  data.applyToMesh(mesh);
-  mesh.isPickable = false;
-  const material = new ShaderMaterial('cold-fire', scene, 'coldFire', {
-    attributes: ['position', 'uv'],
-    uniforms: ['worldViewProjection', 'time', 'reach', 'alpha', 'seed', 'inner', 'outer', 'snowStop', 'angleScale', 'rangeScale'],
-    needAlphaBlending: true,
-  });
-  material.alphaMode = Constants.ALPHA_ADD;
-  material.backFaceCulling = false;
-  material.disableDepthWrite = true;
+  mesh.updateVerticesData(VertexBuffer.PositionKind, positions, true);
+  const material = mesh.material as ShaderMaterial;
   material.setFloat('seed', seed * 1.618);
   material.setFloats('snowStop', Array<number>(SNOW_RAYS).fill(1));
   material.setFloat('angleScale', 1);
@@ -280,13 +290,46 @@ function fanMesh(scene: Scene, half: number, length: number, seed: number): Mesh
   material.setFloat('alpha', 0);
   material.setColor3('inner', colour(SNOW.core));
   material.setColor3('outer', colour(SNOW.outer));
+  mesh.position.setAll(0);
+  mesh.rotation.setAll(0);
+  mesh.setEnabled(true);
+  return mesh;
+}
+
+function createFan(scene: Scene): Mesh {
+  const positions: number[] = [], uvs: number[] = [], indices: number[] = [];
+  for (let r = 0; r <= FAN_RINGS; r++) {
+    for (let s = 0; s <= FAN_SPOKES; s++) {
+      positions.push(0, 0, 0);
+      uvs.push(r / FAN_RINGS, (s / FAN_SPOKES) * 2 - 1);
+    }
+  }
+  for (let r = 0; r < FAN_RINGS; r++) for (let s = 0; s < FAN_SPOKES; s++) {
+    const i = r * (FAN_SPOKES + 1) + s;
+    indices.push(i, i + FAN_SPOKES + 1, i + 1, i + 1, i + FAN_SPOKES + 1, i + FAN_SPOKES + 2);
+  }
+  const mesh = new Mesh('cold-fire-fan', scene);
+  const data = new VertexData();
+  data.positions = positions;
+  data.uvs = uvs;
+  data.indices = indices;
+  data.applyToMesh(mesh, true);
+  mesh.isPickable = false;
+  const material = new ShaderMaterial('cold-fire', scene, 'coldFire', {
+    attributes: ['position', 'uv'],
+    uniforms: ['worldViewProjection', 'time', 'reach', 'alpha', 'seed', 'inner', 'outer', 'snowStop', 'angleScale', 'rangeScale'],
+    needAlphaBlending: true,
+  });
+  material.alphaMode = Constants.ALPHA_ADD;
+  material.backFaceCulling = false;
+  material.disableDepthWrite = true;
   mesh.material = material;
   return mesh;
 }
 
 function disposeFan(mesh: Mesh): void {
-  mesh.material?.dispose();
-  mesh.dispose();
+  mesh.setEnabled(false);
+  spareFans.get(mesh.getScene())!.push(mesh);
 }
 
 function colour(c: readonly [number, number, number]): Color3 {

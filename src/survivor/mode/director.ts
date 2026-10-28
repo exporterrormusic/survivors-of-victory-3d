@@ -52,13 +52,13 @@ export const DEFAULT_TUNING: DirectorTuning = {
 
 /** Groups for the core horde and first specialists (GAME_PLAN §9 "Groups, not single units"). */
 export const CORE_GROUPS: readonly GroupDef[] = [
-  { key: 'swarm', members: [{ type: 'lure', count: [6, 10] }], weight: 10, minAlert: 1 },
+  { key: 'swarm', members: [{ type: 'lure', count: [10, 16] }], weight: 10, minAlert: 1 },
   { key: 'gun-line', members: [{ type: 'crawler', count: [2, 4] }], weight: 6, minAlert: 1 },
-  { key: 'pounce', members: [{ type: 'pelican', count: [3, 3] }], weight: 5, minAlert: 1 },
-  { key: 'demolition', members: [{ type: 'lure', count: [5, 7] }, { type: 'solaris', count: [1, 2] }], weight: 4, minAlert: 2 },
-  { key: 'shield-line', members: [{ type: 'phalanx', count: [1, 1] }, { type: 'crawler', count: [3, 4] }], weight: 3, minAlert: 2 },
+  { key: 'kamikaze', members: [{ type: 'pelican', count: [2, 3] }], weight: 4, minAlert: 1 },
+  { key: 'demolition', members: [{ type: 'lure', count: [8, 12] }, { type: 'pelican', count: [1, 2] }], weight: 4, minAlert: 2 },
+  { key: 'shield-line', members: [{ type: 'tripod', count: [1, 1] }, { type: 'crawler', count: [3, 4] }], weight: 3, minAlert: 2 },
   { key: 'charge', members: [{ type: 'capra', count: [1, 2] }], weight: 3, minAlert: 2 },
-  { key: 'heavy', members: [{ type: 'hardHat', count: [1, 1] }], weight: 1, minAlert: 3 },
+  { key: 'heavy', members: [{ type: 'thermite', count: [1, 1] }], weight: 1, minAlert: 3 },
 ];
 
 export class SpawnDirector {

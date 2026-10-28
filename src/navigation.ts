@@ -53,15 +53,17 @@ class MinHeap {
 
 export class NavigationMap {
   readonly obstacles: readonly GroundObstacle[];
-  readonly extent: number;
+  extent: number;
   private readonly boundary: readonly GroundPoint[];
-  private readonly width: number;
+  private width: number;
   private readonly cellSize: number;
   private grids = new Map<number, { free: Uint8Array; edges: Uint8Array }>();
   private routeBudget = Infinity;
 
   /** The game budgets expensive searches; isolated navigation tests are unbudgeted. */
   beginFrame(searches = 2): void { this.routeBudget = searches; }
+  /** Extra searches this frame for a group that updates after the crowd (the supply squad). */
+  grantSearches(searches: number): void { this.routeBudget += searches; }
   prepare(radii: readonly number[]): void { for (const radius of radii) this.grid(radius); }
   requestRoute(from: GroundPoint, to: GroundPoint, radius: number): GroundPoint[] | null {
     if (this.clear(from, to, radius)) return [{ x: to.x, z: to.z }];
@@ -76,6 +78,10 @@ export class NavigationMap {
     this.boundary = boundary;
     this.cellSize = extent>90?1.5:1;
     this.width = Math.floor(extent * 2 / this.cellSize) + 1;
+  }
+
+  setExtent(extent: number): void {
+    this.extent=extent;this.width=Math.floor(extent*2/this.cellSize)+1;this.invalidate();
   }
 
   /** Gates change walkability for the attacking side when destroyed. */

@@ -1,0 +1,46 @@
+import { chromium } from 'file:///C:/Users/rmdou/Desktop/GAME%20DEV/NIKKE%20POKEMON/node_modules/playwright-core/index.mjs';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const browser=await chromium.launch({headless:true});const errors=[];
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:900}});
+ page.setDefaultTimeout(15000);
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ await page.goto('http://localhost:5173/?run=test-range&character=scarlet&enemies=inactive');
+ await page.waitForFunction(()=>window.game?.scene?.isReady(),null,{timeout:180000});
+ await page.mouse.click(720,500);
+ const start=await page.evaluate(async()=>{
+  const g=game;g.player.ctx.teleport(new (g.player.position.constructor)(0,0,-9));g.camera.snap(g.player.position);
+  g.targets.targets.forEach((t,i)=>{t.alive=i<4;if(i<4){t.hp=500;t.position.set((i-1.5)*1.8,0,-6.5);t.home.copyFrom(t.position);}});
+  window.voiceCalls=[];const sound=g.player.ctx.sound;g.player.ctx.sound=(cue,at,gain)=>{if(cue.url.includes('/scarlet/burst'))voiceCalls.push(cue.url);sound(cue,at,gain);};
+  const response=await fetch('/assets/audio/voice/characters/scarlet/burst.wav');const data=await response.arrayBuffer();
+  const audio=new AudioContext();const decoded=await audio.decodeAudioData(data);await audio.close();
+  g.player.hp=50;g.run.burst=100;g.input.trigger('burst');return {voiceDuration:decoded.duration};
+ });
+ await page.waitForFunction(()=>game.kit.busy);
+ const frozen=await page.evaluate(()=>({time:game.run.time,hp:game.targets.targets.slice(0,4).map(t=>t.hp)}));
+ await page.waitForTimeout(250);
+ assert.equal(await page.evaluate(()=>game.run.time),frozen.time);
+ assert.deepEqual(await page.evaluate(()=>game.targets.targets.slice(0,4).map(t=>t.hp)),frozen.hp);
+ assert.equal(await page.evaluate(()=>voiceCalls.length),1);assert.ok(start.voiceDuration>0);
+ await fs.mkdir('artifacts/scarlet',{recursive:true});await page.screenshot({path:'artifacts/scarlet/burst-monochrome.png'});
+ console.log('VO / freeze / deferred damage passed');
+ await page.evaluate(()=>game.input.trigger('talents'));await page.waitForSelector('#run-talents[open]');
+ const position=await page.evaluate(()=>game.player.position.asArray());await page.waitForTimeout(200);
+ assert.deepEqual(await page.evaluate(()=>game.player.position.asArray()),position);
+ await page.getByRole('button',{name:'Resume game',exact:true}).click();console.log('Pause passed');
+ await page.waitForFunction(()=>!game.kit.freezesEnemies,null,{timeout:30000});
+ await page.waitForFunction(()=>!game.camera.camera._postProcesses.some(p=>p?.name==='scarlet-stopped-time'));
+ assert.ok(await page.evaluate(()=>game.targets.targets.slice(0,4).every(t=>t.hp===400)));
+ assert.ok(await page.evaluate(t=>game.run.time>t,frozen.time));
+ await page.evaluate(()=>{game.run.skillPoints=30;for(let r=2;r<=5;r++)game.run.talents.purchase('burst',r,game.run);game.run.burst=100;game.input.trigger('burst');});
+ await page.waitForFunction(()=>game.kit.busy);
+ await page.waitForFunction(()=>!game.kit.busy && game.kit.freezesEnemies);
+ assert.equal(await page.evaluate(()=>game.camera.camera._postProcesses.filter(p=>p?.name==='scarlet-stopped-time').length),1);
+ const crashTime=await page.evaluate(()=>game.run.time);await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>game.run.time),crashTime);
+ await page.screenshot({path:'artifacts/scarlet/burst-crashout.png'});
+ await page.evaluate(()=>game.kit.update(3.01));
+ await page.waitForFunction(()=>!game.kit.freezesEnemies,null,{timeout:30000});
+ await page.waitForFunction(()=>!game.camera.camera._postProcesses.some(p=>p?.name==='scarlet-stopped-time'));
+ assert.deepEqual(errors,[]);console.log('PASS: VO decoded and triggered, frozen clock, deferred damage, pause, monochrome cleanup, D1 Crashout and repeated Burst.');
+}finally{await browser.close();}
