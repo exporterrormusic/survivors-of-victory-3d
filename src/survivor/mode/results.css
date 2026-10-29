@@ -6,7 +6,7 @@
   --sr-cyan: #35c5f2; --sr-line: #35c5f259; --sr-panel: #07111aed; --sr-tile: #0b1a26e0; --sr-red: #ff6b5e;
   position: absolute; inset: 0; z-index: 30; pointer-events: auto;
   /* The left of the view stays clear: the camera holds a close shot of the NIKKE there. */
-  background: linear-gradient(90deg, #01060b00 calc(var(--hud-inset) + 300 * var(--k)), #01060bc0 calc(var(--hud-inset) + 520 * var(--k)), #01060be0);
+  background: linear-gradient(90deg, #01060b00 calc(var(--hud-side, 0px) + 300 * var(--k)), #01060bc0 calc(var(--hud-side, 0px) + 520 * var(--k)), #01060be0);
   font-family: Rajdhani, 'Segoe UI', sans-serif; text-transform: uppercase; color: #f4f7fa;
   animation: sr-in .35s ease-out both;
 }
@@ -17,7 +17,7 @@
 
 .sr svg { display: block; flex: none; }
 .sr-panel {
-  position: absolute; top: 50%; right: calc(var(--hud-inset) + 44 * var(--k)); transform: translateY(-50%);
+  position: absolute; top: 50%; right: calc(var(--hud-side, 0px) + 44 * var(--k)); transform: translateY(-50%);
   width: min(calc(100% - 32px), calc(1200 * var(--k))); box-sizing: border-box; padding: 0 calc(32 * var(--k)) calc(26 * var(--k));
   border: 1px solid var(--sr-line); background: var(--sr-panel);
 }

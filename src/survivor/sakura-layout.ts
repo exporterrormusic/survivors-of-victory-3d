@@ -44,6 +44,12 @@ export function sakuraPlacements():RangePlacement[]{
     if(i%2===0)put('plant-grass',x-1.4,z+.8,.55,i);
   }
   // Asymmetric stone groupings in the outer gardens; no loose rubble on the approach.
+  // Small permanent northern grove for gameplay views behind the shrine.
+  // The much larger cinematic orchard remains temporary.
+  for(const [i,[x,z,scale]] of ([[-11,43,.9],[-5,46,1.05],[2,42,.85],[8,47,.95],[14,43,.8]] as const).entries()){
+    list.push({asset:'sakura',x:x*SAKURA_SCALE,z:z*SAKURA_SCALE,
+      scale:scale*SAKURA_SCALE,yaw:i*2.399,walkable:true});
+  }
   for(const side of [-1,1]){
     put('rock-boulder',side*26,5,.65,side*.5);
     put('rock-flat',side*27.8,7,.65,side);
@@ -61,3 +67,26 @@ export const SAKURA_PAVING = [
   {x:-18,z:8,halfX:4.8,halfZ:4.0},
   {x:18,z:8,halfX:4.8,halfZ:4.0},
 ] as const;
+
+/** Scenery built only while preparing the shrine cinematic. */
+export function sakuraBackdropPlacements():RangePlacement[]{
+  const list:RangePlacement[]=[];
+  // A layered orchard beyond the playable garden closes the low cinematic horizon.
+  // Offset rows and varied radii avoid a visibly circular fence of identical trees.
+  for(let row=0;row<3;row++){
+    const count=28+row*8;
+    for(let i=0;i<count;i++){
+      const angle=(i+.37*row)*Math.PI*2/count;
+      const radius=70+row*19+Math.sin(i*2.17+row)*4;
+      list.push({asset:'sakura',x:Math.cos(angle)*radius,z:Math.sin(angle)*radius,
+        scale:2.1+row*.35+.35*Math.sin(i*1.73),yaw:i*2.399+row,walkable:true});
+    }
+  }
+  // Low, overlapping stone ridges break up the flat ground beyond the blossom canopy.
+  for(let i=0;i<24;i++){
+    const angle=(i+.2)*Math.PI*2/24,radius=138+Math.sin(i*1.7)*7;
+    list.push({asset:'rock-boulder',x:Math.cos(angle)*radius,z:Math.sin(angle)*radius,
+      scale:10+3*Math.sin(i*2.1),yaw:i*2.399,walkable:true});
+  }
+  return list;
+}

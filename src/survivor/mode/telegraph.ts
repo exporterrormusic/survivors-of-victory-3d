@@ -3,6 +3,7 @@
 // rings mark friendly things. Procedural with hard, anti-aliased edges (like Rapunzel's seals), so
 // outlines stay crisp at any size and the fill is exact.
 
+import type { TellState } from '../../net/protocol';
 import { Color3, Constants, Effect, Mesh, MeshBuilder, ShaderMaterial, Vector2, type Scene } from '@babylonjs/core';
 
 export type TellColor = readonly [number, number, number];
@@ -98,6 +99,7 @@ class TellSlot {
   }
 
   setColor(color: TellColor, alpha: number): void {
+    this.color = color; this.alpha = alpha;
     this.harmful = color === TELL.area || color === TELL.charge;
     this.material.setColor3('color', this.colorUniform.set(color[0], color[1], color[2]));
     this.material.setFloat('alpha', alpha);
@@ -109,6 +111,10 @@ class TellSlot {
     this.material.setVector2('size', this.sizeUniform.set(width, length));
     this.mesh.scaling.set(width, 1, length);
   }
+
+  /** @internal last colour and alpha, for co-op snapshots */
+  color: TellColor = TELL.area;
+  alpha = 1;
 
   sync(fill: number, time: number): void {
     this.material.setFloat('fill', Math.max(0, Math.min(1, fill)));
@@ -125,7 +131,8 @@ export class Tell {
   fill = 0;
   private slot: TellSlot | null;
 
-  constructor(slot: TellSlot) { this.slot = slot; }
+  /** null: a handle that is never live (SilentTelegraph) */
+  constructor(slot: TellSlot | null) { this.slot = slot; }
 
   get live(): boolean { return this.slot?.owner === this; }
 
@@ -241,6 +248,32 @@ export class TelegraphLayer {
     return false;
   }
 
+  /** Every live warning, for a co-op snapshot. */
+  snapshot(): TellState[] {
+    const out: TellState[] = [];
+    for (const slot of this.pool) {
+      if (!slot.owner) continue;
+      const m = slot.mesh, r = (v: number) => Math.round(v * 100) / 100;
+      out.push({ s: slot.shape as 0 | 1, x: r(m.position.x), z: r(m.position.z), yaw: r(m.rotation.y), w: r(m.scaling.x), l: r(m.scaling.z),
+        c: slot.color, a: r(slot.alpha), f: r(slot.owner.fill) });
+    }
+    return out;
+  }
+
+  /** Co-op guest: show exactly the host's warnings (replaces whatever this layer mirrored last time). */
+  mirror(states: readonly TellState[]): void {
+    while (this.mirrored.length > states.length) this.release(this.mirrored.pop()!);
+    states.forEach((state, i) => {
+      const tell = this.mirrored[i] ??= this.lease(state.c, state.a);
+      tell.setColor(state.c, state.a);
+      tell.setShape(state.s, state.w, state.l);
+      tell.fill = state.f;
+      const mesh = tell.mesh;
+      if (mesh) { mesh.rotation.y = state.yaw; mesh.position.set(state.x, this.heightAt(state.x, state.z) + .05, state.z); }
+    });
+  }
+  private readonly mirrored: Tell[] = [];
+
   dispose(): void {
     this.blasts.length = 0;
     for (const slot of this.pool) { slot.owner?.detach(); slot.material.dispose(); slot.mesh.dispose(); }
@@ -257,4 +290,12 @@ export class TelegraphLayer {
     slot.mesh.setEnabled(true);
     return tell;
   }
+}
+
+/** Warnings that never show: a co-op guest replays the host's missiles with this, because the
+ * host's own warnings already arrive through TelegraphLayer.mirror. */
+export class SilentTelegraph extends TelegraphLayer {
+  override circle(): Tell { return new Tell(null); }
+  override lane(): Tell { return new Tell(null); }
+  override blast(): void {}
 }

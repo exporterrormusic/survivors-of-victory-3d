@@ -1,0 +1,18 @@
+/* Achievement pop-up: the survivor HUD's language — flat charcoal panel, thin ivory line, corner brackets, Burst gold. */
+/* Just above the radar (survivor.css #run-radar: bottom 66, height 180), right edge aligned with it, 16 px gap. */
+.achievement-toasts { position: absolute; z-index: 120; right: calc(var(--hud-side, 0px) + 24 * var(--k, 1px)); bottom: calc(262 * var(--k, 1px)); display: flex; flex-direction: column; gap: 10px; width: min(380px, calc(100% - 48px)); pointer-events: none; }
+.achievement-toast { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 12px 16px 12px 14px;
+  background: rgba(14, 19, 22, .94); border: 1px solid rgba(232, 235, 236, .22); border-left: 3px solid #ffc329; color: #f2f5f7; font-family: Rajdhani, 'Segoe UI', sans-serif;
+  animation: achievement-in .38s cubic-bezier(.2, .9, .3, 1.1) both; }
+.achievement-toast::before, .achievement-toast::after { content: ''; position: absolute; width: 10px; height: 10px; border: 0 solid #eef0ef; }
+.achievement-toast::before { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+.achievement-toast::after { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+.achievement-toast .at-gem { width: 14px; height: 14px; margin: 0 4px; border: 1px solid #ffc329; transform: rotate(45deg); background: #ffc32933; box-shadow: 0 0 10px #ffc32988; }
+.achievement-toast small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #ffc329; }
+.achievement-toast b { display: block; margin-top: 2px; font-size: 21px; letter-spacing: .05em; line-height: 1.1; }
+.achievement-toast p { margin: 3px 0 0; font-size: 14px; line-height: 1.2; color: #c9d0cd; }
+.achievement-toast em { align-self: start; font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .06em; color: #ffc329; }
+.achievement-toast.leaving { animation: achievement-out .3s ease-in forwards; }
+@keyframes achievement-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes achievement-out { to { opacity: 0; transform: translateX(16px); } }
+@media (prefers-reduced-motion: reduce) { .achievement-toast, .achievement-toast.leaving { animation-duration: .01s; } }

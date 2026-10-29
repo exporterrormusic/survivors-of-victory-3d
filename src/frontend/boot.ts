@@ -9,14 +9,18 @@ import { AchievementsScene } from "./scenes/AchievementsScene";
 import { CharacterSelectScene } from "./scenes/CharacterSelectScene";
 import { DisclaimerScene } from "./scenes/DisclaimerScene";
 import { MainMenuScene } from "./scenes/MainMenuScene";
+import { MultiplayerScene } from "./scenes/MultiplayerScene";
 import { RecordsScene } from "./scenes/RecordsScene";
 import { SettingsScene } from "./scenes/SettingsScene";
 import { ShopScene } from "./scenes/ShopScene";
 import { StageSelectScene } from "./scenes/StageSelectScene";
 import {
   DisplayQualityPlugin,
+  applyViewWidth,
   RENDER_HEIGHT,
-  RENDER_WIDTH,
+  setViewWidth,
+  view,
+  windowViewWidth,
 } from "./rendering/DisplayQualityPlugin";
 import "./styles.css";
 
@@ -29,10 +33,11 @@ export async function bootFrontEnd(parent: HTMLElement): Promise<Phaser.Game> {
     document.fonts.load("700 32px Pretendard"),
   ]);
 
-  return new Phaser.Game({
+  setViewWidth(windowViewWidth());
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: RENDER_WIDTH,
+    width: view.renderWidth,
     height: RENDER_HEIGHT,
     backgroundColor: "#11171e",
     scene: [
@@ -44,6 +49,7 @@ export async function bootFrontEnd(parent: HTMLElement): Promise<Phaser.Game> {
       SettingsScene,
       CharacterSelectScene,
       StageSelectScene,
+      MultiplayerScene,
     ],
     input: { gamepad: true },
     plugins: {
@@ -61,4 +67,23 @@ export async function bootFrontEnd(parent: HTMLElement): Promise<Phaser.Game> {
       autoRound: true,
     },
   });
+  followWindowAspect(game);
+  return game;
+}
+
+/** Widen or narrow the canvas with the window (16:9 to 21:9) in place, without rebuilding screens. */
+function followWindowAspect(game: Phaser.Game): void {
+  // Resizing clears the WebGL canvas, so apply it at the start of Phaser's own frame, just before it
+  // redraws; resizing between frames shows a black canvas for a frame.
+  let pending = false;
+  game.events.on(Phaser.Core.Events.PRE_STEP, () => {
+    if (!pending) return;
+    pending = false;
+    const width = windowViewWidth();
+    if (width !== view.width) applyViewWidth(game, width);
+    game.scale.refresh();
+  });
+  const onResize = (): void => { pending = true; };
+  window.addEventListener("resize", onResize);
+  game.events.once(Phaser.Core.Events.DESTROY, () => window.removeEventListener("resize", onResize));
 }

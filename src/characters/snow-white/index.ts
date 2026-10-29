@@ -15,6 +15,7 @@ export const character: CharacterModule = {
       { variant: 'c220_01', name: 'Snow White: White Knight' },
       { variant: 'c224_00', name: 'Snow White: Innocent Days' },
       { variant: 'c471_00', name: 'Snow White: Heavy Arms' },
+      { variant: 'c471_01', name: 'Snow White: Heavy Arms - Lacrimosa' },
     ],
   },
   weapon: 'sniper',

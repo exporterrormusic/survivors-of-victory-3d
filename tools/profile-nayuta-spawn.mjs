@@ -1,0 +1,7 @@
+import {chromium} from 'file:///C:/Users/rmdou/Desktop/GAME%20DEV/NIKKE%20POKEMON/node_modules/playwright-core/index.mjs';
+import {writeFile} from 'node:fs/promises';
+const browser=await chromium.launch({headless:true});
+try{const p=await browser.newPage();await p.goto('http://127.0.0.1:5197/?run=test-range&character=nayuta&enemies=inactive');await p.waitForFunction(()=>window.game?.scene?.isReady(),null,{timeout:180000});
+const r=await p.evaluate(()=>{const g=game;g.engine.stopRenderLoop();g.scene.onBeforeAnimationsObservable.clear();g.scene.onAfterAnimationsObservable.clear();g.engine.setHardwareScalingLevel(3);
+const target=g.targets.targets[0];target.alive=true;target.hp=100000;target.position.copyFrom(g.player.position);target.position.x+=8;g.targets.navigation.traceCover=()=>null;
+const rows=[];for(let n=0;n<4;n++){if(n)g.kit.update(8);const groups=g.scene.animationGroups.length;let start=performance.now();g.kit.useSpecial();g.kit.chargeSpecial(0,false,true);const spawn=performance.now()-start;start=performance.now();g.kit.update(.016);const update=performance.now()-start;const newGroups=g.scene.animationGroups.length-groups;start=performance.now();g.scene.render();const render=performance.now()-start;rows.push({n,spawn,update,render,newGroups});}return rows;});console.log(r);await writeFile(`artifacts/nayuta/spawn-${process.argv[2]??'before'}.json`,JSON.stringify(r,null,2));}finally{await browser.close();}

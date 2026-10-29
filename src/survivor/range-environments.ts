@@ -57,6 +57,7 @@ export interface RangePlacement { asset:RangeProp;x:number;z:number;scale:number
 // Visual envelopes, not just trunk/collision radii. Include foliage cards, roots,
 // asymmetric rubble and wind sway; circles remain safe at every placement yaw.
 const PROP_RADIUS:Record<RangeProp,number>={
+  'forest-sake-set':.15,
  'frozen-mountain':25,'frozen-hangar':11,'frozen-relay':10,'frozen-outcrop':6,'frozen-barrier':2,'frozen-beacon':.6,
   'forest-lamp':.8,'forest-lychgate':4.3,'forest-chapel':6.5,'forest-grave':.9,'forest-cross':.9,'forest-fence':1.7,
   'forest-menhir':.9,'forest-altar':1.6,'forest-cabin':4.2,'forest-woodpile':1.8,'forest-well':1.3,'forest-thorn':1.1,'forest-jack-o-lantern':.6,'forest-vapaus-vial':.025,
@@ -80,7 +81,7 @@ export function rangePlantNeedsRoadClearance(p:Pick<RangePlacement,'asset'|'scal
 }
 /** Props with solid collision (range-collision.ts). Loose pebbles, ground patches and plants are walk-through. */
 export function rangePropCollides(asset:RangeProp):boolean{
-  return !(asset==='forest-vapaus-vial'||asset==='rock-pebbles'||asset.startsWith('patch-')||asset.startsWith('plant-'));
+  return !(asset==='forest-sake-set'||asset==='forest-vapaus-vial'||asset==='rock-pebbles'||asset.startsWith('patch-')||asset.startsWith('plant-'));
 }
 /** Whether a prop of `radius` at (x, z) reaches onto the main or cross road (feathered edge included). */
 export function rangeOnRoad(x:number,z:number,radius:number):boolean{

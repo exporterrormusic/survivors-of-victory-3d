@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import { logicalPointerPosition } from "../rendering/DisplayQualityPlugin";
+import { bleed, logicalPointerPosition, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
 import { captureDevelopmentPreview } from "../dev/capturePreview";
@@ -88,6 +88,7 @@ export class SettingsScene extends Phaser.Scene {
   private controlSettings: ControlSettings = loadControlSettings();
   private contentLayer?: Phaser.GameObjects.Container;
   private capturingControl?: ControlAction;
+  private suppressBindingPointerUp = false;
   private currentCategory: SettingsCategory = "audio";
   /** Erasing everything takes a second press within a few seconds. */
   private eraseArmedUntil = 0;
@@ -173,54 +174,54 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private createBackdrop(): void {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xe9edf1).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xe9edf1).setOrigin(0);
 
     const grid = this.add.graphics();
     grid.lineStyle(1, 0x81909c, 0.09);
-    for (let x = -420; x < WIDTH + 420; x += 205) {
+    for (let x = bleed.left - 420; x < bleed.right + 420; x += 205) {
       grid.lineBetween(x, 76, x + 430, HEIGHT - 48);
     }
     grid.lineStyle(1, 0x81909c, 0.06);
     for (let y = 170; y < HEIGHT - 80; y += 115) {
-      grid.lineBetween(0, y, WIDTH, y);
+      grid.lineBetween(bleed.left, y, bleed.right, y);
     }
 
     const chrome = this.add.graphics();
     chrome.fillStyle(0x090d12, 0.97);
-    chrome.fillRect(0, 0, WIDTH, 76);
-    chrome.fillRect(0, HEIGHT - 48, WIDTH, 48);
+    chrome.fillRect(bleed.left, 0, bleed.width, 76);
+    chrome.fillRect(bleed.left, HEIGHT - 48, bleed.width, 48);
     chrome.fillStyle(0x35c5f2, 1);
-    chrome.fillRect(0, 74, 515, 3);
+    chrome.fillRect(bleed.left, 74, 515 - bleed.left, 3);
     chrome.fillStyle(0xaeb7c1, 0.28);
-    chrome.fillRect(515, 75, WIDTH - 515, 1);
+    chrome.fillRect(515, 75, bleed.right - 515, 1);
 
-    this.add.text(52, 25, "ARK SYSTEM / CONFIGURATION", {
+    pinToEdge(this.add.text(view.left + 52, 25, "ARK SYSTEM / CONFIGURATION", {
       color: "#f2f5f7",
       fontFamily: "Rajdhani",
       fontSize: "26px",
       fontStyle: "bold",
       letterSpacing: 1.8,
-    });
-    this.add.text(1774, 26, "02", {
+    }), "left");
+    pinToEdge(this.add.text(view.right - 146, 26, "02", {
       color: "#9aa4af",
       fontFamily: "Rajdhani",
       fontSize: "25px",
       fontStyle: "bold",
-    });
-    this.add.text(52, 1038, `SYS CONFIG // ARK SYS V${GAME_VERSION}`, {
+    }), "right");
+    pinToEdge(this.add.text(view.left + 52, 1038, `SYS CONFIG // ARK SYS V${GAME_VERSION}`, {
       color: "#8a949f",
       fontFamily: "Rajdhani",
       fontSize: "15px",
       fontStyle: "bold",
       letterSpacing: 2,
-    });
-    this.add.text(1607, 1038, "CHANGES APPLY AUTOMATICALLY", {
+    }), "left");
+    pinToEdge(this.add.text(view.right - 313, 1038, "CHANGES APPLY AUTOMATICALLY", {
       color: "#35c5f2",
       fontFamily: "Rajdhani",
       fontSize: "15px",
       fontStyle: "bold",
       letterSpacing: 1.4,
-    });
+    }), "right");
   }
 
   private createHeader(): void {
@@ -748,7 +749,7 @@ export class SettingsScene extends Phaser.Scene {
       const column = index % 2;
       const row = Math.floor(index / 2);
       const rowX = x + 52 + column * 620;
-      const rowY = y + 175 + row * 76;
+      const rowY = y + 155 + row * 64;
       layer.add(
         this.add
           .text(rowX, rowY, label, {
@@ -793,7 +794,9 @@ export class SettingsScene extends Phaser.Scene {
         .rectangle(keyX, keyY, 230, 54, 0xffffff, 0)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true });
-      hitArea.on("pointerup", () => this.beginControlCapture(action));
+      hitArea.on("pointerup", () => {
+        if (!this.suppressBindingPointerUp) this.beginControlCapture(action);
+      });
       layer.add(hitArea);
     });
 
@@ -839,7 +842,7 @@ export class SettingsScene extends Phaser.Scene {
         .text(
           x + 485,
           resetY + resetHeight / 2,
-          "SELECT A KEYCAP, THEN PRESS A KEY, WHEEL, OR AUXILIARY MOUSE BUTTON",
+          "SELECT A KEYCAP, THEN PRESS A KEY OR MOUSE BUTTON. ESC CANCELS.",
           {
             color: "#8a949e",
             fontFamily: "Rajdhani",
@@ -1266,10 +1269,10 @@ export class SettingsScene extends Phaser.Scene {
 
   private handleSettingsKeyDown(event: KeyboardEvent): void {
     if (this.capturingControl === undefined) {
-      const pauseBinding = this.controlSettings.bindings.pause;
+      const menuBinding = this.controlSettings.bindings.menu;
       if (
-        pauseBinding.device === "keyboard" &&
-        event.keyCode === pauseBinding.keyCode
+        menuBinding.device === "keyboard" &&
+        event.keyCode === menuBinding.keyCode
       ) {
         event.preventDefault();
         this.leave();
@@ -1281,13 +1284,13 @@ export class SettingsScene extends Phaser.Scene {
     event.stopPropagation();
     if (
       event.keyCode === Phaser.Input.Keyboard.KeyCodes.ESC &&
-      this.capturingControl !== "pause"
+      this.capturingControl !== "menu"
     ) {
       this.capturingControl = undefined;
       this.renderContent();
       return;
     }
-    if ([16, 17, 18, 91, 92].includes(event.keyCode)) {
+    if ([17, 18, 91, 92].includes(event.keyCode)) {
       return;
     }
 
@@ -1297,7 +1300,7 @@ export class SettingsScene extends Phaser.Scene {
   private handleSettingsPointerDown(pointer: Phaser.Input.Pointer): void {
     if (this.capturingControl === undefined) return;
     const button =
-      pointer.button === 1
+      pointer.button === 0 ? "LEFT" : pointer.button === 2 ? "RIGHT" : pointer.button === 1
         ? "MIDDLE"
         : pointer.button === 3
           ? "BACK"
@@ -1305,12 +1308,17 @@ export class SettingsScene extends Phaser.Scene {
             ? "FORWARD"
             : undefined;
     if (button !== undefined) {
+      this.suppressBindingPointerUp = true;
+      this.input.once('pointerup', () => {
+        this.time.delayedCall(0, () => { this.suppressBindingPointerUp = false; });
+      });
       this.applyControlBinding({ button, device: "mouse" });
     }
   }
 
   private handleSettingsWheel(deltaY: number): void {
     if (this.capturingControl === undefined || deltaY === 0) return;
+    if (this.capturingControl.startsWith('move')) return;
     this.applyControlBinding({
       button: deltaY < 0 ? "WHEEL UP" : "WHEEL DOWN",
       device: "mouse",

@@ -10,3 +10,5 @@ _REF/
 debug.log
 __pycache__/
 *.pyc
+release/
+*.blend1

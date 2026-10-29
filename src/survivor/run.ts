@@ -15,6 +15,9 @@ import { SNOW_WHITE_TALENTS } from './snow-white/tiers';
 import { SCARLET_TALENTS } from './scarlet/tiers';
 import { RAPUNZEL_TALENTS } from './rapunzel/tiers';
 
+import { talents as nayutaTalents } from '../characters/nayuta/talents';
+import { NAYUTA_TALENTS } from './nayuta/tiers';
+
 export type DamageSource = 'attack' | 'special' | 'burst' | 'effect';
 
 export interface DamageNumber {
@@ -64,19 +67,21 @@ export class Run {
   private shotGauge = 0;
   private shotHits = 0;
   private burstRefund = 0;
-  constructor(readonly characterId: 'snow-white' | 'scarlet' | 'rapunzel' = 'snow-white') {
-    this.talents = new RunTalents(characterId === 'rapunzel' ? rapunzelTalents : characterId === 'scarlet' ? scarletTalents : talents,
-      characterId === 'rapunzel' ? RAPUNZEL_TRACKS : characterId === 'scarlet' ? SCARLET_TRACKS : undefined,
+  constructor(readonly characterId: 'snow-white' | 'scarlet' | 'rapunzel' | 'nayuta' | 'dorothy' = 'snow-white') {
+    this.talents = new RunTalents(characterId === 'dorothy' ? [] : characterId === 'nayuta' ? nayutaTalents : characterId === 'rapunzel' ? rapunzelTalents : characterId === 'scarlet' ? scarletTalents : talents,
+      characterId === 'dorothy' || characterId === 'nayuta' ? [] : characterId === 'rapunzel' ? RAPUNZEL_TRACKS : characterId === 'scarlet' ? SCARLET_TRACKS : undefined,
       null);
-    const tierSet = characterId === 'snow-white' ? SNOW_WHITE_TALENTS : characterId === 'scarlet' ? SCARLET_TALENTS : RAPUNZEL_TALENTS;
+    const tierSet = characterId === 'dorothy' ? { abilities: { weapon: 'Ungrateful OZ', special: 'Angel’s Flight', burst: 'Paradise Lost', utility: 'Talents pending' }, tiers: [] } : characterId === 'nayuta' ? NAYUTA_TALENTS : characterId === 'snow-white' ? SNOW_WHITE_TALENTS : characterId === 'scarlet' ? SCARLET_TALENTS : RAPUNZEL_TALENTS;
     if (tierSet) {
       this.tiers = new TalentTiers(tierSet);
       this.talents.addSource(this.tiers);
     }
+    if (characterId === 'dorothy') { this.critChance = .15; this.burstPerHit = 2; }
+    if (characterId === 'nayuta') { this.critChance = .2; this.burstPerHit = 1.2; }
     if (characterId === 'rapunzel') { this.critChance = .1; this.burstPerHit = 10; }
     if (characterId === 'scarlet') { this.critChance = .25; this.burstPerHit = 5; }
   }
-  get characterName(): string { return this.characterId === 'rapunzel' ? 'Rapunzel' : this.characterId === 'scarlet' ? 'Scarlet' : 'Snow White'; }
+  get characterName(): string { return this.characterId === 'dorothy' ? 'Dorothy' : this.characterId === 'nayuta' ? 'Nayuta' : this.characterId === 'rapunzel' ? 'Rapunzel' : this.characterId === 'scarlet' ? 'Scarlet' : 'Snow White'; }
   xp = 0;
   kills = 0;
   time = 0;
@@ -174,7 +179,7 @@ export class Run {
   /** Flood damage is raw world damage, independent of weapon talents, shields and crits. */
   environmentDamage(target:Target,amount:number):void {
     if(!target.alive)return;
-    const killed=target.hit(Math.round(amount));
+    const killed=target.hit(amount);
     if(killed){this.kills++;this.gainXp(KILL_XP);this.onKill?.(target);}
   }
 

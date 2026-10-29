@@ -3,6 +3,7 @@ import { cores } from "../ui/cores";
 import { openSkinSelection } from '../ui/SkinSelection';
 import { characterSkins, equippedSkin, ownsSkin } from '../profile/Skins';
 import Phaser from "phaser";
+import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 import { openLobbyTalentTree } from "../ui/LobbyTalentTree";
 
 import {
@@ -15,6 +16,7 @@ import {
   CHARACTERS,
   characterBurstPath,
   characterLockReason,
+  canPreviewCharacterTalents,
   type CharacterDefinition,
   loadRosterState,
   saveSelectedCharacter,
@@ -165,64 +167,64 @@ export class CharacterSelectScene extends Phaser.Scene {
   }
 
   private createBackdrop(): void {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xe9edf1).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xe9edf1).setOrigin(0);
     const grid = this.add.graphics();
     grid.lineStyle(1, 0x81909c, 0.08);
-    for (let x = -360; x < WIDTH + 360; x += 205) {
+    for (let x = bleed.left - 360; x < bleed.right + 360; x += 205) {
       grid.lineBetween(x, 76, x + 430, HEIGHT - 48);
     }
     grid.lineStyle(1, 0x81909c, 0.045);
     for (let y = 178; y < HEIGHT - 48; y += 116) {
-      grid.lineBetween(0, y, WIDTH, y);
+      grid.lineBetween(bleed.left, y, bleed.right, y);
     }
 
     this.wash = this.add
-      .rectangle(0, 76, WIDTH, HEIGHT - 124, this.currentCharacter.accent, 0.07)
+      .rectangle(bleed.left, 76, bleed.width, HEIGHT - 124, this.currentCharacter.accent, 0.07)
       .setOrigin(0);
 
     const chrome = this.add.graphics().setDepth(60);
     chrome.fillStyle(0x090d12, 0.97);
-    chrome.fillRect(0, 0, WIDTH, 76);
-    chrome.fillRect(0, HEIGHT - 48, WIDTH, 48);
+    chrome.fillRect(bleed.left, 0, bleed.width, 76);
+    chrome.fillRect(bleed.left, HEIGHT - 48, bleed.width, 48);
     chrome.fillStyle(0x35c5f2, 1);
-    chrome.fillRect(0, 74, 515, 3);
+    chrome.fillRect(bleed.left, 74, 515 - bleed.left, 3);
     chrome.fillStyle(0xaeb7c1, 0.28);
-    chrome.fillRect(515, 75, WIDTH - 515, 1);
+    chrome.fillRect(515, 75, bleed.right - 515, 1);
 
-    this.add
-      .text(52, 25, "ARK SYSTEM / PERSONNEL", {
+    pinToEdge(this.add
+      .text(view.left + 52, 25, "ARK SYSTEM / PERSONNEL", {
         color: "#f2f5f7",
         fontFamily: "Rajdhani",
         fontSize: "26px",
         fontStyle: "bold",
         letterSpacing: 1.8,
-      })
+      }), "left")
       .setDepth(61);
-    this.add
-      .text(1774, 26, "03", {
+    pinToEdge(this.add
+      .text(view.right - 146, 26, "03", {
         color: "#9aa4af",
         fontFamily: "Rajdhani",
         fontSize: "25px",
         fontStyle: "bold",
-      })
+      }), "right")
       .setDepth(61);
-    this.add
-      .text(52, 1038, "SQUAD FILE // PERSONNEL DATABASE", {
+    pinToEdge(this.add
+      .text(view.left + 52, 1038, "SQUAD FILE // PERSONNEL DATABASE", {
         color: "#8a949f",
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "bold",
         letterSpacing: 2,
-      })
+      }), "left")
       .setDepth(61);
-    this.add
-      .text(1626, 1038, "1 OPERATIVE REQUIRED", {
+    pinToEdge(this.add
+      .text(view.right - 294, 1038, "1 OPERATIVE REQUIRED", {
         color: "#35c5f2",
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "bold",
         letterSpacing: 1.5,
-      })
+      }), "right")
       .setDepth(61);
   }
 
@@ -311,7 +313,9 @@ export class CharacterSelectScene extends Phaser.Scene {
       .getSourceImage() as HTMLImageElement;
     const scale =
       Math.max((ART_WIDTH + 165) / source.width, 1032 / source.height) * 1.03;
-    this.artImage.setScale(scale).setPosition(ART_X + ART_WIDTH / 2, 552);
+    // Dorothy's framing sits halfway between the earlier offset and top alignment.
+    const centerY = character.id === 'dorothy' ? (662 + 76 + source.height * scale / 2) / 2 : 552;
+    this.artImage.setScale(scale).setPosition(ART_X + ART_WIDTH / 2, centerY);
   }
 
   private beginHeroDrift(): void {
@@ -610,17 +614,19 @@ export class CharacterSelectScene extends Phaser.Scene {
 
   private selectCharacter(character: CharacterDefinition): void {
     if (character.id === this.currentCharacter.id) {
+      gameAudio.playCharacterSelectionVoice(this, character.id);
       return;
     }
     this.sound.play(AUDIO.confirm, {
       volume: scaledSfxVolume(0.22, this.audioSettings),
     });
     this.currentCharacter = character;
+    // Voice previews are available even while the gameplay kit is still locked.
+    gameAudio.playCharacterSelectionVoice(this, character.id);
     if (this.isUnlocked(character)) {
       saveSelectedCharacter(character.id);
       this.roster = loadRosterState();
       this.renderOperatorChip();
-      gameAudio.playCharacterSelectionVoice(this, character.id);
     }
     this.cards.forEach((card) => {
       card.redraw(false, card.character?.id === character.id);
@@ -804,7 +810,7 @@ export class CharacterSelectScene extends Phaser.Scene {
       0xffd23f,
     );
 
-    if (unlocked) {
+    if (characterSkins(this.currentCharacter.id).length > 0) {
       this.addSkinPreviews(root);
     } else {
       root.add(this.add.text(36, 620,
@@ -836,29 +842,31 @@ export class CharacterSelectScene extends Phaser.Scene {
       fontStyle: "bold", letterSpacing: 1,
     });
     root.add(heading);
+    const step = 416 / Math.max(4, skins.length);
+    const tileWidth = step - 8;
     skins.forEach((skin, index) => {
-      const x = 36 + index * 104;
+      const x = 36 + index * step;
       const selected = skin.id === equipped?.id;
       const owned = ownsSkin(skin);
       const surface = this.add.graphics();
       const draw = (hovered: boolean): void => {
         surface.clear();
         surface.fillStyle(selected ? 0xe0f5fc : 0xe9edf1, 1);
-        surface.fillRect(x, 632, 96, 60);
+        surface.fillRect(x, 632, tileWidth, 60);
         surface.lineStyle(selected || hovered ? 2 : 1, selected || hovered ? 0x238eb8 : 0xb6c1ca, 1);
-        surface.strokeRect(x, 632, 96, 60);
-        if (selected) surface.fillStyle(0x238eb8, 1).fillRect(x, 689, 96, 3);
+        surface.strokeRect(x, 632, tileWidth, 60);
+        if (selected) surface.fillStyle(0x238eb8, 1).fillRect(x, 689, tileWidth, 3);
       };
       draw(false);
-      const icon = this.add.image(x + 48, 662, `skin-preview-${skin.id}`);
-      icon.setScale(Math.min(88 / icon.width, 56 / icon.height));
+      const icon = this.add.image(x + tileWidth / 2, 662, `skin-preview-${skin.id}`);
+      icon.setScale(Math.min((tileWidth - 8) / icon.width, 56 / icon.height));
       const lockOverlay = this.add.graphics();
       if (!owned) {
         icon.setTint(0x8b9299);
         lockOverlay.fillStyle(0x101820, 0.58);
-        lockOverlay.fillRect(x + 2, 634, 92, 56);
+        lockOverlay.fillRect(x + 2, 634, tileWidth - 4, 56);
       }
-      const hit = this.add.rectangle(x, 632, 96, 60, 0xffffff, 0)
+      const hit = this.add.rectangle(x, 632, tileWidth, 60, 0xffffff, 0)
         .setOrigin(0).setInteractive({ useHandCursor: true });
       hit.on('pointerover', () => { draw(true); heading.setText(`SKINS / ${skin.name.toUpperCase()}`); });
       hit.on('pointerout', () => { draw(false); heading.setText(`SKINS / ${equipped?.name.toUpperCase() ?? 'DEFAULT'}`); });
@@ -948,6 +956,7 @@ export class CharacterSelectScene extends Phaser.Scene {
         fontSize: "14px",
         fontStyle: "500",
         lineSpacing: 2,
+        maxLines: 2,
         surface: "light",
         width: 366,
         x: x + 22,
@@ -990,7 +999,8 @@ export class CharacterSelectScene extends Phaser.Scene {
     hit.on("pointerover", () => redraw(true));
     hit.on("pointerout", () => redraw(false));
     hit.on("pointerup", () => {
-      if (this.currentCharacter.id !== "snow-white" && this.currentCharacter.id !== "scarlet" && this.currentCharacter.id !== "rapunzel") { this.openTalentTree(); return; }
+      if (!canPreviewCharacterTalents(this.currentCharacter.id)) return;
+      if (this.currentCharacter.id !== "snow-white" && this.currentCharacter.id !== "scarlet" && this.currentCharacter.id !== "rapunzel" && this.currentCharacter.id !== "nayuta" && this.currentCharacter.id !== "dorothy") { this.openTalentTree(); return; }
       const dialog = openLobbyTalentTree(this.currentCharacter.id);
       const cleanup = () => dialog.remove();
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
@@ -1181,6 +1191,7 @@ export class CharacterSelectScene extends Phaser.Scene {
   }
 
   private openTalentTree(): void {
+    if (!canPreviewCharacterTalents(this.currentCharacter.id)) return;
     if (this.talentTreeLayer !== undefined) return;
     this.activeTalentTree = "attack";
     this.sound.play(AUDIO.confirm, {
@@ -1200,7 +1211,7 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     const chrome = this.add.graphics();
     chrome.fillStyle(0x070b10, 0.82);
-    chrome.fillRect(0, 0, WIDTH, HEIGHT);
+    chrome.fillRect(bleed.left, 0, bleed.width, HEIGHT);
     chrome.fillStyle(0xf4f7f9, 1);
     chrome.fillPoints(
       [
@@ -1230,7 +1241,7 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     root.add(
       this.add
-        .rectangle(0, 0, WIDTH, HEIGHT, 0xffffff, 0)
+        .rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xffffff, 0)
         .setOrigin(0)
         .setInteractive(),
     );

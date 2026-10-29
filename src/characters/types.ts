@@ -31,7 +31,7 @@ export interface CharacterProfile {
 }
 
 /** Firing sound family; see src/audio/sound-bank.ts. */
-export type WeaponSound = 'assault' | 'minigun' | 'rocket' | 'shotgun' | 'smg' | 'sniper' | 'sword' | 'beam';
+export type WeaponSound = 'assault' | 'pulse-rifle' | 'minigun' | 'rocket' | 'shotgun' | 'smg' | 'sniper' | 'sword' | 'beam';
 
 export interface VoiceLine {
   /** file in assets/audio/voice/characters/<id>/ */

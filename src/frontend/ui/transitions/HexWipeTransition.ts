@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import { createLogicalViewportContainer } from "../../rendering/DisplayQualityPlugin";
+import { createLogicalViewportContainer, view } from "../../rendering/DisplayQualityPlugin";
 
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
@@ -274,7 +274,7 @@ export function playHexWipeCover(
     }
     const palette = HEX_WIPE_PALETTE;
     const field = scene.add
-      .rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, palette.fieldFill, 1)
+      .rectangle(view.left, 0, view.width, CANVAS_HEIGHT, palette.fieldFill, 1)
       .setOrigin(0);
     container.add(field);
 
@@ -303,7 +303,7 @@ export function playHexWipeCover(
     });
 
     const wash = scene.add
-      .rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, palette.fieldFill, 1)
+      .rectangle(view.left, 0, view.width, CANVAS_HEIGHT, palette.fieldFill, 1)
       .setOrigin(0)
       .setAlpha(0);
     container.add(wash);
@@ -349,7 +349,7 @@ export function playHexWipeReveal(
   const palette = HEX_WIPE_PALETTE;
   const container = createLogicalViewportContainer(scene, TRANSITION_DEPTH);
   const field = scene.add
-    .rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, palette.fieldFill, 1)
+    .rectangle(view.left, 0, view.width, CANVAS_HEIGHT, palette.fieldFill, 1)
     .setOrigin(0);
   const slices = createRevealSlices(scene, container, palette);
   const maximumDelay = Math.max(...slices.map(({ delay }) => delay), 0);
@@ -475,7 +475,7 @@ function createCapturedSlices(
         textureKey,
         frameName,
       )
-      .setDisplaySize(CANVAS_WIDTH + 2, logicalHeight + 2);
+      .setDisplaySize(view.width + 2, logicalHeight + 2);
     container.add(image);
     const direction = index % 2 === 0 ? -1 : 1;
     slices.push({
@@ -499,9 +499,9 @@ function createRevealSlices(
       ((index + 1) * CANVAS_HEIGHT) / FRAME_SLICE_COUNT,
     );
     const height = bottom - top;
-    const container = scene.add.container(0, top);
+    const container = scene.add.container(view.left, top);
     const surface = scene.add
-      .rectangle(0, 0, CANVAS_WIDTH + 8, height + 2, palette.fieldFill, 1)
+      .rectangle(0, 0, view.width + 8, height + 2, palette.fieldFill, 1)
       .setOrigin(0)
       .setStrokeStyle(1, palette.fieldLine, 0.34);
     container.add(surface);
@@ -510,7 +510,7 @@ function createRevealSlices(
     return {
       container,
       delay: index * REVEAL_SLICE_STAGGER_MS,
-      offsetX: direction * (CANVAS_WIDTH + 320),
+      offsetX: direction * (view.width + 320),
     };
   });
 }

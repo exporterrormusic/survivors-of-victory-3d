@@ -28,7 +28,7 @@ export class SkinModelPreview {
     this.engine.runRenderLoop(() => this.active?.render());
   }
 
-  async show(skin: SkinDefinition): Promise<void> {
+  async show(skin: SkinDefinition, requestedClip?: string): Promise<void> {
     const sequence = ++this.sequence;
     this.active?.dispose(); this.active = undefined; this.fitCamera = undefined;
     this.status.textContent = 'LOADING MODEL...';
@@ -48,7 +48,8 @@ export class SkinModelPreview {
       const model = CHARACTER_MODULES[skin.characterId].model!;
       const chibi = await Chibi.load(scene, index.variants[skin.id], model.aim, model.muzzle);
       if (this.disposed || sequence !== this.sequence) return;
-      const clip = chibi.has('walk') ? 'walk' : chibi.has('run') ? 'run' : 'idle';
+      const clip = requestedClip ?? (chibi.has('walk') ? 'walk' : chibi.has('run') ? 'run' : 'idle');
+      if (!chibi.has(clip)) throw new Error(`Missing animation: ${clip}`);
       chibi.play(clip, { loop: true, fade: 0, speed: clip === 'run' ? .65 : 1 });
       scene.onBeforeAnimationsObservable.add(() => chibi.update(Math.min(.05, this.engine.getDeltaTime() / 1000)));
       scene.render();

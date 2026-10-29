@@ -12,6 +12,7 @@ import { WEAPON_CHARGE_TIME, type Player } from './player';
 import { NUMBER_LIFE, type Run } from './run';
 import type { TargetField } from './targets';
 import type { CharacterKit } from './kit';
+import { InsightPanel } from './nayuta/insight-panel';
 import type { Action } from './input';
 import { mountHudFrame, mountPanelTrim } from './hud-frames';
 
@@ -31,6 +32,8 @@ const RADAR_RANGE = 24;
 
 /** The user's preferred simple white equipment and utility silhouettes. */
 export const ICONS: Record<string, string> = {
+  wings: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M30 48C13 47 5 29 3 8l12 13-3-13 14 18 4 13zM34 48C51 47 59 29 61 8L49 21l3-13-14 18-4 13zM24 48h16l-8 10z"/></svg>',
+  clone: '<svg viewBox="0 0 64 64" fill="currentColor"><circle cx="23" cy="17" r="8"/><path d="M8 51V36a15 15 0 0 1 30 0v15z"/><g opacity=".5"><circle cx="43" cy="17" r="8"/><path d="M43 26a15 15 0 0 1 15 15v10H43z"/></g></svg>',
   halo: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor"><ellipse cx="32" cy="32" rx="24" ry="14" transform="rotate(-30 32 32)" stroke-width="4"/><ellipse cx="32" cy="32" rx="18" ry="9" transform="rotate(-30 32 32)" stroke-width="1.5"/><path d="m48 8 2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="currentColor" stroke="none"/></svg>', 
   rocket: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M50 5 59 6 58 15 32 41 23 32zm-29 25 13 13-5 5-13-13zM17 38l9 9-10 13-3-9-9-3zM35 17l-15 1-9 15 13-5zm12 12-1 15-15 9 5-13z"/></svg>',
   goddess: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M27 8h10v15h15v10H37v23H27V33H12V23h15z"/><circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
@@ -70,6 +73,8 @@ export class SurvivorHud {
   private readonly xpFill = document.createElement('i');
   private readonly upgrades = document.createElement('b');
   private readonly burst = document.createElement('button');
+  private readonly kitStatus = document.createElement('div');
+  private readonly insightPanel = new InsightPanel();
   private readonly burstState = document.createElement('b');
   private readonly burstFill = document.createElement('i');
   private readonly radar = document.createElement('canvas');
@@ -87,14 +92,12 @@ export class SurvivorHud {
     this.heroName = hero.name;
     const hud = $('hud');
     hud.classList.add('survivor');
+    this.kitStatus.className = 'run-kit-status';
+
     // the MOBA's own frames give way to the survivor layout below
     for (const id of ['topbar', 'unit-frames', 'channel', 'portrait', 'ability-dock', 'map-panel', 'menu-btn']) $(id)?.classList.add('hidden');
 
-    // top left: objective
-    const objective = el('div', 'run-panel', hud);
-    objective.id = 'run-objective';
-    objective.innerHTML = '<i class="ro-mark" aria-hidden="true"></i><div><b>Test range</b><small>Eliminate Raptures</small></div>';
-    mountPanelTrim(objective, 'objective');
+    // Top left is reserved for the communication panel.
 
     // top centre: time and wave
     const clock = el('div', '', hud);
@@ -130,7 +133,7 @@ export class SurvivorHud {
     pauseButton.className = 'run-frame';
     pause.append(pauseButton);
     pauseButton.type = 'button';
-    pauseButton.setAttribute('aria-label', 'Pause (Esc)');
+    pauseButton.setAttribute('aria-label', 'Menu (Esc)');
     pauseButton.setAttribute('aria-controls', 'menu');
     pauseButton.setAttribute('aria-expanded', 'false');
     pauseButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/></svg>';
@@ -156,6 +159,7 @@ export class SurvivorHud {
     el('div', 'rh-hp-bar', hp).append(this.hpFill);
     hp.append(this.hpText);
     const ammo = el('div', 'rh-ammo', info);
+    ammo.classList.toggle('rh-ammo-compact', kit.weapon.magazine > 10);
     this.rounds.className = 'rh-rounds';
     this.rounds.setAttribute('aria-hidden', 'true');
     ammo.append(this.rounds, this.roundCount);
@@ -191,6 +195,7 @@ export class SurvivorHud {
       const meter = el('i', 'rd-meter', root);
       el('span', '', el('kbd', 'run-key', root)).textContent = key;
       this.cards.set(id, { root, label: labelEl, value, meter });
+      if(id==='special')root.append(this.kitStatus);
     }
     this.burst.className = 'rd-burst';
     actionButton(this.burst, 'burst', `${kit.burstName} (E)`);
@@ -250,7 +255,7 @@ export class SurvivorHud {
 
   setPaused(paused: boolean): void {
     this.pauseButton.setAttribute('aria-expanded', String(paused));
-    this.pauseButton.setAttribute('aria-label', paused ? 'Resume (Esc)' : 'Pause (Esc)');
+    this.pauseButton.setAttribute('aria-label', paused ? 'Resume (Esc)' : 'Menu (Esc)');
   }
 
   resize(): void {
@@ -286,8 +291,14 @@ export class SurvivorHud {
       this.shownAmmo = player.ammo;
       this.shownReload = reloading;
       const size = kit.weapon.magazine;
-      while (this.rounds.childElementCount < size) el('i', '', this.rounds);
-      [...this.rounds.children].forEach((round, i) => round.classList.toggle('spent', i >= player.ammo));
+      if (size > 10) {
+        if (!this.rounds.firstElementChild) el('i', '', this.rounds);
+        setWidth(this.rounds.firstElementChild as HTMLElement, `${Math.max(0, Math.min(1, player.ammo / size)) * 100}%`);
+      } else {
+        while (this.rounds.childElementCount < size) el('i', '', this.rounds);
+        [...this.rounds.children].forEach((round, i) => round.classList.toggle('spent', i >= player.ammo));
+      }
+      this.rounds.parentElement!.setAttribute('aria-label', `${player.ammo} of ${size} rounds${reloading ? ', reloading' : ''}`);
       this.rounds.classList.toggle('reloading', reloading);
       this.roundCount.innerHTML = `${String(player.ammo).padStart(2, '0')}<small> / ${String(size).padStart(2, '0')}</small>`;
     }
@@ -298,21 +309,29 @@ export class SurvivorHud {
     weapon.root.classList.toggle('busy', reloading);
     weapon.root.classList.toggle('charging', player.weaponCharge !== null);
     weapon.root.classList.toggle('charged', fullyCharged);
-    setAttr(weapon.root, 'aria-label', reloading ? `Reloading (${player.reloading.toFixed(1)} seconds)` : fullyCharged ? 'Fully charged. Release LMB to fire.' : kit.weapon.melee ? 'Fleetly Fading (LMB). Costs HP down to 50%; no reload.' : `Weapon (LMB), ${player.ammo} rounds`);
+    setAttr(weapon.root, 'aria-label', reloading ? `Reloading (${player.reloading.toFixed(1)} seconds)` : fullyCharged ? 'Fully charged. Release LMB to fire.' : kit.unlimitedAmmo ? 'Asceticism: narrow palm strikes, no ammunition cost.' : kit.weapon.melee ? 'Fleetly Fading (LMB). Costs HP down to 50%; no reload.' : `Weapon (LMB), ${player.ammo} rounds`);
     setText(weapon.label, reloading ? 'Reloading' : fullyCharged ? 'Fully charged' : player.weaponCharge !== null ? `Charge ${Math.floor(player.weaponCharge / WEAPON_CHARGE_TIME * 100)}%` : 'Weapon');
     setWidth(weapon.meter, reloading ? `${(1 - player.reloading / player.reloadTime) * 100}%` : player.weaponCharge !== null ? `${player.weaponCharge / WEAPON_CHARGE_TIME * 100}%` : '0');
 
+    const insight=kit.insightDisplay;
+    this.kitStatus.classList.toggle('has-insight',!!insight);
+    if(insight){
+      if(this.insightPanel.root.parentElement!==this.kitStatus)this.kitStatus.replaceChildren(this.insightPanel.root);
+      this.insightPanel.update(insight);
+    }else setText(this.kitStatus, kit.status ?? '');
+    this.kitStatus.hidden = !insight&&!kit.status;
     const special = kit.special();
     const sp = this.cards.get('special')!;
     const specialCharge = special.charge ?? null;
     const specialFull = specialCharge !== null && specialCharge >= 1 - 1e-6;
-    setText(sp.label, specialFull ? 'Fully charged' : specialCharge !== null ? `Charge ${Math.floor(specialCharge * 100)}%` : 'Special');
+    setText(sp.label, special.label ?? (specialFull ? 'Fully charged' : specialCharge !== null ? `Charge ${Math.floor(specialCharge * 100)}%` : 'Special'));
     // Only multi-charge Specials show a count ("x 2"); single-charge ones show none.
     setText(sp.value!, special.maxCharges > 1 ? `x ${special.charges}` : '');
     sp.root.classList.toggle('charged', specialFull);
-    sp.root.classList.toggle('busy', special.charges <= 0);
-    setDisabled(sp.root, special.charges <= 0);
-    setAttr(sp.root, 'aria-label', specialFull ? 'Fully charged. Release RMB to fire.' : `${kit.specialName} (RMB), ${special.charges} charges`);
+    sp.root.classList.toggle('busy', !(special.available ?? special.charges > 0));
+    setDisabled(sp.root, !(special.available ?? special.charges > 0));
+    sp.root.title = special.hint ?? '';
+    setAttr(sp.root, 'aria-label', special.hint ?? (specialFull ? 'Fully charged. Release RMB to fire.' : `${kit.specialName} (RMB), ${special.charges} charges`));
     setWidth(sp.meter, specialCharge !== null ? `${specialCharge * 100}%` : special.charges < special.maxCharges ? `${special.progress * 100}%` : '0');
 
     const dash = this.cards.get('dash')!;
@@ -322,10 +341,10 @@ export class SurvivorHud {
     setWidth(dash.meter, player.dashCooldown > 0 ? `${(1 - player.dashCooldown / player.dashCooldownDuration) * 100}%` : '0');
     setAttr(dash.root, 'aria-label', player.dashCooldown > 0 ? `Dash recharging, ${player.dashCooldown.toFixed(1)} seconds` : 'Dash ready (Shift)');
 
-    const ready = run.burst >= 100;
+    const ready = kit.burstAvailable !== false && run.burst >= 100 && !kit.burstActive;
     this.burst.classList.toggle('ready', ready);
-    setDisabled(this.burst, !ready);
-    setText(this.burstState, player.burstCharge !== null ? `Focus ${Math.round(player.burstCharge / 2.5 * 100)}%` : ready ? 'Burst ready' : `Burst ${Math.floor(run.burst)}%`);
+    setDisabled(this.burst, kit.burstActive ? !kit.burstActionReady : !ready);
+    setText(this.burstState, kit.burstAvailable === false ? 'Planned' : kit.burstLabel ?? (player.burstCharge !== null ? `Focus ${Math.round(player.burstCharge / 2.5 * 100)}%` : ready ? 'Burst ready' : `Burst ${Math.floor(run.burst)}%`));
     setWidth(this.burstFill, `${run.burst}%`);
     setProgress(this.burstFill.parentElement!, Math.floor(run.burst), 100);
 
@@ -346,7 +365,8 @@ export class SurvivorHud {
       ctx.lineWidth = 14 * scale;
       ctx.strokeRect(0, 0, c.width / dpr, c.height / dpr);
     }
-    if (player.trainingReset > 0) {
+    // A co-op down holds trainingReset at Infinity until revived; its ring says that, not this text.
+    if (player.trainingReset > 0 && Number.isFinite(player.trainingReset)) {
       ctx.fillStyle = '#fff0e5';
       ctx.font = `bold ${24 * scale}px Rajdhani, sans-serif`;
       ctx.textAlign = 'center';
@@ -385,9 +405,10 @@ export class SurvivorHud {
     }
 
     // NIKKEs (the hero and the supply squad): name over a segmented health line.
-    const nikkeBar = (x: number, y: number, z: number, hpShare: number, name: string, width: number, color: string): void => {
+    const nikkeBar = (x: number, y: number, z: number, hpShare: number, name: string, width: number, color: string, offsetY=0): void => {
       const at = project(x, y, z);
       if (!at.visible) return;
+      at.y+=offsetY;
       const w = width * scale, h = 6 * scale, segments = 5;
       ctx.fillStyle = '#060a0f';
       ctx.fillRect(at.x - w / 2 - 1, at.y - h - 1, w + 2, h + 2);
@@ -406,8 +427,22 @@ export class SurvivorHud {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
     };
-    for (const ally of targets.squad)
-      if (ally.alive) nikkeBar(ally.position.x, ally.position.y + 2.3, ally.position.z, ally.hp / ally.maxHp, ally.name.toUpperCase(), 50, '#5fc7d8');
+    for (const ally of targets.squad) if(ally.alive){
+      const state=ally.cloneDisplay;
+      if(!state){nikkeBar(ally.position.x, ally.position.y + 2.3, ally.position.z, ally.hp / ally.maxHp, ally.name.toUpperCase(), 50, '#5fc7d8');continue;}
+      const color=state.silver?'#e7f5ff':state.ready?'#ffe36c':'#bca36e';
+      const p=project(ally.position.x,ally.position.y+2.5,ally.position.z);
+      if(!p.visible)continue;
+      const r=7*scale;
+      // A filling ring becomes a solid diamond at maturity; silver uses a shrinking arc.
+      ctx.fillStyle='#080d16dd';ctx.beginPath();ctx.arc(p.x,p.y,r+3*scale,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=2*scale;ctx.strokeStyle='#6a7079';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle=color;ctx.beginPath();ctx.arc(p.x,p.y,r,-Math.PI/2,-Math.PI/2+state.progress*Math.PI*2);ctx.stroke();
+      if(state.ready){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(p.x,p.y-r+2);ctx.lineTo(p.x+r-2,p.y);ctx.lineTo(p.x,p.y+r-2);ctx.lineTo(p.x-r+2,p.y);ctx.closePath();ctx.fill();}
+      if(state.retrieving){ctx.strokeStyle='#fff';ctx.lineWidth=2*scale;ctx.beginPath();ctx.moveTo(p.x-5*scale,p.y-16*scale);ctx.lineTo(p.x,p.y-11*scale);ctx.lineTo(p.x+5*scale,p.y-16*scale);ctx.stroke();}
+      if(ally.hp<ally.maxHp){ctx.fillStyle='#080d16';ctx.fillRect(p.x-15*scale,p.y+12*scale,30*scale,3*scale);ctx.fillStyle=color;ctx.fillRect(p.x-15*scale,p.y+12*scale,30*scale*Math.max(0,ally.hp/ally.maxHp),3*scale);}
+
+    }
     if (player.chibi.root.isEnabled() && !player.transported)
       nikkeBar(player.position.x, player.position.y + 2.55, player.position.z, player.hp / player.maxHp, this.heroName.toUpperCase(), 64, '#6edc70');
 

@@ -24,7 +24,7 @@
 
 /* field kits above the operator panel */
 .sm-kits {
-  position: absolute; left: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(252 * var(--k));
+  position: absolute; left: calc(var(--hud-side) + 24 * var(--k)); bottom: calc(252 * var(--k));
   display: flex; gap: calc(6 * var(--k)); pointer-events: auto;
 }
 .sm-kit {

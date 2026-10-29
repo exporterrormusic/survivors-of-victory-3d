@@ -15,7 +15,7 @@
 
 /* --- HUD prompt, above the portrait ------------------------------------------------- */
 #run-talent-pick {
-  position: absolute; z-index: 3; left: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(256 * var(--k));
+  position: absolute; z-index: 3; left: calc(var(--hud-side) + 24 * var(--k)); bottom: calc(256 * var(--k));
   width: max(300px, calc(400 * var(--k))); display: flex; flex-direction: column; align-items: flex-start; gap: calc(6 * var(--k));
   pointer-events: none; font-family: Rajdhani, 'Segoe UI', sans-serif;
 }

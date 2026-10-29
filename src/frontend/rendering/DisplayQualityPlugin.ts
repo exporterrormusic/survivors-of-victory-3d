@@ -11,11 +11,60 @@ const TEXT_RESOLUTION = 2;
 export const RENDER_WIDTH = GAME_WIDTH * RENDER_SCALE;
 export const RENDER_HEIGHT = GAME_HEIGHT * RENDER_SCALE;
 
+// Screens wider than 16:9 (up to 21:9, like the run frame) see more of each scene to the sides:
+// cameras stay centred on the 1920x1080 layout, and full-bleed art and edge-anchored chrome use `view`.
+const MIN_ASPECT = 16 / 9;
+const MAX_ASPECT = 21 / 9;
+let viewWidth = GAME_WIDTH;
+
+/** Logical width the window shows at 1080 high, from 1920 (16:9) to 2520 (21:9). */
+export function windowViewWidth(): number {
+  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+  return Math.round((GAME_HEIGHT * Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, aspect))) / 2) * 2;
+}
+export function setViewWidth(width: number): void { viewWidth = width; }
+/** The visible span in 1920x1080 layout coordinates; left is negative on wide screens. */
+export const view = {
+  get width(): number { return viewWidth; },
+  get left(): number { return (GAME_WIDTH - viewWidth) / 2; },
+  get right(): number { return (GAME_WIDTH + viewWidth) / 2; },
+  get renderWidth(): number { return viewWidth * RENDER_SCALE; },
+};
+/** Full-bleed art is always drawn this wide (21:9), so resizing the window never redraws it. */
+const BLEED_WIDTH = Math.round(GAME_HEIGHT * MAX_ASPECT);
+export const bleed = {
+  left: (GAME_WIDTH - BLEED_WIDTH) / 2,
+  right: (GAME_WIDTH + BLEED_WIDTH) / 2,
+  width: BLEED_WIDTH,
+} as const;
+
+/** Pin header/footer chrome to a screen edge; it slides with that edge when the window resizes. */
+export function pinToEdge<T extends Phaser.GameObjects.GameObject>(object: T, side: "left" | "right"): T {
+  return object.setData("edge", side);
+}
+
+/** Resize every running scene's view in place: cameras stay centred and pinned chrome follows the edges. */
+export function applyViewWidth(game: Phaser.Game, width: number): void {
+  const shiftLeft = (GAME_WIDTH - width) / 2 - view.left;
+  setViewWidth(width);
+  game.scale.setGameSize(view.renderWidth, RENDER_HEIGHT);
+  for (const scene of game.scene.getScenes(true)) {
+    scene.cameras.main.setSize(view.renderWidth, RENDER_HEIGHT).centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+    for (const object of scene.children.list) {
+      const side = object.getData("edge") as "left" | "right" | undefined;
+      const positioned = object as unknown as { x: number };
+      if (side === "left") positioned.x += shiftLeft;
+      else if (side === "right") positioned.x -= shiftLeft;
+    }
+    scene.events.emit("view-resize");
+  }
+}
+
 export function logicalPointerPosition(
   pointer: Phaser.Input.Pointer,
 ): Phaser.Math.Vector2 {
   return new Phaser.Math.Vector2(
-    pointer.x / RENDER_SCALE,
+    pointer.x / RENDER_SCALE + view.left,
     pointer.y / RENDER_SCALE,
   );
 }
@@ -34,7 +83,7 @@ export function createLogicalViewportContainer(
   const syncToCamera = (): void => {
     const zoom = Math.max(0.001, scene.cameras.main.zoom);
     viewport.setPosition(
-      RENDER_WIDTH * 0.5 - (RENDER_WIDTH * 0.5) / zoom,
+      view.renderWidth * 0.5 - (view.renderWidth * 0.5) / zoom - (view.left * RENDER_SCALE) / zoom,
       RENDER_HEIGHT * 0.5 - (RENDER_HEIGHT * 0.5) / zoom,
     );
     content.setScale(RENDER_SCALE / zoom);

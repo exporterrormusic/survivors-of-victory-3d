@@ -1,0 +1,31 @@
+﻿import {chromium} from 'file:///C:/Users/rmdou/Desktop/GAME%20DEV/NIKKE%20POKEMON/node_modules/playwright-core/index.mjs';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const browser=await chromium.launch();try{const page=await browser.newPage({viewport:{width:1280,height:720}});
+await page.route('**/src/app.ts*',r=>r.fulfill({body:'',contentType:'text/javascript'}));
+await page.route('**/@vite/client',r=>r.fulfill({body:'export function createHotContext(){return {accept(){},prune(){}}} export function updateStyle(id,css){const el=document.createElement("style");el.textContent=css;document.head.append(el);} export function removeStyle(){} export function injectQuery(url,query){return url+(url.includes("?")?"&":"?")+query;}',contentType:'text/javascript'}));
+await page.goto('http://127.0.0.1:5199');
+const result=await page.evaluate(async()=>{
+ document.body.innerHTML='<canvas id="world" tabindex="0" style="width:100vw;height:100vh;display:block"></canvas>';document.body.style.margin='0';
+ const source=await(await fetch('/src/survivor/nihilister-egg.ts')).text();const corePath=source.match(/from "([^"]*babylonjs_core[^"]*)"/)[1];
+ const B=await import(corePath);const {NihilisterEgg}=await import('/src/survivor/nihilister-egg.ts');const {Run}=await import('/src/survivor/run.ts');
+ const canvas=document.getElementById('world');const engine=new B.Engine(canvas,true,{preserveDrawingBuffer:true});const scene=new B.Scene(engine);scene.clearColor=new B.Color4(.04,.05,.06,1);
+ const camera=new B.ArcRotateCamera('camera',-Math.PI/2,0.8,83,new B.Vector3(23,0,0),scene);new B.HemisphericLight('light',new B.Vector3(0,1,0),scene);
+ const ground=B.MeshBuilder.CreateGround('ground',{width:140,height:100},scene);const material=new B.StandardMaterial('ground-material',scene);material.diffuseColor=new B.Color3(.19,.16,.14);ground.material=material;
+ const ctx={scene,volcano:{setLavaTrailEnd:(_t,p)=>{window.lavaEnd={x:p.x,z:p.z};}},player:{position:new B.Vector3(-20,0,0)},hud:document.body,shake(){},refreshUnits(){}};
+ const egg=new NihilisterEgg(ctx);egg.at.set(0,0,0);const random=Math.random;Math.random=()=>.25;egg.warnPath();Math.random=random;egg.warnings.update(.1);
+ const warning={width:egg.warning.mesh.scaling.x,length:egg.warning.mesh.scaling.z,dir:{x:egg.dir.x,z:egg.dir.z},pathLength:egg.pathLength};
+ egg.boss={root:new B.TransformNode('boss',scene),head:null,groups:new Map()};egg.startY=3;egg.trail={};egg.fly(.1,1);const endpoint=window.lavaEnd;
+ await scene.whenReadyAsync();scene.render();window.scene=scene;window.egg=egg;window.engine=engine;
+ const target={alive:true,hp:100,hit(amount){this.hp-=amount;if(this.hp<=0){this.alive=false;return true;}return false;}};const run={kills:0,gainXp(){}};for(let i=0;i<144;i++)Run.prototype.environmentDamage.call(run,target,40/144);
+ const {SurvivorInput}=await import('/src/survivor/input.ts');window.soloInput=new SurvivorInput(canvas);canvas.focus();
+ return {warning,endpoint,hp:target.hp};
+});
+assert.ok(result.warning.width>=9);assert.ok(result.warning.length>50);assert.ok(Math.abs(result.endpoint.z)<.001);assert.ok(Math.abs(result.hp-60)<.001);
+await page.keyboard.press('Space');assert.deepEqual(await page.evaluate(()=>({pause:soloInput.wasPressed('pause'),menu:soloInput.wasPressed('menu')})),{pause:true,menu:false});
+await page.keyboard.press('Escape');assert.deepEqual(await page.evaluate(()=>({pause:soloInput.wasPressed('pause'),menu:soloInput.wasPressed('menu')})),{pause:false,menu:true});
+await page.evaluate(()=>{soloInput.enabled=false;});await page.keyboard.press('Space');assert.equal(await page.evaluate(()=>soloInput.wasPressed('pause')),true);
+await fs.mkdir('artifacts/nihilister',{recursive:true});await page.screenshot({path:'artifacts/nihilister/path-warning.png'});
+await page.evaluate(()=>egg.clearWarning());assert.equal(await page.evaluate(()=>egg.warning),null);
+console.log('PASS: red corridor preview matches lava path; fractional lava damage at 144 FPS; Space pauses and Escape opens the menu, even while paused; warning cleanup.');
+}finally{await browser.close();}

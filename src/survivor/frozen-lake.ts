@@ -40,6 +40,10 @@ export const LAKE_ENEMY_ICE_SPEED=.8;
 export const LAKE_HESITATION=1.5;
 /** Speed multiplier at full depth. */
 export const LAKE_WADE_SPEED=.48;
+/** Stress at which ground enemies read the ice as about to go and back away; minor cracks stay below it. */
+export const LAKE_RETREAT_STRESS=.5;
+/** Seconds a Rapture takes to notice, spread per unit, so a quick collapse still catches some. */
+export const LAKE_RETREAT_REACTION:readonly [number,number]=[.25,1.1];
 
 /** Two lakes, each a union of overlapping blobs. The north-west lake reaches up and right across
  * the top of the map; the south-east one mirrors it down and left. The other diagonal stays snow. */
@@ -132,6 +136,20 @@ export class FrozenLake {
       if(this.depth(q)<=0)return q;
     }
     return null;
+  }
+  /** Calmer footing a few metres away when the ice under a body is badly cracked; null while it is sound. */
+  retreat(p:LakePoint):LakePoint|null{
+    if(!this.enabled||!this.onIce(p))return null;
+    const worst=(q:LakePoint)=>{let v=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const i=this.cell(q.x+dx,q.z+dz);if(i>=0)v=Math.max(v,this.hole[i]>0?1:this.stress[i]);}return v;};
+    if(worst(p)<LAKE_RETREAT_STRESS)return null;
+    const shore=this.shoreGoal(p);let best:LakePoint=shore,score=Infinity;
+    for(const r of [4,7])for(let k=0;k<12;k++){
+      const a=k*Math.PI/6,q={x:p.x+Math.cos(a)*r,z:p.z+Math.sin(a)*r};
+      // Least cracked, never open water, leaning toward the shore.
+      const value=worst(q)+this.depth(q)*3+Math.hypot(q.x-shore.x,q.z-shore.z)*.02;
+      if(value<score){score=value;best=q;}
+    }
+    return best;
   }
   /** True while a body stands on visible ice. */
   onIce(p:LakePoint,radius=0):boolean{return this.enabled&&lakeSurface(p.x,p.z)>-radius;}

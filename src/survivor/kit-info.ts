@@ -9,7 +9,27 @@ export interface KitInfo { passiveName: string; passiveSummary: string; icons: {
 
 const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
-export const KIT_INFO: Record<'snow-white' | 'scarlet' | 'rapunzel', KitInfo> = {
+export const KIT_INFO: Record<'snow-white' | 'scarlet' | 'rapunzel' | 'nayuta' | 'dorothy', KitInfo> = {
+  dorothy: {
+    passiveName: 'Exposed', passiveSummary: 'Flight opens enemies to stronger rifle fire.',
+    icons: { weapon: 'rifle', special: 'wings' },
+    entries: [
+      { slot: 'weapon', name: 'Ungrateful OZ', text: 'Automatic pink pulse rifle: 60 rounds, 1-second reload. Prototype balance.' },
+      { slot: 'special', name: 'Angel’s Flight', text: 'RMB: fly invulnerably to the clicked cursor position, firing freely. Landing releases a 4m pink blast: 30 damage, outward knockback, and Exposed for 4s. No contact damage during flight. 8s cooldown; walls stop flight.' },
+      { slot: 'burst', name: 'Paradise Lost', text: 'E at full gauge: deploy wing armor and pierce enemies for 8s. Brand a visible enemy nearest your aim, or your next hit if none is available. Store Dorothy’s damage to it (cap 180); on death or expiry, explode within 5m for 18 + 65% stored damage. Cover and shields block the blast.' },
+      { slot: 'passive', name: 'Exposed', text: 'The landing blast makes enemies take 35% more damage from Dorothy’s rifle for 4s. Landing damage and empowered rifle hits feed her Brand. Separate passive and talents remain unassigned.' },
+    ],
+  },
+  nayuta: {
+    passiveName: 'Stillness of Many', passiveSummary: 'Meditate while your clones fight; retrieve them for Insight.',
+    icons: { weapon: 'halo', special: 'clone' },
+    entries: [
+      { slot: 'weapon', name: 'Nirvana', text: 'Paired gold shots direct clones to your target. Each Insight grants Nayuta and her clones 25% damage, plus 7.5% movement speed to Nayuta: up to +100% damage and +30% speed.' },
+      { slot: 'special', name: 'Manifestation / Return', text: 'Tap RMB to summon a regular gold clone (3 charges, 6 s recharge, cap 4). At cap, tap to reposition. Hold RMB to retrieve the weakest clone. Regular clones grant 0.5 Insight when fresh, rising to 1 when mature; silver clones grant 0.25. No baseline healing.' },
+      { slot: 'burst', name: 'White Procession', text: 'Summon 8 silver-white clones that charge toward your cursor and fight for 8 s, independently of regular clones. Keep shooting to focus their attacks, or retrieve them for Insight. Death and natural expiration grant nothing.' },
+      { slot: 'passive', name: 'Stillness of Many', text: 'After 1.5 s without moving or shooting, meditate: regular clones mature twice as fast, summon recharge is 50% faster, and Insight duration pauses. Insight caps at 4. The first return starts 10 s. Later returns add 1/3 of the maximum duration when fresh, rising to 2/3 when mature, capped at the maximum. Moving, shooting or reloading ends meditation; clone commands preserve it.' },
+    ],
+  },
   scarlet: {
     passiveName: 'Drinking',
     passiveSummary: `Hold completely still for ${DRINK_DELAY} s to drink and slowly heal.`,

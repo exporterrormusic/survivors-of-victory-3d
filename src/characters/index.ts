@@ -3,12 +3,13 @@
 // loader, the HUD and audio pick it up.
 import { PROTOTYPE_KIT } from '../abilities/prototype-kit';
 import type { Kit } from '../abilities/types';
-import { CHARACTER_IDS, type CharacterId } from './ids';
+import { ACTIVE_CHARACTER_IDS, type CharacterId } from './ids';
 import type { CharacterModule } from './types';
 import { character as snowWhite } from './snow-white';
 import { character as scarlet } from './scarlet';
 import { character as rapunzel } from './rapunzel';
 import { character as nayuta } from './nayuta';
+import { character as dorothy } from './dorothy';
 import { character as commander } from './commander';
 import { character as marian } from './marian';
 import { character as crown } from './crown';
@@ -25,6 +26,7 @@ export const CHARACTER_MODULES: Readonly<Record<CharacterId, CharacterModule>> =
   scarlet,
   rapunzel,
   nayuta,
+  dorothy,
   commander,
   marian,
   crown,
@@ -42,7 +44,7 @@ export const kitOf = (character: CharacterModule): Kit => character.kit ?? PROTO
 /** Characters with a field model can be deployed; the rest stay locked. */
 export const isPlayable = (id: CharacterId): boolean => CHARACTER_MODULES[id].model !== null;
 
-export const PLAYABLE_CHARACTER_IDS: readonly CharacterId[] = CHARACTER_IDS.filter(isPlayable);
+export const PLAYABLE_CHARACTER_IDS: readonly CharacterId[] = ACTIVE_CHARACTER_IDS.filter(isPlayable);
 
 export interface HeroVariant {
   readonly character: CharacterModule;

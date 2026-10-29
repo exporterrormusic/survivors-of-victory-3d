@@ -1,3 +1,4 @@
+import { returnToMainMenu } from './frontend/return-to-menu';
 import type { Combat } from './combat';
 import { BATTLEGROUND } from './battleground';
 
@@ -15,7 +16,7 @@ export class BattlegroundHud {
     this.result.innerHTML = `<div class="match-result-card"><span class="match-result-map"></span><h1 id="match-result-title"></h1><p></p><div class="match-result-actions"><button type="button" class="match-replay">Play again</button><button type="button" class="match-lobby">Return to lobby</button></div></div>`;
     this.result.querySelector('.match-result-map')!.textContent = BATTLEGROUND.name;
     this.result.querySelector('.match-replay')!.addEventListener('click', () => location.reload());
-    this.result.querySelector('.match-lobby')!.addEventListener('click', () => location.assign(`${location.pathname}?preview=main-menu`));
+    this.result.querySelector('.match-lobby')!.addEventListener('click', () => returnToMainMenu());
     this.result.addEventListener('keydown', e => {
       if (e.code !== 'Tab') return;
       const buttons = [...this.result.querySelectorAll<HTMLButtonElement>('button')];

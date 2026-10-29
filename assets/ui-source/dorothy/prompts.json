@@ -1,0 +1,14 @@
+{
+  "generator": "Built-in imagegen",
+  "splash": {
+    "prompt": "Use case: stylized-concept. Create original custom Burst splash illustration for Dorothy from Goddess of Victory NIKKE, using attached reference only for exact character identity and white mechanical feather armor design. Vertical 2:3 portrait composition for game character select. Adult Dorothy alone, long pink hair, violet eyes, ornate swept white head ornaments, white layered dress, white and pale-gold mechanical wing armor with amethyst gems. Graceful airborne three-quarter pose, calm regal expression with a hint of sorrow and resolve, open hand directing a pink beam of light; unfolding mechanical feather armor frames her silhouette. Face centered horizontally in upper third, visible and beautifully detailed, full head and most of body. Rich painterly anime game key art, crisp face and elegant silhouette. Dark violet ruined Eden garden backdrop, restrained rose-pink energy arcs and floating white petals, cinematic white rim light. No text, lettering, logo, watermark or UI. Opaque background. Preserve distinctive reference costume, not generic feather angel wings. New composition, not a copy of reference pose.",
+    "output": "assets/ui-source/dorothy/burst-splash.png",
+    "source": "assets/ui-source/dorothy/burst-splash.png"
+  },
+  "banner": {
+    "prompt": "Use case: stylized-concept. Original custom cinematic 3:1 ultra-wide Burst HUD illustration for Dorothy from Goddess of Victory NIKKE. Use reference image for exact identity: long pink hair with straight bangs, violet eyes, swept white mechanical feather head ornaments with gold accents, white ruffled collar and white armor. Tight close-up of adult Dorothy's face and one raised hand, regal composed gaze with restrained sorrow, eyes open. Face fills RIGHT two-thirds; eyes near x=65%, y=45%. LEFT third fades to almost-black violet empty space for UI. Hint of unfolding white mechanical feather armor behind her cheek, pink beam reflections and a few luminous petals. Premium painterly anime art, precise face, cinematic contrast, pink-white rim light. Not chibi, not full body. No text, logo, watermark or borders. Opaque background.",
+    "output": "assets/ui-source/dorothy/rejected-burst-banner.png"
+  },
+  "reference": "https://cdn.prydwen.gg/images/nikke/characters/dorothy_full.webp",
+  "status": "Rejected by user; archived only. Runtime uses user-supplied portrait.png and burst.png."
+}

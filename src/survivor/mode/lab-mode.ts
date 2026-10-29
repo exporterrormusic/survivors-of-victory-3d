@@ -17,14 +17,22 @@ export class LabMode {
   private count = 1;
   private god = true;
   private frozen = false;
-  /** the spawn panel; main.ts mounts it as the Raptures tab of the test lab */
+  private loading = false;
+  private disposed = false;
+  private loadError = '';
+  private readonly loaded = new Set<string>();
+  /** the spawn panel; main.ts mounts it as the ENEMY tab of the test lab */
   readonly panel = document.createElement('div');
   private readonly status = document.createElement('p');
 
   private constructor(private readonly init: SortieModeInit, private readonly horde: Horde,
-    private readonly tells: TelegraphLayer, private readonly pacing: EnemyAttackPacing) {
-    init.field.setMovement('pursue');
-    init.run.burstAlwaysMax = true;
+    private readonly tells: TelegraphLayer, private readonly pacing: EnemyAttackPacing,
+    private readonly standalone: boolean) {
+    this.god = standalone;
+    if (standalone) {
+      init.field.setMovement('pursue');
+      init.run.burstAlwaysMax = true;
+    }
     this.panel.className = 'rapture-lab';
     this.panel.innerHTML = `<div class="lab-body">
         <div class="lab-row" data-counts>${[1, 3, 10].map((n) => `<button data-count="${n}" aria-pressed="${n === 1}">×${n}</button>`).join('')}</div>
@@ -36,7 +44,7 @@ export class LabMode {
           }).join('')}</div></details>`;
         }).join('')}</div>
         <div class="lab-row">
-          <button data-toggle="god" aria-pressed="true">God mode</button>
+          <button data-toggle="god" aria-pressed="${this.god}">God mode</button>
           <button data-toggle="freeze" aria-pressed="false">Freeze AI</button>
           <button data-clear>Clear</button>
         </div>
@@ -48,11 +56,11 @@ export class LabMode {
     document.getElementById('hud')!.append(this.panel);
   }
 
-  static async create(init: SortieModeInit): Promise<LabMode> {
+  static async create(init: SortieModeInit, standalone = true): Promise<LabMode> {
     const tells = new TelegraphLayer(init.scene, groundHeight(init.snow)), pacing = new EnemyAttackPacing();
     const horde = new Horde(init.field, { player: init.player, field: init.field, run: init.run, vfx: init.vfx, tells, pacing, snow: init.snow, arenaRadius: init.arenaRadius });
-    await horde.load(RAPTURE_KEYS);
-    return new LabMode(init, horde, tells, pacing);
+    if (standalone) await horde.load(RAPTURE_KEYS);
+    return new LabMode(init, horde, tells, pacing, standalone);
   }
 
   get alive(): number { return this.horde.counts().total; }
@@ -63,13 +71,13 @@ export class LabMode {
     const { player } = this.init;
     if (this.god) { player.hp = player.maxHp; }
     // No level-ups: the talent picker would cover the panel.
-    this.init.run.xp = 0;
+    if (this.standalone) this.init.run.xp = 0;
     const step = this.frozen ? 0 : dt;
     this.pacing.update(step);
     this.horde.update(step);
     this.tells.update(step);
     if (this.frozen) for (const t of this.init.field.targets) if (t.alive && !t.respawns) t.frozen = Math.max(t.frozen, .1);
-    this.status.textContent = `${this.alive} alive`;
+    this.status.textContent = this.loading ? 'Loading enemy…' : this.loadError || `${this.alive} alive`;
   }
 
   private click(e: MouseEvent): void {
@@ -79,7 +87,7 @@ export class LabMode {
     if (button.dataset.count) {
       this.count = Number(button.dataset.count);
       for (const b of this.panel.querySelectorAll<HTMLButtonElement>('[data-count]')) b.setAttribute('aria-pressed', String(b === button));
-    } else if (button.dataset.spawn) this.spawn(button.dataset.spawn);
+    } else if (button.dataset.spawn) void this.spawn(button.dataset.spawn);
     else if (button.dataset.clear !== undefined) this.horde.clear();
     else if (button.dataset.toggle) {
       const on = button.getAttribute('aria-pressed') !== 'true';
@@ -88,7 +96,19 @@ export class LabMode {
     }
   }
 
-  private spawn(key: string): void {
+  private async spawn(key: string): Promise<void> {
+    if (this.loading || this.disposed) return;
+    if (!this.standalone && !this.loaded.has(key)) {
+      this.loading = true; this.loadError = '';
+      try {
+        await this.horde.load([key]);
+        if (this.disposed) return;
+        this.loaded.add(key); this.init.refreshUnits?.();
+      } catch {
+        this.loadError = 'Enemy could not load. Try again.';
+        return;
+      } finally { this.loading = false; }
+    }
     const { player, field } = this.init;
     const spec = raptureSpec(key);
     const yaw = player.aimYaw, ahead = spec.tier === 'boss' ? 14 : 9;
@@ -102,6 +122,7 @@ export class LabMode {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.horde.dispose();
     this.tells.dispose();
     this.panel.remove();

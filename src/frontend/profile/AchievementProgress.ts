@@ -1,4 +1,9 @@
-import { CHARACTERS, STARTER_CHARACTER_ID } from "./CharacterRoster";
+import {
+  CHARACTERS,
+  DEFAULT_UNLOCKED_CHARACTER_IDS,
+  characterLockReason,
+} from "./CharacterRoster";
+import { OPERATION_ZONES } from "./StageData";
 import { isCharacterId, type CharacterId } from "./Ids";
 import {
   readProfileSection,
@@ -7,18 +12,20 @@ import {
 
 export type AchievementCategory = "combat" | "expedition" | "mastery";
 
+/** Lifetime counters; WAVE/ENDLESS rounds feed them from survival-mode.ts at round end. */
 export interface AchievementStats {
+  bestEndlessSeconds: number;
   bossVictories: number;
+  /** WAVE rounds won (key kept from older saves) */
   characterWins: number;
   fullTalentTrees: number;
+  heavyKills: number;
   mapsPlayed: number;
   maxCharacterKills: number;
-  noDamageWaves: number;
-  n01Spawns: number;
-  stageOneWins: number;
+  maxRoundKills: number;
+  roundsPlayed: number;
+  steadyWins: number;
   totalKills: number;
-  wave11NoShots: number;
-  waveReached: number;
 }
 
 export interface AchievementDefinition {
@@ -73,23 +80,36 @@ interface AchievementStorage extends AchievementStats {
 }
 
 const DEFAULT_STATS: AchievementStats = {
+  bestEndlessSeconds: 0,
   bossVictories: 0,
   characterWins: 0,
   fullTalentTrees: 0,
+  heavyKills: 0,
   mapsPlayed: 0,
   maxCharacterKills: 0,
-  noDamageWaves: 0,
-  n01Spawns: 0,
-  stageOneWins: 0,
+  maxRoundKills: 0,
+  roundsPlayed: 0,
+  steadyWins: 0,
   totalKills: 0,
-  wave11NoShots: 0,
-  waveReached: 0,
 };
+
+/** Regions (biomes) Stage Select offers; WORLD TRAVELER asks for a round in each. */
+const REGIONS = new Set(OPERATION_ZONES.map((zone) => zone.biome));
+const REGION_COUNT = REGIONS.size;
 
 const GENERAL_ACHIEVEMENTS: readonly AchievementDefinition[] = [
   {
     category: "combat",
-    description: "Defeat 50,000 Raptures across all deployments.",
+    description: "Defeat 1,000 Raptures across all rounds.",
+    id: "first-thousand",
+    points: 100,
+    source: "totalKills",
+    target: 1_000,
+    title: "FIRST THOUSAND",
+  },
+  {
+    category: "combat",
+    description: "Defeat 50,000 Raptures across all rounds.",
     id: "massacre",
     points: 500,
     source: "totalKills",
@@ -98,7 +118,25 @@ const GENERAL_ACHIEVEMENTS: readonly AchievementDefinition[] = [
   },
   {
     category: "combat",
-    description: "Defeat a boss enemy.",
+    description: "Defeat 800 Raptures in a single round.",
+    id: "horde-breaker",
+    points: 250,
+    source: "maxRoundKills",
+    target: 800,
+    title: "HORDE BREAKER",
+  },
+  {
+    category: "combat",
+    description: "Defeat 25 heavy Raptures.",
+    id: "heavy-hitter",
+    points: 200,
+    source: "heavyKills",
+    target: 25,
+    title: "HEAVY HITTER",
+  },
+  {
+    category: "combat",
+    description: "Defeat an Obelisk.",
     id: "boss-slayer",
     points: 250,
     source: "bossVictories",
@@ -107,63 +145,69 @@ const GENERAL_ACHIEVEMENTS: readonly AchievementDefinition[] = [
   },
   {
     category: "combat",
-    description: "Complete a Stage 1 operation.",
-    id: "first-blood",
-    points: 100,
-    source: "stageOneWins",
-    target: 1,
-    title: "FIRST BLOOD",
+    description: "Defeat 10 Obelisks.",
+    id: "obelisk-breaker",
+    points: 400,
+    source: "bossVictories",
+    target: 10,
+    title: "OBELISK BREAKER",
   },
   {
-    category: "combat",
-    description: "Complete a wave without taking damage.",
+    category: "expedition",
+    description: "Survive all ten minutes of a WAVE round and defeat the Obelisk.",
+    id: "first-blood",
+    points: 100,
+    source: "characterWins",
+    target: 1,
+    title: "ROUND COMPLETE",
+  },
+  {
+    category: "expedition",
+    description: "Win a WAVE round without ever dropping below half health.",
     id: "untouchable",
-    points: 200,
-    source: "noDamageWaves",
+    points: 300,
+    source: "steadyWins",
     target: 1,
     title: "UNTOUCHABLE",
   },
   {
     category: "expedition",
-    description: "Deploy across all four operation maps.",
+    description: "Survive 15 minutes in a single ENDLESS run.",
+    id: "endurance",
+    points: 300,
+    source: "bestEndlessSeconds",
+    target: 15 * 60,
+    title: "ENDURANCE",
+  },
+  {
+    category: "expedition",
+    description: `Play a round in all ${REGION_COUNT} regions.`,
     id: "world-traveler",
     points: 300,
     source: "mapsPlayed",
-    target: 4,
+    target: REGION_COUNT,
     title: "WORLD TRAVELER",
   },
   {
     category: "expedition",
-    description: "Reach Wave 10 in a single deployment.",
-    id: "abandoned-wishes",
-    points: 250,
-    source: "waveReached",
-    target: 10,
-    title: "ABANDONED WISHES",
-  },
-  {
-    category: "expedition",
-    description: "Witness the arrival of N01.",
-    id: "she-descends",
-    points: 300,
-    source: "n01Spawns",
-    target: 1,
-    title: "SHE DESCENDS",
-  },
-  {
-    category: "expedition",
-    description: "Clear Wave 11 without firing bullets, rockets, or pellets.",
-    id: "no-shots-fired",
-    points: 500,
-    source: "wave11NoShots",
-    target: 1,
-    title: "LOOK COMMANDER, NO HANDS!",
+    description: "Play 25 rounds.",
+    id: "veteran",
+    points: 200,
+    source: "roundsPlayed",
+    target: 25,
+    title: "VETERAN",
   },
 ] as const;
 
+/** Only characters with a playable kit get operator records. */
+export const ACHIEVEMENT_OPERATORS = CHARACTERS.filter(
+  (character) => characterLockReason(character.id) === undefined,
+);
+
 const OPERATOR_ACHIEVEMENTS: readonly AchievementDefinition[] =
-  CHARACTERS.flatMap((character): AchievementDefinition[] => [
-    ...(character.id === STARTER_CHARACTER_ID
+  ACHIEVEMENT_OPERATORS.flatMap((character): AchievementDefinition[] => [
+    // Only characters bought in the Core Exchange; the free ones would unlock with no way to earn them.
+    ...(DEFAULT_UNLOCKED_CHARACTER_IDS.includes(character.id)
       ? []
       : [
           {
@@ -179,17 +223,17 @@ const OPERATOR_ACHIEVEMENTS: readonly AchievementDefinition[] =
         ]),
     {
       category: "mastery",
-      description: `Defeat 10,000 Raptures while playing as ${character.name}.`,
+      description: `Defeat 5,000 Raptures while playing as ${character.name}.`,
       id: `kills_${character.id}`,
       operatorId: character.id,
       points: 500,
       source: "operatorKills",
-      target: 10_000,
-      title: `${character.name.toUpperCase()} // 10,000 KILLS`,
+      target: 5_000,
+      title: `${character.name.toUpperCase()} // 5,000 KILLS`,
     },
     {
       category: "mastery",
-      description: `Purchase every available ${character.name} talent during one deployment.`,
+      description: `Fill every talent tier as ${character.name} in one round.`,
       id: `all_skills_${character.id}`,
       operatorId: character.id,
       points: 300,
@@ -199,7 +243,7 @@ const OPERATOR_ACHIEVEMENTS: readonly AchievementDefinition[] =
     },
     {
       category: "mastery",
-      description: `Complete an operation while playing as ${character.name}.`,
+      description: `Win a WAVE round as ${character.name}.`,
       id: `win_${character.id}`,
       operatorId: character.id,
       points: 300,
@@ -278,7 +322,8 @@ export function applyAchievementProgress(
       : [],
   );
   if (update.mapId !== undefined) mapIds.add(update.mapId);
-  stats.mapsPlayed = Math.max(stats.mapsPlayed, mapIds.size);
+  // Count current regions only, so ids from the old MOBA maps don't carry over.
+  stats.mapsPlayed = [...mapIds].filter((id) => REGIONS.has(id)).length;
 
   const characterKills: Partial<Record<CharacterId, number>> = {};
   if (storage.characterKills !== undefined) {

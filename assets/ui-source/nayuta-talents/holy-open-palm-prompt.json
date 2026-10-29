@@ -1,0 +1,6 @@
+{
+  "generator": "Built-in imagegen",
+  "prompt": "Edit this game sprite: keep its minimalist feminine anime ivory-and-gold open palm, sacred golden energy halo, transparent background, and compact SQUARE composition. Change the pose to a clear martial-arts palm-heel strike with the WRIST BENT BACK about 80 degrees relative to the short forearm. Show the hand in a three-quarter SIDE VIEW so the sharply bent wrist and projecting palm heel are unmistakable, not a straight front-facing stop-sign hand. Forearm enters from lower-left, palm heel thrusts toward RIGHT, slender four fingers together rise upward and lean back toward left; exactly one thumb. Elegant feminine hand, simple flat cel shapes, only a few crease accents, not realistic or muscular. Short forearm, all artwork contained with padding in 1:1 square canvas, subtle restrained gold halo and angular energy, no text or symbols. Actual transparent background.",
+  "reference": "C:\\Users\\rmdou\\.codex\\generated_images\\01a185d9-fb9b-7493-8f6f-e229098fd52a\\exec-12f6686b-35a3-46c2-814c-093cf4b5175e.png",
+  "output": "public/ui/survivor/nayuta/holy-open-palm.png"
+}

@@ -4,6 +4,7 @@
 
 import { Scene, UniversalCamera, Vector3 } from '@babylonjs/core';
 import { clamp } from './math';
+import { loadControlSettings } from '../frontend/settings/GameSettings';
 
 const DEG = Math.PI / 180;
 export const CAMERA_LIMITS = { min: 9, max: 28, default: 18 };
@@ -54,6 +55,8 @@ export class SurvivorCamera {
     this.camera.inputs.clear();
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
+      const wheel = e.deltaY < 0 ? 'WHEEL UP' : 'WHEEL DOWN';
+      if (Object.values(loadControlSettings().bindings).some(binding => binding.device === 'mouse' && binding.button === wheel)) return;
       this.glide = null;
       this.distTarget = clamp(this.distTarget * (e.deltaY > 0 ? 1.1 : 1 / 1.1), CAMERA_LIMITS.min, CAMERA_LIMITS.max);
     }, { passive: false });

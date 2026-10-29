@@ -1,0 +1,6 @@
+{
+  "source": "NKAS roster portraits, the same source used by tools/fetch-chibi.mjs",
+  "rapi.png": "https://nkas.pages.dev/characters/si_c010_00_s.png",
+  "anis.png": "https://nkas.pages.dev/characters/si_c012_00_s.png",
+  "neon.png": "https://nkas.pages.dev/characters/si_c011_00_s.png"
+}

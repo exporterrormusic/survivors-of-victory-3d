@@ -66,7 +66,7 @@ export class SnowWhiteStatusVfx {
           vfx.streak(q, at, tip, .3);
           vfx.tint(q, i % 2 ? SNOW.core : SNOW.cyan, .75);
         }
-        if (target.stunned > 0) for (let i = 0; i < 3; i++) {
+        if (target.stunned > 0 && target.drunk <= 0) for (let i = 0; i < 3; i++) {
           const q = get(STUN_KEYS[i], 'star');
           const a = age * 2.5 + i * Math.PI * 2 / 3;
           at.copyFrom(target.position).addInPlaceFromFloats(Math.sin(a) * .45, target.barHeight + .15, Math.cos(a) * .45);

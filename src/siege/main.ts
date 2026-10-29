@@ -3,6 +3,7 @@ import { ARK, LANES, OBJECTIVE_SITES, BOUNDS, MAP_WIDTH, MAP_DEPTH, LANE_WIDTH, 
 import type { Point } from './layout';
 import { SiegeSimulation } from './simulation';
 import './siege.css';
+import { revealLevelTransition } from '../frontend/level-transition';
 
 // Deliberately self-contained: this graybox does not read or modify character progression.
 document.body.innerHTML=`<main id="siege"><canvas id="siege-canvas" aria-label="Ark siege playable graybox"></canvas>
@@ -160,8 +161,16 @@ if(zone.startsWith('snow')||zone.startsWith('frozen')||zone==='storm'){
 }
 // Read-only inspection plus explicit controls used by prototype verification.
 Object.assign(window,{siege:{scene,sim,camera,walkable,screenPoint,overview:()=>overview,setPlayer:(p:Point)=>{if(walkable(p))Object.assign(sim.player,p);},toggleView}});
+let startingLevel = true;
+void scene.whenReadyAsync().then(() => {
+  scene.onAfterRenderObservable.addOnce(() => {
+    requestAnimationFrame(() => {
+      void revealLevelTransition().finally(() => { startingLevel = false; });
+    });
+  });
+});
 engine.runRenderLoop(()=>{
   const dt=Math.min(engine.getDeltaTime()/1000,.05);
-  for(let i=0;i<speed;i++){if(firing)sim.fire(aim());sim.step(dt,{x:Number(keys.has('KeyD'))-Number(keys.has('KeyA')),z:Number(keys.has('KeyW'))-Number(keys.has('KeyS')),sprint:keys.has('ShiftLeft')||keys.has('ShiftRight')});}
+  for(let i=0;!startingLevel&&i<speed;i++){if(firing)sim.fire(aim());sim.step(dt,{x:Number(keys.has('KeyD'))-Number(keys.has('KeyA')),z:Number(keys.has('KeyW'))-Number(keys.has('KeyS')),sprint:keys.has('ShiftLeft')||keys.has('ShiftRight')});}
   render(dt);scene.render();
 });

@@ -3,6 +3,7 @@ export const CHARACTER_IDS = [
   'snow-white',
   'scarlet',
   'rapunzel',
+  'dorothy',
   'nayuta',
   'commander',
   'marian',
@@ -14,6 +15,9 @@ export const CHARACTER_IDS = [
 ] as const;
 
 export type CharacterId = (typeof CHARACTER_IDS)[number];
+
+/** Shelved characters keep their ids and assets for save compatibility. */
+export const ACTIVE_CHARACTER_IDS = CHARACTER_IDS.filter(id => id !== 'commander');
 
 const CHARACTER_ID_SET: ReadonlySet<string> = new Set(CHARACTER_IDS);
 

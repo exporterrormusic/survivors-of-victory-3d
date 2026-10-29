@@ -5,9 +5,10 @@ import {
   type PermanentUpgradeId,
   type PermanentUpgradeLevels,
 } from "./PermanentUpgrades";
-import { CHARACTER_IDS, isCharacterId, type CharacterId } from "./Ids";
+import { isCharacterId, type CharacterId } from "./Ids";
 import {
   CHARACTER_MODULES,
+  ACTIVE_CHARACTER_IDS,
   type CharacterProfile,
 } from "../../characters";
 import {
@@ -27,13 +28,18 @@ export type CharacterDefinition = CharacterProfile;
 
 export { characterBurstArt as characterBurstPath } from "../../characters/assets";
 
-export const CHARACTERS: readonly CharacterDefinition[] = CHARACTER_IDS.map(
+export const CHARACTERS: readonly CharacterDefinition[] = ACTIVE_CHARACTER_IDS.map(
   (id) => CHARACTER_MODULES[id].profile,
 );
 
-/** Characters with a survivor runtime kit. */
+/** Released characters. Prototype kits remain available separately in the test range. */
 export function characterLockReason(id: CharacterId): string | undefined {
   return id === "snow-white" || id === "scarlet" || id === "rapunzel" ? undefined : "COMING SOON";
+}
+
+/** Unfinished trees are visible only in development/testing, never the shipped game. */
+export function canPreviewCharacterTalents(id: CharacterId): boolean {
+  return import.meta.env.DEV || characterLockReason(id) === undefined;
 }
 
 export const STARTER_CHARACTER_ID: CharacterId = "snow-white";

@@ -7,7 +7,10 @@ export function characterSkins(characterId: CharacterId): SkinDefinition[] {
   const model = CHARACTER_MODULES[characterId].model;
   if (!model) return [];
   return [{ variant: model.variant, name: 'Default' }, ...(model.skins ?? [])].map((skin, index) => ({
-    id: skin.variant, characterId, name: skin.name.replace(/^.*?: /, ''), cost: index === 0 ? 0 : 1, icon: `chibi/${skin.variant}_icon.png`,
+    id: skin.variant, characterId, name: skin.name.replace(/^.*?: /, ''), cost: index === 0 ? 0 : 1,
+    icon: characterId === 'wells' && index === 0
+      ? CHARACTER_MODULES.wells.profile.portraitPath
+      : `chibi/${skin.variant}_icon.png`,
   }));
 }
 export const SHOP_SKINS = CHARACTERS.flatMap(character => characterSkins(character.id)).filter(skin => skin.cost > 0);

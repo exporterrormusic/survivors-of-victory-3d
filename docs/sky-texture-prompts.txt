@@ -1,0 +1,9 @@
+Generated with built-in image_gen. Original PNGs copied unchanged to public/environment/skies/.
+Shared prompt: Game texture, 2048x1024 equirectangular 360-degree panorama for inward-facing sky sphere. Hand-painted polished anime background; horizon at vertical midpoint, lower half matching atmospheric gradient; matching left/right edges and smooth poles. No text, UI, characters, frame, vignette, or foreground terrain.
+forest: Haunted pine forest, midnight indigo sky with layered moonlit silver mist clouds, sparse stars, subtle small moon behind cloud, very distant dark pine ridges at horizon.
+outskirts: Ark outskirts, pale blue daylight sky, broad soft white cumulus clouds, distant desaturated green mountain ridges at horizon, peaceful ruined-world atmosphere.
+sakura: Japanese sakura grove, luminous pale blue and rose-tinted spring sky, delicate sweeping white clouds, soft pink haze and distant blue mountain silhouettes at horizon.
+frozen: Frozen North, cold steel blue overcast polar daylight, layered snow clouds, distant snowy mountain silhouettes at horizon, icy atmospheric haze.
+city: Grey ruined city, desaturated slate gray overcast daylight, heavy layered clouds, dusty horizon haze with tiny far distant ruined skyline silhouettes.
+storm: Stormbringer night thunderstorm, towering charcoal blue storm clouds, subtle violet illumination within cloud banks, dark rain veils at horizon, no bright sun.
+volcano: Ashen Caldera, oppressive volcanic charcoal smoke sky, ochre ash clouds lit dim red from below, tiny distant jagged volcanic silhouettes at horizon, subdued orange glow.

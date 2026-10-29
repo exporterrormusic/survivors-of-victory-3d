@@ -159,6 +159,8 @@ export class RangeDressing {
       }
       for(const child of node.getChildMeshes()){
         const mesh=child as Mesh;mesh.computeWorldMatrix(true);
+        // The shrine's centre door leaves stay live so Sakura's easter egg can slide them open.
+        if(/shrine-door-(left|right)$/.test(mesh.parent?.name??'')){mesh.metadata={...mesh.metadata,rangeDressing:true,theme,occlusionGroup:node.uniqueId};this.shadows.addShadowCaster(mesh);continue;}
         const groupKey=`${farForest?patch:placementIndex}:${mesh.material!.uniqueId}:${mesh.getVerticesDataKinds().sort().join(",")}:${Math.floor(placement.x/12)}:${Math.floor(placement.z/12)}`;
         mesh.metadata={...mesh.metadata,occlusionGroup:farForest?patch:node.uniqueId};
         const target=moving?plantGroups:groups;
@@ -191,7 +193,7 @@ export class RangeDressing {
   }
   /** Mounted inside the existing lab: no extra overlay covering the playing field. */
   mount(onChange:(theme:RangeEnvironment)=>void):void {
-    const body=document.querySelector('#weather-lab .weather-lab-body');if(!body)return;
+    const body=document.querySelector('#weather-lab .lab-page[data-label="World"]');if(!body)return;
     const panel=document.createElement('section');panel.className='range-dressing-controls';
     const label=document.createElement('label');label.textContent='Map';
     const select=document.createElement('select');select.id='lab-environment';select.setAttribute('aria-label','Test Range environment');

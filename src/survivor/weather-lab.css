@@ -47,6 +47,6 @@
 /* Tabbed TEST LAB (World + mode tabs such as the Rapture Lab's spawn list) */
 #weather-lab.tabbed[open] { width:380px; }
 #weather-lab.tabbed .weather-lab-body { max-height:calc(100cqh - 330px);min-height:160px;overscroll-behavior:contain; }
-.lab-tabs { display:flex;gap:4px;padding:0 12px 10px; }
-#weather-lab .lab-tabs button { flex:1;min-height:32px;letter-spacing:.06em; }
+.lab-tabs { display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 10px; }
+#weather-lab .lab-tabs button { flex:1 1 22%;min-height:32px;letter-spacing:.06em; }
 #weather-lab .lab-tabs button[aria-selected="true"] { background:#4a4230;border-color:#f5d28a;color:#ffe3a7; }

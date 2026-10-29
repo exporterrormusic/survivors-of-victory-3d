@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Co-op Spike</title>
+  <style>
+    body { margin: 0; font: 14px system-ui, sans-serif; background: #f4f6fa; color: #1c2230; }
+    main { max-width: 760px; margin: 0 auto; padding: 16px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    button, input { font: inherit; padding: 6px 12px; }
+    input { width: 9em; text-transform: uppercase; }
+    canvas { width: 100%; max-width: 720px; aspect-ratio: 3 / 2; background: #fff; border: 1px solid #c8cfdc; display: block; }
+    #code { font: 600 22px ui-monospace, monospace; letter-spacing: .1em; }
+    pre { background: #fff; border: 1px solid #c8cfdc; padding: 8px; max-height: 180px; overflow: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Co-op spike</h1>
+  <p>Dev-only co-op test over WebRTC. <b>Host</b> runs a toy world of squares. To join a real match, start the game with <code>?run=test-range&amp;mode=survival&amp;coop=host</code> and type the room code it shows here (<code>?hero=scarlet</code> or <code>rapunzel</code> picks your hero).</p>
+  <p>WASD move · mouse aim · left click fire · right click Special · E Burst · Shift/Space dash · R reload.</p>
+  <div class="row">
+    <button id="host">Host</button>
+    <input id="join-code" placeholder="ABC-DEF" aria-label="Room code">
+    <button id="join">Join</button>
+    <span id="code"></span>
+  </div>
+  <canvas id="view" width="720" height="480"></canvas>
+  <pre id="stats" aria-live="polite"></pre>
+  <pre id="log"></pre>
+</main>
+<script type="module" src="/src/net/coop-test.ts"></script>
+</body>
+</html>

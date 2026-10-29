@@ -32,6 +32,10 @@ export interface Effect {
 
 /** A leased effect quad. sprite/streak/decal place (and show) it; it is drawn until hidden or released. */
 export class FxQuad {
+  /** Procedural laser profile using the streak cell's local UVs. */
+  laser = false;
+  /** Procedural profiles use the ring atlas cell. */
+  motif: 'energy' | 'feather' | null = null;
   busy = false;
   /** drawn this frame; placing the quad shows it */
   visible = false;
@@ -73,9 +77,13 @@ uniform float glowPass;
 varying vec2 vUV;
 varying vec4 vColor;
 varying float vAdditive;
+varying float vLaser;
+varying float vMotif;
 void main() {
-  if (glowPass > .5 && flags < 1.5) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
+  if (glowPass > .5 && mod(flags, 4.0) < 1.5) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
   vUV = uv; vColor = color; vAdditive = mod(flags, 2.0);
+  vLaser = mod(floor(flags / 4.0), 2.0);
+  vMotif = floor(flags / 8.0);
   gl_Position = viewProjection * vec4(position, 1.0);
 }`;
 ShaderEffect.ShadersStore.fxBatchFragmentShader = `
@@ -83,8 +91,55 @@ precision highp float;
 varying vec2 vUV;
 varying vec4 vColor;
 varying float vAdditive;
+varying float vLaser;
+varying float vMotif;
+uniform float fxTime;
 uniform sampler2D tex;
 void main() {
+  if (vMotif > .5) {
+    vec2 p = vUV * 8.0 - 1.0;
+    if (vMotif > 1.5) {
+      // Curved vane, tapered tip, individual barbs and a fine central quill.
+      float t = p.y * .5 + .5;
+      float shaft = .12 * sin(t * 3.141593) - .08;
+      float x = p.x - shaft;
+      float width = .35 * pow(max(0.0, sin(t * 3.141593)), .8) * smoothstep(.03,.22,t);
+      float vane = (1.0-smoothstep(width-.018,width+.018,abs(x))) * smoothstep(.06,.19,t);
+      float barbs = .78 + .22 * sin(t*110.0-abs(x)*48.0);
+      float cuts = smoothstep(-.9,-.3,sin(t*77.0-abs(x)*31.0));
+      vane *= mix(cuts,1.0,1.0-smoothstep(width*.5,width,abs(x)));
+      float quill = (1.0-smoothstep(.009,.023,abs(x))) * (1.0-smoothstep(.94,1.0,t));
+      float a = max(vane,quill)*vColor.a;
+      vec3 white = mix(vec3(.82,.77,.87),vec3(1.0,.97,.99),barbs);
+      float blush = .55 + .25*smoothstep(width*.3,max(width,.001),abs(x)) + .15*smoothstep(.65,1.0,t);
+      vec3 feather = mix(white,vec3(1.0,.22,.53),blush);
+      feather = mix(feather,vec3(1.0,.88,.94),quill*.65);
+      gl_FragColor=vec4(feather*vColor.rgb*a,a);return;
+    }
+    float r=length(p), angle=atan(p.y,p.x);
+    float jag = .018*sin(angle*24.0+fxTime*13.0)+.009*sin(angle*47.0-fxTime*22.0);
+    float rim=1.0-smoothstep(.009,.027,abs(r-.88-jag));
+    float arc=(1.0-smoothstep(.006,.017,abs(r-.72))) * smoothstep(-.3,.2,sin(angle*6.0+fxTime*8.0));
+    float spokes=pow(max(0.0,cos(angle*12.0+sin(r*20.0-fxTime*8.0)*.13)),48.0);
+    spokes*=smoothstep(.22,.5,r)*(1.0-smoothstep(.75,.86,r));
+    vec3 light=vColor.rgb*(rim*.9+arc*.6+spokes*.5)+vec3(1.0,.8,.93)*pow(rim,4.0)*.35;
+    gl_FragColor=vec4(light*vColor.a,0.0);return;
+  }
+  if (vLaser > .5) {
+    vec2 p = (vUV - vec2(.25, .25)) * vec2(4.0, 16.0);
+    float edge = smoothstep(0.0, .35, p.x) * (1.0 - smoothstep(.85, 1.0, p.x));
+    float taper = .2 + .8 * sin(p.x * 3.141593);
+    float radius = abs(p.y * 2.0 - 1.0) / taper;
+    float flow = .78 + .22 * sin(p.x * 27.0 - fxTime * 48.0);
+    float filament = sin(p.x * 19.0 - fxTime * 31.0) * .045;
+    float core = exp(-pow(abs(p.y * 2.0 - 1.0 - filament) * 8.0, 2.0));
+    float body = exp(-radius * radius * 8.0) * flow;
+    float halo = exp(-radius * radius * 4.5) * .1;
+    vec3 fringe = mix(vColor.rgb, vec3(1.0, .2, .65), smoothstep(.35, .9, p.x));
+    vec3 light = fringe * (body + halo) + vec3(1.0, .55, .78) * core * .45;
+    gl_FragColor = vec4(light * edge * vColor.a, 0.0);
+    return;
+  }
   vec4 sampleColor = texture2D(tex, vUV);
   float a = sampleColor.a * vColor.a;
   gl_FragColor = vec4(sampleColor.rgb * vColor.rgb * a, a * (1.0 - step(.5, vAdditive)));
@@ -145,6 +200,7 @@ function setCorners(c: Float32Array, centre: Vector3, ax: Vector3, ay: Vector3):
  * splits into submeshes that Babylon's back-to-front sort interleaves with it.
  */
 class QuadBatch {
+  time = 0;
   readonly mesh: Mesh;
   /** set while the glow layer draws this mesh */
   glowPass = 0;
@@ -160,7 +216,7 @@ class QuadBatch {
     this.mesh = new Mesh(onTop ? 'fx-quads-top' : 'fx-quads', scene);
     const material = new ShaderMaterial('fx-quads', scene, 'fxBatch', {
       attributes: ['position', 'uv', 'color', 'flags'],
-      uniforms: ['viewProjection', 'glowPass'],
+      uniforms: ['viewProjection', 'glowPass', 'fxTime'],
       samplers: ['tex'],
       needAlphaBlending: true,
     });
@@ -169,7 +225,10 @@ class QuadBatch {
     if (onTop) { material.depthFunction = Constants.ALWAYS; this.mesh.renderingGroupId = 1; }
     material.backFaceCulling = false;
     material.setTexture('tex', atlas);
-    material.onBindObservable.add(() => material.getEffect()?.setFloat('glowPass', this.glowPass));
+    material.onBindObservable.add(() => {
+      material.getEffect()?.setFloat('glowPass', this.glowPass);
+      material.getEffect()?.setFloat('fxTime', this.time);
+    });
     this.mesh.material = material;
     this.mesh.isPickable = false;
     // Submesh bounds only order the draws (see write); culling quads is not worth it.
@@ -229,7 +288,7 @@ class QuadBatch {
       const [cx, cy, cw, ch] = ATLAS[q.texture];
       const u0 = cx / ATLAS_WIDTH, u1 = (cx + cw) / ATLAS_WIDTH, v0 = cy / ATLAS_HEIGHT, v1 = (cy + ch) / ATLAS_HEIGHT;
       const { r, g, b } = q.color;
-      const flags = (q.blend === 'add' ? 1 : 0) + (q.glow ? 2 : 0);
+      const flags = (q.blend === 'add' ? 1 : 0) + (q.glow ? 2 : 0) + (q.laser ? 4 : 0) + (q.motif === 'energy' ? 8 : q.motif === 'feather' ? 16 : 0);
       glows ||= q.glow;
       for (let k = 0; k < 4; k++) {
         const x = c[k * 3], y = c[k * 3 + 1], z = c[k * 3 + 2];
@@ -277,6 +336,8 @@ class QuadBatch {
 }
 
 export class Vfx {
+  /** Hide combat presentation while a cutscene uses its own effect layer. */
+  hidden = false;
   readonly textures = new Map<TextureName, Texture>();
   private readonly effects: { effect: Effect; age: number }[] = [];
   /** every pooled quad (the artifacts/ verification scripts inspect it) */
@@ -284,7 +345,7 @@ export class Vfx {
   /** released quads ready for reuse; the pool only grows when this is empty */
   private readonly freeQuads: FxQuad[] = [];
   /** Live emission sources for world-space fog scattering. */
-  get fogEmitters(): readonly FxQuad[] { return this.quads; }
+  get fogEmitters(): readonly FxQuad[] { return this.hidden ? [] : this.quads; }
   private readonly batch: QuadBatch;
   /** quads drawn over everything (FxQuad.onTop) */
   private readonly topBatch: QuadBatch;
@@ -330,6 +391,11 @@ export class Vfx {
   }
 
   update(dt: number): void {
+    this.light.setEnabled(!this.hidden);
+    for (const system of [...this.sparkSystems, ...this.vapourSystems]) system.layerMask = this.hidden ? 0 : 0x0fffffff;
+    if (this.hidden) return;
+    this.batch.time += dt;
+    this.topBatch.time = this.batch.time;
     for (let i = this.effects.length - 1; i >= 0; i--) {
       const e = this.effects[i];
       e.age += dt;
@@ -359,6 +425,8 @@ export class Vfx {
       this.quads.push(q);
     }
     q.busy = true;
+    q.laser = false;
+    q.motif = null;
     // Shots spawn after the VFX update; impacts can spawn during it. Keep a new lease hidden
     // until placement, or it renders for one frame at its previous effect's position.
     q.visible = false;
@@ -431,7 +499,7 @@ export class Vfx {
     items.length = 0;
     const top = this.topList;
     top.length = 0;
-    for (const q of this.quads) if (q.busy && q.visible && q.alpha > 0) (q.onTop ? top : items).push(q);
+    for (const q of this.quads) if (!this.hidden && q.busy && q.visible && q.alpha > 0) (q.onTop ? top : items).push(q);
     const eye = this.camera.globalPosition;
     this.camera.getDirectionToRef(Axis.X, RIGHT);
     this.camera.getDirectionToRef(Axis.Y, UP);
@@ -629,6 +697,16 @@ export class Vfx {
   /** Add a model's emissive part to the glow layer (it leaves when disposed). */
   glowMesh(mesh: Mesh): void {
     this.glow.addIncludedOnlyMesh(mesh);
+  }
+
+  /** Prepare an off-screen character's glow shader before its first luminous frame. */
+  async prepareGlowMesh(mesh: Mesh): Promise<void> {
+    while (!mesh.isDisposed() && !this.scene.isDisposed) {
+      let ready = true;
+      for (const subMesh of mesh.subMeshes) if (!this.glow.isReady(subMesh, false)) ready = false;
+      if (ready) return;
+      await new Promise<void>(resolve => setTimeout(resolve, 16));
+    }
   }
 
   // --- setup ------------------------------------------------------------------

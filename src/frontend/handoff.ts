@@ -6,6 +6,8 @@ import type { StageSelection } from "./profile/StageData";
 export interface MatchRequest {
   readonly characterId: CharacterId;
   readonly stageSelection: StageSelection;
+  /** co-op from the Multiplayer lobby: the open session waits in src/net/coop-handoff.ts */
+  readonly coop?: { readonly role: "host" | "join"; readonly code: string };
 }
 
 let deployHandler: ((request: MatchRequest) => void) | undefined;

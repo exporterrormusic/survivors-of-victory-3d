@@ -1,9 +1,10 @@
 import { Color3, Mesh, MeshBuilder, StandardMaterial, Texture, TransformNode, Vector3, VertexData, type Scene } from '@babylonjs/core';
 import { createJackOLantern } from './jack-o-lantern';
 import { createVapausVial } from './vapaus-vial';
+import { createSakeSet } from './sake-set';
 
 export const FOREST_ASSETS=['forest-lamp','forest-lychgate','forest-chapel','forest-grave','forest-cross','forest-fence',
-  'forest-menhir','forest-altar','forest-cabin','forest-woodpile','forest-well','forest-thorn','forest-jack-o-lantern','forest-vapaus-vial'] as const;
+  'forest-menhir','forest-altar','forest-cabin','forest-woodpile','forest-well','forest-thorn','forest-jack-o-lantern','forest-vapaus-vial','forest-sake-set'] as const;
 export type ForestAsset=typeof FOREST_ASSETS[number];
 export function isForestAsset(asset:string):asset is ForestAsset{return (FOREST_ASSETS as readonly string[]).includes(asset);}
 type Surface='stone'|'wood'|'shingle'|'iron'|'ghost'|'moss'|'thorn'|'rope'|'water';
@@ -36,6 +37,7 @@ export class ForestMaterials {
 export function createForestAsset(scene:Scene,asset:ForestAsset,materials:ForestMaterials):TransformNode{
   if(asset==='forest-jack-o-lantern')return createJackOLantern(scene);
   if(asset==='forest-vapaus-vial')return createVapausVial(scene);
+  if(asset==='forest-sake-set')return createSakeSet(scene);
   const root=new TransformNode(asset,scene),parts:Mesh[]=[];
   const finish=(m:Mesh,kind:Surface)=>{
     m.parent=root;m.material=materials.get(kind);m.isPickable=false;m.receiveShadows=true;

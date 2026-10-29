@@ -5,7 +5,7 @@
 import { TransformNode, Vector3 } from '@babylonjs/core';
 import type { Target } from './targets';
 import type { Chibi } from '../chibi';
-import type { SurvivorInput } from './input';
+import type { InputSource } from './input';
 import type { CharacterKit, KitContext } from './kit';
 import { PX } from './kit';
 import { TwinStickRig, type Posture } from './rig';
@@ -96,6 +96,7 @@ export class Player {
   private playingHeld: string | null = null;
 
   constructor(readonly chibi: Chibi, readonly kit: CharacterKit, private readonly ctx: KitContext, private readonly snow?: SnowField) {
+    ctx.playerModel = chibi;
     this.hologram = new InvincibilityHologram(chibi);
     this.hp = this.grownMaxHp = this.maxHp;
     this.ammo = kit.weapon.magazine;
@@ -137,7 +138,7 @@ export class Player {
    * the lake shows its own hit cue once per damage interval. */
   takeDamage(amount: number, environmental=false, drain=false): boolean {
     if (this.resistTime > 0) amount *= 1 - this.resistShare;
-    if (this.transported) return false;
+    if (this.transported || this.kit.invulnerable) return false;
     if (amount <= 0 || this.hp <= 0 || (!environmental&&(this.dashing > 0 || this.damageGrace > 0))) return false;
     this.hp = Math.max(0, this.hp - amount);
     // The lake's hurt cue sets the flash on its own rhythm; a per-frame drain never strobes it.
@@ -149,6 +150,7 @@ export class Player {
     }
     if (this.hp === 0) {
       this.trainingReset = 2;
+      this.kit.onDeath?.();
       this.pendingShot = this.pendingBurst = false;
       this.cancelCharges();
     }
@@ -156,7 +158,7 @@ export class Player {
   }
 
   /** Before animation: read input, move, act, drive the rig. */
-  update(dt: number, input: SurvivorInput, aimPoint: Vector3): void {
+  update(dt: number, input: InputSource, aimPoint: Vector3): void {
     if (this.transported) {
       // Input is locked on the lift, but animation blends must keep advancing.
       // Cancel the dash so it cannot resume when the lift releases the player.
@@ -192,6 +194,7 @@ export class Player {
     this.burstHold = Math.max(0, this.burstHold - dt);
     this.firedThisFrame = false;
 
+    if (this.kit.unlimitedAmmo) { this.reloading = 0; this.ammo = weapon.magazine; }
     // reload
     if (this.reloading > 0) {
       this.reloading -= dt;
@@ -208,7 +211,12 @@ export class Player {
     const released = input.wasReleased('fire');
     const chargeWeapon = this.ctx.run.talents.has('charging');
     const trigger = pressed || (weapon.automatic && input.isHeld('fire'));
-    if (trigger) {
+    if (pressed && this.kit.burstActive && this.kit.blocksWeapon) {
+      this.burstHold = 0;
+      this.kit.continueBurst?.();
+      acted = true;
+    }
+    if (trigger && !this.kit.blocksWeapon) {
       acted = true;
       if (!weapon.melee && this.ammo <= 0) this.beginReload();
       else if (this.reloading <= 0 && this.shotCooldown <= 0) {
@@ -228,7 +236,8 @@ export class Player {
     this.kit.chargeSpecial?.(dt, input.isHeld('special'), input.wasReleased('special'));
     const burstPressed = input.wasPressed('burst');
     if (burstPressed) acted = true;
-    if (burstPressed && this.burstHold <= 0 && this.ctx.run.burst >= 100) {
+    if (burstPressed && this.kit.burstActive) { this.burstHold = 0; this.kit.continueBurst?.(); }
+    if (burstPressed && this.kit.burstAvailable !== false && !this.kit.burstActive && this.burstHold <= 0 && this.ctx.run.burst >= 100) {
       if (this.ctx.run.talents.has('focused_fire') && input.isHeld('burst')) this.burstCharge ??= 0;
       else this.fireBurst(0);
     }
@@ -243,7 +252,9 @@ export class Player {
 
     // movement and dash
     const [mx, mz] = input.move();
-    if (input.wasPressed('dash') && this.dashing <= 0 && this.dashCooldown <= 0) {
+    const specialMovement = this.kit.specialMovement?.(dt);
+    if (specialMovement) this.dashing = 0;
+    if (!specialMovement && input.wasPressed('dash') && this.dashing <= 0 && this.dashCooldown <= 0) {
       acted = true;
       if (mx || mz) this.dashDir.set(mx, 0, mz);
       else this.dashDir.set(Math.sin(this.aimYaw), 0, Math.cos(this.aimYaw));
@@ -255,7 +266,9 @@ export class Player {
       this.ctx.vfx.vapour(this.position, 4, this.kit.accent, .5, .3, .5);
     }
     const dashMovement = this.dashing > 0;
-    if (dashMovement) {
+    if (specialMovement) {
+      this.velocity.copyFrom(specialMovement);
+    } else if (dashMovement) {
       this.dashing -= dt;
       this.dashing = Math.max(0, this.dashing);
       this.velocity.copyFrom(this.dashDir).scaleInPlace(this.kit.dash?.speed ?? DASH_SPEED);
@@ -285,7 +298,7 @@ export class Player {
     }
     nav.push(this.position,dx,dz,RADIUS);
     const beforeSeparation=this.position.clone();
-    this.collide(dashMovement && !!this.kit.dashThroughEnemies);
+    this.collide(!!this.kit.throughEnemies || !!specialMovement || (dashMovement && !!this.kit.dashThroughEnemies));
     const sx=this.position.x-beforeSeparation.x,sz=this.position.z-beforeSeparation.z;
     this.position.copyFrom(beforeSeparation);nav.push(this.position,sx,sz,RADIUS);
     this.position.y=this.groundHeight(this.position.x,this.position.z);
@@ -315,7 +328,11 @@ export class Player {
     const busy = moved || acted || this.firedThisFrame || this.reloading > 0 || this.burstHold > 0
       || this.weaponCharge !== null || this.burstCharge !== null
       || input.isHeld('fire') || input.isHeld('special') || input.isHeld('burst');
-    this.idleTime = busy ? 0 : this.idleTime + dt;
+    const interruptsMeditation = this.kit.meditateWhileCommanding
+      ? moved || this.pendingShot || input.isHeld('fire') || pressed || this.reloading > 0 || this.weaponCharge !== null
+      : busy;
+    this.idleTime = interruptsMeditation ? 0 : this.idleTime + dt;
+    this.kit.setMeditating?.(this.hp > 0 && this.idleTime >= 1.5);
     if (this.heldClip) {
       const key = this.heldLast ? `${this.heldClip}:last` : this.heldClip;
       if (this.playingHeld !== key) {
@@ -328,9 +345,9 @@ export class Player {
     }
     this.playingHeld = null;
     this.rig.update(dt, {
-      moveX: speed > 0 ? this.velocity.x / speed : 0,
-      moveZ: speed > 0 ? this.velocity.z / speed : 0,
-      speed,
+      moveX: !specialMovement && speed > 0 ? this.velocity.x / speed : 0,
+      moveZ: !specialMovement && speed > 0 ? this.velocity.z / speed : 0,
+      speed: specialMovement ? 0 : speed,
       aimYaw: this.aimYaw,
       posture,
       actionSpeed,
@@ -340,8 +357,16 @@ export class Player {
 
   /** After animation: aim the torso, then release anything fired this frame from the real gun tip. */
   afterAnimation(): void {
-    if (this.transported) return;
+    // The lift blocks combat, but the split animation rig still needs its
+    // torso rebasing and facing correction after Babylon evaluates the idle.
+    if (this.transported) {
+      this.rig.applyAim();
+      this.kit.afterPlayerAnimation?.();
+      return;
+    }
+    if(this.kit.presentationLift !== undefined)this.chibi.root.position.y=this.kit.presentationLift;
     this.rig.applyAim();
+    this.kit.afterPlayerAnimation?.();
     this.kit.previewCharge?.(this.weaponCharge === null ? null : this.weaponCharge / WEAPON_CHARGE_TIME,
       this.burstCharge === null ? null : this.burstCharge / 2.5, this.aimYaw);
     if (this.pendingShot) {
@@ -363,7 +388,7 @@ export class Player {
   }
 
   beginReload(): void {
-    if (this.kit.weapon.melee || this.reloading > 0 || this.ammo >= this.kit.weapon.magazine) return;
+    if (this.kit.weapon.melee || this.kit.unlimitedAmmo || this.reloading > 0 || this.ammo >= this.kit.weapon.magazine) return;
     this.reloading = this.reloadTime = this.kit.weapon.reload * (this.ctx.run.talents.has('quick_hands') ? QUICK_RELOAD : 1);
     this.weaponCharge = null;
     if (this.kit.reloadSound) this.ctx.sound(this.kit.reloadSound, this.position);
@@ -377,6 +402,7 @@ export class Player {
   }
 
   cancelCharges(): void {
+    this.kit.cancelSpecial?.();
     this.weaponCharge = this.burstCharge = null;
     this.kit.previewCharge?.(null, null, this.aimYaw);
   }
@@ -399,7 +425,7 @@ export class Player {
   private fire(charge = 0): void {
     this.pendingShot = true;
     this.pendingShotCharge = charge;
-    if (!this.kit.weapon.melee) this.ammo--;
+    if (!this.kit.weapon.melee && !this.kit.unlimitedAmmo) this.ammo--;
     this.shotCooldown = this.kit.weapon.cooldown;
     this.firedThisFrame = true;
     if (!this.kit.weapon.melee && this.ammo <= 0) this.beginReload();

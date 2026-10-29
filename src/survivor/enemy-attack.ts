@@ -3,6 +3,7 @@ import type { KitContext } from './kit';
 import type { Player } from './player';
 import type { Target } from './targets';
 import type { FxQuad, Rgb } from './vfx';
+import { attackEcho } from './mode/behaviors/echo';
 
 const RED: Rgb = [1, .025, .065];
 const CHARGE: Rgb = [3.6, .28, .38];
@@ -84,7 +85,7 @@ export class EnemyLaserAttack {
 
   update(dt: number, active = true): void {
     if (!active) { this.reset(); return; }
-    if (dt <= 0 || this.player.kit.freezesEnemies || this.target.frozen > 0) return;
+    if (dt <= 0 || this.player.kit.freezesEnemies || this.target.held) return;
     if (this.generation !== this.target.generation) {
       this.reset(); this.generation = this.target.generation; return;
     }
@@ -169,6 +170,9 @@ export class EnemyLaserAttack {
     for (const barrel of this.barrels) {
       barrel.end.copyFrom(barrel.origin);
       barrel.velocity.copyFrom(this.aim).subtractInPlace(barrel.origin).normalize().scaleInPlace(this.speed);
+      // Co-op guests draw this as a plain red bolt (mode/behaviors/echo.ts).
+      attackEcho.listener?.({ kind: 'bolt', x: barrel.origin.x, y: barrel.origin.y, z: barrel.origin.z,
+        yaw: Math.atan2(barrel.velocity.x, barrel.velocity.z), speed: this.speed, range: BOLT_RANGE, size: 1 });
       this.ctx.vfx.tint(barrel.beam, PROJECTILE, 1);
       this.ctx.vfx.tint(barrel.core, CORE, 1);
       this.ctx.vfx.tint(barrel.glow, PROJECTILE, 1);

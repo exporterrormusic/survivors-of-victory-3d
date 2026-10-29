@@ -1,0 +1,42 @@
+{
+  "tool": "Built-in image_gen",
+  "template": "Use case: stylized-concept. Asset type: wide 3:2 game burst illustration, also cropped to a horizontal HUD banner. Create a new polished anime action portrait using the supplied image only as character identity reference. Subject: {subject} Composition: head and shoulders, face and eyes near the center, dynamic hair and dramatic rim light, readable at small size, restrained background detail, clean high-quality linework and painted shading. Preserve reference identity and clothing. No text, lettering, logos, borders or watermarks. This is presentation art, not a gameplay effect.",
+  "assets": [
+    {
+      "id": "marian",
+      "subject": "Marian / Modernia, white hair, red eyes, black pointed crown and black armored outfit, determined side glance, sweeping luminous blue-white energy behind her.",
+      "reference": "public/assets/menus/character-select/marian/portrait.png",
+      "output": "public/ui/survivor/marian-burst-setup-v1.png"
+    },
+    {
+      "id": "crown",
+      "subject": "Crown, blonde hair, blue eyes, silver crown and white royal armor with navy and gold trim, poised commanding expression, radiant gold and blue royal light behind her.",
+      "reference": "public/assets/menus/character-select/crown/portrait.png",
+      "output": "public/ui/survivor/crown-burst-setup-v1.png"
+    },
+    {
+      "id": "kilo",
+      "subject": "Kilo, green hair and yellow-green eyes, dark pilot suit with pale collar, determined face inside her mech cockpit, teal instrument glow and a suggestion of heavy mech armor at the edges.",
+      "reference": "public/assets/menus/character-select/kilo/portrait.png",
+      "output": "public/ui/survivor/kilo-burst-setup-v1.png"
+    },
+    {
+      "id": "cecil",
+      "subject": "Cecil as depicted in the reference portrait, long pale blue hair with straight bangs, blue eyes and purple ear ornament, calm calculating expression, cyan holographic circuitry behind her. No lamp.",
+      "reference": "public/assets/menus/character-select/cecil/portrait.png",
+      "output": "public/ui/survivor/cecil-burst-setup-v1.png"
+    },
+    {
+      "id": "sin",
+      "subject": "Sin, long black ponytail, violet eyes, black and silver respirator covering lower face, white and purple outfit and open jacket, intense gaze, violet sonic rings behind her.",
+      "reference": "public/assets/menus/character-select/sin/portrait.png",
+      "output": "public/ui/survivor/sin-burst-setup-v1.png"
+    },
+    {
+      "id": "wells",
+      "subject": "Wells as depicted in the reference portrait, short lavender hair, blue eyes, cyan visor raised across forehead, pale coat and black tactical suit, focused expression, cyan broken clock rings behind her.",
+      "reference": "public/assets/menus/character-select/wells/portrait.png",
+      "output": "public/ui/survivor/wells-burst-setup-v1.png"
+    }
+  ]
+}

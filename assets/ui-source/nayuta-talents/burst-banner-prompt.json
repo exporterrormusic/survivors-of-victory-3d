@@ -1,0 +1,21 @@
+﻿{
+  "generator": "Built-in imagegen",
+  "prompt": "Use case: stylized-concept. Create a NEW custom cinematic ultra-wide 3:1 game HUD Burst banner for Nayuta from Goddess of Victory: NIKKE. Input image 1 (portrait.png) is her face/identity reference; image 2 (reference-official.jpg) is the official character design reference, not a composition to copy; image 3 (rapunzel-burst-prayer.png) is ONLY the cinematic close-up banner layout, painterly anime quality and dark/light contrast reference, NOT its blonde character or nun outfit. Depict Nayuta alone: silver-white hair with cool lilac shadows, straight segmented blunt bangs, long side locks and small swept side buns, pale luminous cyan-blue eyes, delicate white eyelashes, her butterfly ornament at the high black collar, black/white clothing and a glimpse of her elegant silver-black mechanical right hand. Confident, serene ascetic expression, eyes open, slight three-quarter angle facing toward the viewer/left. Mechanical fingertips held in a restrained two-finger meditative gesture beside her cheek, not covering the eyes. A partial arc of her floating ornate circular machine behind her head, beautifully restrained and softly out of focus. Frame tightly on her face and hand, NOT full-body, NOT a chibi, NO hat. Her face fills the right two-thirds with eyes near x=67%, y=45%; her visible eye and facial expression must be very legible at tiny HUD size. The LEFT third fades into near-black indigo shadow, uncluttered negative space for game UI overlays. Gold/ivory light from below/right edges her hair, cheek and metallic fingertips; a subtle violet cosmic shadow and tiny sparse gold motes suggest Asceticism. Crisp elegant anime linework, lavish hand-painted shading, refined luminous highlights, strong readable silhouette. Keep her identifiable from references, not a generic anime woman. No extra people, no nun clothing, no blonde hair, no full-body figure, no exaggerated chest focus, no text, no letters, no logo, no watermark, no UI frame. Output a polished horizontal 3:1 image with opaque background.",
+  "references": [
+    {
+      "role": "Identity",
+      "path": "public/assets/menus/character-select/nayuta/portrait.png"
+    },
+    {
+      "role": "Official design",
+      "path": "assets/ui-source/nayuta-talents/reference-official.jpg",
+      "source": "https://prtimes.jp/main/html/rd/p/000000084.000145037.html",
+      "image": "https://prcdn.freetls.fastly.net/release_image/145037/84/145037-84-de341ebce4c007cb22ccf38c6fa1a175-1920x1080.jpg"
+    },
+    {
+      "role": "HUD style",
+      "path": "public/ui/survivor/rapunzel-burst-prayer.png"
+    }
+  ],
+  "output": "public/ui/survivor/nayuta-burst-asceticism.png"
+}

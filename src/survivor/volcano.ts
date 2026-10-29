@@ -1,4 +1,4 @@
-// Ashen Caldera: a volcano east of the basin lobs molten rocks into the fight.
+﻿// Ashen Caldera: a volcano east of the basin lobs molten rocks into the fight.
 //
 // Each rock arcs from the summit; its shadow on the ground grows and darkens as it falls, which is
 // the only warning. It flattens whatever it lands on and leaves a crater that burns (hurting and
@@ -6,10 +6,10 @@
 // Volleys come faster and heavier as the round goes on: the threat comes from time, not from what
 // the player does. Rocks mostly land around the horde, so a barrage is also something to use.
 
-import { Color3, Constants, DynamicTexture, Effect, Mesh, MeshBuilder, ParticleSystem, Color4, PointLight, ShaderMaterial, StandardMaterial, TransformNode, Vector3, type Scene, type ShadowGenerator } from '@babylonjs/core';
+import { Color3, Constants, DynamicTexture, Effect, Mesh, MeshBuilder, ParticleSystem, Color4, PointLight, ShaderMaterial, StandardMaterial, TransformNode, Vector2, Vector3, type Scene, type ShadowGenerator } from '@babylonjs/core';
 import { CalderaArt, createCalderaCraterFloor, createCalderaImpactRim, crumbleCalderaRim } from './caldera-art';
 import { calderaTexture } from './caldera-materials';
-import { calderaEffectVertex, calderaFissureFragment, calderaCraterFragment } from './caldera-effects';
+import { calderaEffectVertex, calderaFissureFragment, calderaCraterFragment, calderaTrailFragment } from './caldera-effects';
 import { audioEngine } from '../audio/audio-engine';
 import { SFX } from '../audio/sound-bank';
 import type { Player } from './player';
@@ -22,6 +22,7 @@ import { CALDERA_ADVANCE_TIME, CALDERA_MAX_ADVANCE, CALDERA_SHORE, VOLCANO, cald
 import { CalderaHeatHaze } from './caldera-heat-haze';
 import { CalderaBorderEmbers } from './caldera-border-embers';
 import { onElevatorFootprint } from './elevator-footprint';
+import { NihilisterSchedule } from './nihilister-schedule';
 export { VOLCANO } from './caldera-layout';
 const SUMMIT = new Vector3(VOLCANO.x, VOLCANO.height, VOLCANO.z);
 const FALL_TIME = 2.4;
@@ -32,15 +33,27 @@ const CRATER_RADIUS = 2.4;
 const CRATER_DPS = 5;
 const TREE_SINK_TIME = 14;
 const RAPTURE_CRATER_DPS = 40;
+/** Giant meteor (nihilister-egg.ts): rock size and crater size against a normal one. */
+export const GIANT_SCALE = 5, GIANT_CRATER_SCALE = 3.75;
+/** Giant rock diameter (m): the width of the fire trail she leaves. */
+export const GIANT_TRAIL_WIDTH = 9;
+/** A giant's pool stays molten through her appearance (~6 s) so the strip she adds burns as long as a crater. */
+const POOL_EXTRA_BURN = 6;
 
 // Shared flow textures, cooling crust, and scene fog for all molten surfaces.
 Effect.ShadersStore.volcanoFissureVertexShader=calderaEffectVertex;
 Effect.ShadersStore.volcanoFissureFragmentShader=calderaFissureFragment;
 Effect.ShadersStore.volcanoCraterVertexShader=calderaEffectVertex;
 Effect.ShadersStore.volcanoCraterFragmentShader=calderaCraterFragment;
+Effect.ShadersStore.volcanoTrailVertexShader=calderaEffectVertex;
+Effect.ShadersStore.volcanoTrailFragmentShader=calderaTrailFragment;
 
-interface Rock { mesh: Mesh; shadow: Mesh; from: Vector3; to: Vector3; age: number }
-interface Crater { rim: Mesh; disc: Mesh; material: ShaderMaterial; fire: ParticleSystem; at: Vector3; age: number }
+interface Rock { mesh: Mesh; shadow: Mesh; from: Vector3; to: Vector3; age: number; scale: number }
+interface Crater { rim: Mesh; disc: Mesh; material: ShaderMaterial; fire: ParticleSystem; at: Vector3; age: number; r: number }
+/** A strip of fresh lava from `from` to `to` (grown by setLavaTrailEnd), with an optional round pool at
+ * `from` (a giant meteor's crater) melting into it; one surface, so it all burns, cools and fades together. */
+interface Trail { mesh: Mesh; material: ShaderMaterial; from: Vector3; to: Vector3; halfWidth: number; pool: number; age: number; burn: number }
+export type LavaTrail = { readonly id: number };
 
 export class Volcano {
   private readonly root: TransformNode;
@@ -57,7 +70,13 @@ export class Volcano {
   private readonly borderEmbers: CalderaBorderEmbers;
   private readonly rocks: Rock[] = [];
   private readonly craters: Crater[] = [];
+  private readonly trails = new Map<LavaTrail, Trail>();
+  private trailIds = 0;
   private enabled = false;
+  /** A giant meteor landed (nihilister-egg.ts takes it from here). */
+  onGiantImpact: ((at: Vector3, pool: LavaTrail) => void) | null = null;
+  /** Whether a giant may fall now (one at a time: not while the last one's event is running). */
+  giantAllowed: () => boolean = () => false;
   private time = 0;
   private readonly reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   /** seconds since the eruptions began (drives the ramp) */
@@ -66,6 +85,7 @@ export class Volcano {
   private launchFlash = 0;
   /** eruptions on schedule; the Test Lab can pause them */
   erupting = true;
+  private readonly nihilisterSchedule = new NihilisterSchedule();
   /** dry lightning in the ash cloud: main.ts routes it through the atmosphere's strike */
   onThunder: ((x: number, z: number) => void) | null = null;
   private nextThunder = 14;
@@ -130,6 +150,7 @@ export class Volcano {
     this.smoke.stop();
     this.clear();
     this.elapsed = 0; CALDERA_SHORE.advance = 0; this.nextVolley = 6; this.nextThunder = 10 + Math.random() * 8;
+    this.nihilisterSchedule.reset();
   }
 
   /** 0..1 how far the lava sea has advanced toward its final shoreline (the Test Lab can set it). */
@@ -162,57 +183,115 @@ export class Volcano {
     }
   }
 
-  private launch(to: Vector3, delay: number): void {
+  /** Throw a giant meteor onto open ground near the player (but clear of them). False if there is no room. */
+  giant(player: Player, targets: TargetField, delay = 0): boolean {
+    if (!this.enabled || !this.giantAllowed() || this.rocks.some((r) => r.scale > 1)) return false;
+    const r = CRATER_RADIUS * GIANT_CRATER_SCALE;
+    for (let attempt = 0; attempt < 24; attempt++) {
+      // Beside the player (east or west) first: the screen is widest there, so all of her rises into
+      // view (north runs off the top, south under the HUD). Anywhere after that.
+      const a = attempt < 16 ? (Math.random() < .5 ? 0 : Math.PI) + (Math.random() - .5) * .8 : Math.random() * Math.PI * 2, d = r + 3 + Math.random() * 4;
+      const at = targets.navigation.project({ x: player.position.x + Math.cos(a) * d, z: player.position.z + Math.sin(a) * d }, r + .4);
+      if (!this.craterSpaceFree(at, r) || Math.hypot(at.x - player.position.x, at.z - player.position.z) < r + 2) continue;
+      this.launch(new Vector3(at.x, 0, at.z), delay, GIANT_SCALE);
+      return true;
+    }
+    return false;
+  }
+
+  private launch(to: Vector3, delay: number, scale = 1): void {
     if(onElevatorFootprint(to.x,to.z,3.8))return;
-    const mesh = MeshBuilder.CreateIcoSphere('volcano-rock', { radius: .7 + Math.random() * .4, subdivisions: 2 }, this.scene);
+    const mesh = MeshBuilder.CreateIcoSphere('volcano-rock', { radius: scale > 1 ? GIANT_TRAIL_WIDTH / 2 : .7 + Math.random() * .4, subdivisions: scale > 1 ? 3 : 2 }, this.scene);
     mesh.material = this.rockMaterial; mesh.parent = this.root; mesh.isPickable = false;
     mesh.scaling.set(1, .8 + Math.random() * .3, 1.1); mesh.setEnabled(false);
     this.shadows.addShadowCaster(mesh);
     const shadow = MeshBuilder.CreateGround('volcano-rock-shadow', { width: 1, height: 1 }, this.scene);
     shadow.material = this.shadowMaterial; shadow.parent = this.root; shadow.isPickable = false;
     shadow.position.set(to.x, .06, to.z); shadow.visibility = 0; shadow.alphaIndex = 2;
-    this.rocks.push({ mesh, shadow, from: SUMMIT.clone(), to, age: -delay });
+    this.rocks.push({ mesh, shadow, from: SUMMIT.clone(), to, age: -delay, scale });
   }
 
   private land(rock: Rock, player: Player, targets: TargetField, run: Run, shake: (s: number) => void): void {
-    const at = rock.to;
+    const at = rock.to, giant = rock.scale > 1, k = giant ? GIANT_CRATER_SCALE : 1, reach = IMPACT_RADIUS * k;
     if(onElevatorFootprint(at.x,at.z,3.8)){rock.mesh.dispose();rock.shadow.dispose();return;}
-    this.vfx.ring(at.clone().addInPlaceFromFloats(0, .1, 0), [1, .5, .15], .4, IMPACT_RADIUS * 1.6, .45, .9);
-    for (let i = 0; i < 9; i++) this.vfx.flashSprite(at.add(new Vector3(Math.cos(i * 2.4) * 1.2, .4 + (i % 3) * .35, Math.sin(i * 2.4) * 1.2)), [1, .45 + (i % 3) * .12, .1], 1.4, .55, .9, 'spark');
-    audioEngine.play(SFX.explosion, .9);
+    this.vfx.ring(at.clone().addInPlaceFromFloats(0, .1, 0), [1, .5, .15], .4 * k, reach * 1.6, .45 * (giant ? 2 : 1), .9);
+    for (let i = 0; i < (giant ? 24 : 9); i++) this.vfx.flashSprite(at.add(new Vector3(Math.cos(i * 2.4) * 1.2 * k, (.4 + (i % 3) * .35) * k, Math.sin(i * 2.4) * 1.2 * k)), [1, .45 + (i % 3) * .12, .1], 1.4 * k, .55 * (giant ? 1.6 : 1), .9, 'spark');
+    if (giant) audioEngine.playProcessed(SFX.explosion, { gain: 1.3, rate: .55, reverb: .6 });
+    else audioEngine.play(SFX.explosion, .9);
     const near = Math.hypot(player.position.x - at.x, player.position.z - at.z);
-    shake(near < 18 ? .22 * (1 - near / 18) + .05 : 0);
-    if (near < IMPACT_RADIUS + .45) player.takeDamage(IMPACT_DAMAGE);
-    for (const t of targets.targets) if (t.alive && Math.hypot(t.position.x - at.x, t.position.z - at.z) < IMPACT_RADIUS + t.radius) run.environmentDamage(t, IMPACT_DAMAGE * 3);
+    shake(giant ? .45 * Math.max(.3, 1 - near / 40) : near < 18 ? .22 * (1 - near / 18) + .05 : 0);
+    if (near < reach + .45) player.takeDamage(IMPACT_DAMAGE);
+    for (const t of targets.targets) if (t.alive && Math.hypot(t.position.x - at.x, t.position.z - at.z) < reach + t.radius) run.environmentDamage(t, IMPACT_DAMAGE * 3);
     rock.mesh.dispose(); rock.shadow.dispose();
-    this.spawnCrater(at);
+    // A giant's crater is the start of her fire trail: one lava surface, so they blend and cool together.
+    if (giant) this.onGiantImpact?.(at.clone(), this.addLavaTrail(at, GIANT_TRAIL_WIDTH, CRATER_RADIUS * GIANT_CRATER_SCALE));
+    else this.spawnCrater(at);
   }
 
-  private craterSpaceFree(at:{x:number;z:number}):boolean {
+  private craterSpaceFree(at:{x:number;z:number},r=CRATER_RADIUS):boolean {
     // Keep the whole crater on dry ground, with room for the lava to creep while it burns.
-    return !onElevatorFootprint(at.x,at.z,3.8)&&calderaShoreDepth(at.x,at.z)< -(CRATER_RADIUS+3)&&this.craters.every(c=>Math.hypot(c.at.x-at.x,c.at.z-at.z)>=5.7)
-      &&this.rocks.every(r=>Math.hypot(r.to.x-at.x,r.to.z-at.z)>=5.7);
+    const gap=(o:number)=>r+o+.9;
+    return !onElevatorFootprint(at.x,at.z,r+1.4)&&calderaShoreDepth(at.x,at.z)< -(r+3)&&this.craters.every(c=>Math.hypot(c.at.x-at.x,c.at.z-at.z)>=gap(c.r))
+      &&this.rocks.every(k=>Math.hypot(k.to.x-at.x,k.to.z-at.z)>=gap(CRATER_RADIUS*(k.scale>1?GIANT_CRATER_SCALE:1)));
   }
 
-  private spawnCrater(at: Vector3): void {
+  private spawnCrater(at: Vector3, scale = 1): void {
     if(onElevatorFootprint(at.x,at.z,3.8))return;
-    if(this.craters.some(c=>Math.hypot(c.at.x-at.x,c.at.z-at.z)<5.7))return;
+    const r=CRATER_RADIUS*scale;
+    if(scale===1&&this.craters.some(c=>Math.hypot(c.at.x-at.x,c.at.z-at.z)<c.r+r+.9))return;
     const disc = createCalderaCraterFloor(this.scene);
     disc.position.set(at.x, .05, at.z); disc.rotation.y = Math.random() * 6.28; disc.parent = this.root; disc.isPickable = false; disc.alphaIndex = 3;
-    const material = new ShaderMaterial('volcano-crater', this.scene, 'volcanoCrater', { attributes: ['position', 'uv'], uniforms: ['world','worldViewProjection','heat','scorch','crumble','time','seed','eye','fogColor','fogDensity'],samplers:['lavaTex','basaltTex'], needAlphaBlending: true });
-    material.setTexture('basaltTex',calderaTexture(this.scene,'basalt.webp'));material.setFloat('crumble',0);
+    disc.scaling.set(scale, 1, scale);
+    const material = new ShaderMaterial('volcano-crater', this.scene, 'volcanoCrater', { attributes: ['position', 'uv'], uniforms: ['world','worldViewProjection','heat','scorch','crumble','rimBand','time','seed','eye','fogColor','fogDensity'],samplers:['lavaTex','basaltTex'], needAlphaBlending: true });
+    material.setTexture('basaltTex',calderaTexture(this.scene,'basalt.webp'));material.setFloat('crumble',0);material.setFloat('rimBand',scale===1?1:0);
     this.bindSurface(material);material.setFloat('heat',1);material.setFloat('scorch',1);material.setFloat('time',this.time);
     material.setFloat('seed', Math.random() * 50); material.disableDepthWrite = true; material.backFaceCulling = false;
     disc.material = material;
     const fire = new ParticleSystem('volcano-crater-fire', 160, this.scene);
     fire.particleTexture = this.flameTexture; fire.blendMode = ParticleSystem.BLENDMODE_ADD; fire.emitter = at.clone().addInPlaceFromFloats(0, .1, 0);
-    fire.minEmitBox = new Vector3(-CRATER_RADIUS * .6, 0, -CRATER_RADIUS * .6); fire.maxEmitBox = new Vector3(CRATER_RADIUS * .6, .2, CRATER_RADIUS * .6);
-    fire.minSize = .5; fire.maxSize = 1.1; fire.minLifeTime = .5; fire.maxLifeTime = 1; fire.emitRate = 80;
+    fire.minEmitBox = new Vector3(-r * .6, 0, -r * .6); fire.maxEmitBox = new Vector3(r * .6, .2, r * .6);
+    fire.minSize = .5 * Math.sqrt(scale); fire.maxSize = 1.1 * Math.sqrt(scale); fire.minLifeTime = .5; fire.maxLifeTime = 1; fire.emitRate = 80 * scale;
     fire.direction1 = new Vector3(-.2, 2, -.2); fire.direction2 = new Vector3(.2, 3.2, .2); fire.minEmitPower = .8; fire.maxEmitPower = 1.2;
     fire.addColorGradient(0, new Color4(1, .9, .6, 0)); fire.addColorGradient(.15, new Color4(1, .7, .3, .7)); fire.addColorGradient(.6, new Color4(1, .35, .05, .4)); fire.addColorGradient(1, new Color4(.4, .05, 0, 0));
     fire.start();
-    const rim=createCalderaImpactRim(this.scene);rim.position.copyFrom(at);rim.parent=this.root;
-    this.craters.push({rim, disc, material, fire, at: at.clone(), age: 0 });
+    // A giant crater has no raised rim: just the molten floor.
+    const rim=createCalderaImpactRim(this.scene);rim.position.copyFrom(at);rim.parent=this.root;rim.setEnabled(scale===1);
+    this.craters.push({rim, disc, material, fire, at: at.clone(), age: 0, r });
+  }
+
+  /** Start a strip of fresh lava at `from`, `width` m across, with a `pool` m radius pool there; grow it with setLavaTrailEnd. */
+  addLavaTrail(from: Vector3, width: number, pool = 0): LavaTrail {
+    const handle: LavaTrail = { id: ++this.trailIds };
+    // One ground quad, refitted as the strip grows; the shader cuts the ragged band and its border.
+    const mesh = MeshBuilder.CreateGround('volcano-lava-trail', { width: 1, height: 1 }, this.scene);
+    mesh.parent = this.root; mesh.isPickable = false; mesh.alphaIndex = 3; mesh.position.y = .055;
+    const material = new ShaderMaterial('volcano-lava-trail', this.scene, 'volcanoTrail', { attributes: ['position', 'uv'], uniforms: ['world','worldViewProjection','a','b','halfWidth','pool','heat','scorch','time','seed','eye','fogColor','fogDensity'], samplers: ['lavaTex','basaltTex'], needAlphaBlending: true });
+    this.bindSurface(material); material.setTexture('basaltTex', calderaTexture(this.scene, 'basalt.webp')); material.setFloat('heat', 1); material.setFloat('scorch', 1); material.setFloat('time', this.time);
+    material.setFloat('halfWidth', width / 2); material.setFloat('pool', pool); material.setFloat('seed', Math.random() * 50); material.disableDepthWrite = true; material.backFaceCulling = false;
+    mesh.material = material;
+    this.trails.set(handle, { mesh, material, from: from.clone(), to: from.clone(), halfWidth: width / 2, pool, age: 0, burn: BURN_TIME + (pool > 0 ? POOL_EXTRA_BURN : 0) });
+    this.setLavaTrailEnd(handle, from);
+    return handle;
+  }
+
+  /** Extend a lava strip to `to` (its burn clock keeps running from when it started). */
+  setLavaTrailEnd(handle: LavaTrail, to: Vector3): void {
+    const t = this.trails.get(handle); if (!t) return;
+    t.to.set(to.x, 0, to.z);
+    const dx = t.to.x - t.from.x, dz = t.to.z - t.from.z, len = Math.hypot(dx, dz), pad = (Math.max(t.halfWidth, t.pool) + 6) * 2;
+    t.mesh.position.x = (t.from.x + t.to.x) / 2; t.mesh.position.z = (t.from.z + t.to.z) / 2;
+    t.mesh.rotation.y = Math.atan2(dx, dz); t.mesh.scaling.set(pad, 1, len + pad);
+    t.material.setVector2('a', new Vector2(t.from.x, t.from.z)); t.material.setVector2('b', new Vector2(t.to.x, t.to.z));
+  }
+
+  /** Metres from (x, z) to a strip's centre line, with its pool counted as a wider part of the strip. */
+  private trailDistance(t: Trail, x: number, z: number): number {
+    return Math.min(this.lineDistance(t, x, z), Math.hypot(x - t.from.x, z - t.from.z) - t.pool + t.halfWidth);
+  }
+  private lineDistance(t: Trail, x: number, z: number): number {
+    const ax = t.to.x - t.from.x, az = t.to.z - t.from.z, l2 = ax * ax + az * az;
+    const k = l2 ? Math.max(0, Math.min(1, ((x - t.from.x) * ax + (z - t.from.z) * az) / l2)) : 0;
+    return Math.hypot(x - t.from.x - ax * k, z - t.from.z - az * k);
   }
 
   update(dt: number, player: Player, targets: TargetField, run: Run, focus: Vector3, shake: (s: number) => void): void {
@@ -252,6 +331,7 @@ export class Volcano {
 
     // The schedule: a volley every 9 s at the start, every 3 s by ten minutes, with more rocks.
     if (this.erupting) {
+      this.nihilisterSchedule.update(dt, () => this.giant(player, targets));
       this.elapsed += dt;
       this.nextVolley -= dt;
       if (this.nextVolley <= 0) {
@@ -261,12 +341,11 @@ export class Volcano {
       }
     }
 
-    // Publish the danger zones (every rock in flight, every burning crater) for unit steering.
+    // Warn steering about falling rocks only. Raptures walk through grounded lava and take damage.
     const nav = targets.navigation as { dangers?: { x: number; z: number; r: number }[] } | undefined;
     if (nav?.dangers) {
       nav.dangers.length = 0;
-      for (const r of this.rocks) nav.dangers.push({ x: r.to.x, z: r.to.z, r: IMPACT_RADIUS });
-      for (const c of this.craters) if (c.age < BURN_TIME + COOL_TIME * .7) nav.dangers.push({ x: c.at.x, z: c.at.z, r: CRATER_RADIUS });
+      for (const r of this.rocks) nav.dangers.push({ x: r.to.x, z: r.to.z, r: IMPACT_RADIUS * (r.scale > 1 ? GIANT_CRATER_SCALE : 1) });
       this.dangerList = nav.dangers;
     }
     for (let i = this.rocks.length - 1; i >= 0; i--) {
@@ -280,7 +359,7 @@ export class Volcano {
       r.mesh.position.copyFrom(p); r.mesh.setEnabled(true);
       r.mesh.rotation.x += dt * 3; r.mesh.rotation.z += dt * 2;
       // The shadow is the warning: it grows and darkens as the rock comes down.
-      const s = .8 + t * t * CRATER_RADIUS * 1.9;
+      const s = (.8 + t * t * CRATER_RADIUS * 1.9) * (r.scale > 1 ? GIANT_CRATER_SCALE : 1);
       r.shadow.scaling.set(s, 1, s); r.shadow.visibility = .15 + .75 * t * t;
       if (t >= 1) { this.rocks.splice(i, 1); this.land(r, player, targets, run, shake); }
     }
@@ -295,21 +374,33 @@ export class Volcano {
       crumbleCalderaRim(c.rim,crumble);crumbleCalderaRim(c.disc,crumble);
       c.material.setFloat('crumble',crumble);
       c.material.setFloat('heat', heat); c.material.setFloat('scorch', 1); c.material.setFloat('time', visualTime);
-      c.fire.emitRate = 80 * (burning ? 1 : heat * .4);
+      c.fire.emitRate = 80 * (c.r / CRATER_RADIUS) * (burning ? 1 : heat * .4);
       if (!burning && c.fire.isStarted() && heat < .3) c.fire.stop();
-      if (heat>0) {
-        // Burning craters hurt and slow everyone in them; once they cool they are safe ground.
-        const pd = Math.hypot(player.position.x - c.at.x, player.position.z - c.at.z);
-        if (pd < CRATER_RADIUS && player.hp > 0) {
-          this.playerHeat = Math.max(this.playerHeat, 2 * (1 - pd / CRATER_RADIUS * .4));
-          if (player.takeDamage(Math.max(CRATER_DPS,player.maxHp*.8)*heat*dt, true, true)) player.damageFlash = Math.max(player.damageFlash, .1);
-        }
-        for (const t of targets.targets) if (t.alive && Math.hypot(t.position.x - c.at.x, t.position.z - c.at.z) < CRATER_RADIUS + t.radius) {
-          run.environmentDamage(t, Math.max(RAPTURE_CRATER_DPS,t.maxHp*.8)*heat*dt);
-          t.slowed = Math.max(t.slowed, .4);
-        }
-      }
+      if (heat>0) this.burnInside((x, z) => Math.hypot(x - c.at.x, z - c.at.z), c.r, heat, dt, player, targets, run);
       if (scorch <= 0) { c.rim.dispose();c.disc.dispose(); c.material.dispose(); c.fire.dispose(false); this.craters.splice(i, 1); }
+    }
+
+    // Lava trails: the same burn, cool and fade clock as a crater, and the same harm while hot.
+    for (const [handle, t] of this.trails) {
+      t.age += dt;
+      const heat = t.age < t.burn ? 1 : Math.max(0, 1 - (t.age - t.burn) / COOL_TIME);
+      const scorch = Math.max(0, 1 - Math.max(0, t.age - t.burn - COOL_TIME) / SCORCH_TIME);
+      t.material.setFloat('heat', heat); t.material.setFloat('scorch', scorch); t.material.setFloat('time', visualTime);
+      if (heat > 0) this.burnInside((x, z) => this.trailDistance(t, x, z), t.halfWidth, heat, dt, player, targets, run);
+      if (scorch <= 0) { t.mesh.dispose(); t.material.dispose(); this.trails.delete(handle); }
+    }
+  }
+
+  /** Burning ground hurts and slows everyone in it; once it cools it is safe. `distance` is to its centre (line). */
+  private burnInside(distance: (x: number, z: number) => number, r: number, heat: number, dt: number, player: Player, targets: TargetField, run: Run): void {
+    const pd = distance(player.position.x, player.position.z);
+    if (pd < r && player.hp > 0) {
+      this.playerHeat = Math.max(this.playerHeat, 2 * (1 - pd / r * .4));
+      if (player.takeDamage(Math.max(CRATER_DPS,player.maxHp*.8)*heat*dt, true, true)) player.damageFlash = Math.max(player.damageFlash, .1);
+    }
+    for (const t of targets.targets) if (t.alive && distance(t.position.x, t.position.z) < r + t.radius) {
+      run.environmentDamage(t, Math.max(RAPTURE_CRATER_DPS,t.maxHp*.8)*heat*dt);
+      t.slowed = Math.max(t.slowed, .4);
     }
   }
 
@@ -356,6 +447,8 @@ export class Volcano {
     this.rocks.length = 0;
     for (const c of this.craters) { c.rim.dispose();c.disc.dispose(); c.material.dispose(); c.fire.dispose(false); }
     this.craters.length = 0;
+    for (const t of this.trails.values()) { t.mesh.dispose(); t.material.dispose(); }
+    this.trails.clear();
     for (const b of this.burning.values()) b.fire.dispose(false);
     if (this.dangerList) this.dangerList.length = 0;
     this.burning.clear();
@@ -367,3 +460,4 @@ export class Volcano {
     this.shadowTexture.dispose(); this.flameTexture.dispose(); this.summitLight.dispose(); this.haze?.dispose(); this.borderEmbers.dispose(); this.smoke.dispose(false);
   }
 }
+

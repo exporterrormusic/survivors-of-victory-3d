@@ -24,11 +24,12 @@ const cue = (file: string, volume: number, voices = 4, gap = 0): Cue => ({ url: 
 
 /** Basic attacks and weapon abilities, by the character's weapon family. */
 export const WEAPON_FIRE: Readonly<Record<WeaponSound, Cue>> = {
+  'pulse-rifle': cue('gameplay/weapons/fire-pulse-rifle.wav', .25, 6, .025),
   sniper: cue('gameplay/weapons/fire-sniper.mp3', .65, 3),
   rocket: cue('gameplay/weapons/fire-rocket.mp3', .48, 3),
   shotgun: cue('gameplay/weapons/fire-shotgun.mp3', .48, 3),
   assault: cue('gameplay/weapons/fire-assault.mp3', .32),
-  smg: cue('gameplay/weapons/fire-smg.mp3', .32, 4, .072),
+  smg: cue('gameplay/weapons/fire-smg-shot.wav', .32, 6, .025),
   minigun: cue('gameplay/weapons/fire-minigun.mp3', .32, 4, .072),
   sword: cue('gameplay/weapons/fire-sword.mp3', .4, 3),
   beam: cue('gameplay/enemies/beam.wav', .3, 2),
@@ -36,6 +37,7 @@ export const WEAPON_FIRE: Readonly<Record<WeaponSound, Cue>> = {
 
 /** Magazine reloads (basic attacks with a magazine), by weapon family. */
 export const WEAPON_RELOAD: Readonly<Partial<Record<WeaponSound, Cue>>> = {
+  'pulse-rifle': cue('gameplay/weapons/reload-assault.mp3', .4, 1),
   sniper: cue('gameplay/weapons/reload-sniper.mp3', .45, 1),
   shotgun: cue('gameplay/weapons/reload-shotgun.mp3', .45, 1),
   rocket: cue('gameplay/weapons/reload-rocket.mp3', .45, 1),
@@ -54,6 +56,8 @@ export const WEAPON_SPECIAL: Readonly<Partial<Record<WeaponSound, Cue>>> = {
 };
 
 export const SFX = {
+  nayutaPalm: cue('gameplay/weapons/nayuta-palm.wav', .5, 3, .08),
+  nayutaPalmFinal: cue('gameplay/weapons/nayuta-palm-final.wav', .65, 2, .1),
   explosion: cue('gameplay/weapons/rocket-explosion.mp3', .45, 4, .04),
   /** dash and other quick movement */
   whoosh: cue('gameplay/weapons/fire-sword.mp3', .25, 2),
@@ -63,6 +67,8 @@ export const SFX = {
   snowWhiteBurst: cue('voice/characters/snow-white/burst.wav', .5 * 10 ** (1.1 / 20), 1),
   scarletBurst: cue('voice/characters/scarlet/burst.wav', .5 * 10 ** (.1 / 20), 1),
   rapunzelBurst: cue('voice/characters/rapunzel/burst.wav', .5 * 10 ** (-.3 / 20), 1),
+  nayutaBurst: cue('voice/characters/nayuta/burst.wav', .5 * 10 ** (-3.3 / 20), 1),
+  dorothyBurst: cue('voice/characters/dorothy/burst.mp3', .5, 1),
   /** Player turrets must not share cues with Rapture attacks. */
   snowWhiteTurretFire: cue('gameplay/weapons/fire-rocket.mp3', .18, 2, .12),
   /** many minions fire at once, so these are quiet and tightly limited */

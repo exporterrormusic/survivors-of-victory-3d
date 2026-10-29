@@ -43,6 +43,7 @@ const NIHILISTER = 'c261_00', LILIWEISS = 'c5029_00';
 const SHOT_SPEED: Record<string, number> = { 'snow-white': 31, rapunzel: 18 };
 /** each NIKKE's line once the cutscene hands control back */
 const CLOSING_LINES: Record<string, string> = {
+  nayuta: 'What ruin hath mine own hands wrought?',
   scarlet: 'What ruin hath mine own hands wrought?',
   rapunzel: 'No... the dead should stay dead...',
   'snow-white': "Soon, you'll have your final rest...",
@@ -263,7 +264,7 @@ export class GoddessFallEgg {
         this.pickupFlash(this.vial.position, [.85, .05, .12]);
         this.vialGlitch();
         this.goTo('altar');
-        this.speak('Commander...?', .5);
+        this.speak(this.ctx.characterId === 'nayuta' ? 'Great Hero...?' : 'Commander...?', .5);
       }
     }
     if (this.step === 'altar' && player.hp > 0 && !this.ctx.liftBusy() && flat(player.position, this.altar) < 7.2) this.goTo('cutscene');

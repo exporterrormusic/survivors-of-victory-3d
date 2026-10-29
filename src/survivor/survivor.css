@@ -5,6 +5,8 @@
 #hud.survivor {
   --k: min(calc(100cqw / 1771), calc(100cqh / 888));
   --hud-inset: calc((100cqw - 1771 * var(--k)) / 2);
+  /* Wider than the 1771:888 layout (21:9), corner panels follow the real edges at the same size; the dock centers. */
+  --hud-side: 0px;
   --edge: calc(16 * var(--k));
   --tool-size: max(44px, calc(46 * var(--k)));
   --info: calc(340 * var(--k));
@@ -91,7 +93,7 @@
 #hud.survivor #music-player.muted .mp-mute { color: #f4b331; }
 
 /* bottom left: portrait and numbers */
-#run-hero { position: absolute; isolation: isolate; left: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(60 * var(--k)); display: flex; align-items: flex-end; gap: calc(16 * var(--k)); }
+#run-hero { position: absolute; isolation: isolate; left: calc(var(--hud-side) + 24 * var(--k)); bottom: calc(60 * var(--k)); display: flex; align-items: flex-end; gap: calc(16 * var(--k)); }
 /* Starts below the portrait's top so the empty space above the name and its rule stays clear. */
 #run-hero::before { content: ''; position: absolute; z-index: -1; inset: calc(58 * var(--k)) calc(-18 * var(--k)) calc(-14 * var(--k)) calc(-8 * var(--k)); background: radial-gradient(ellipse at 45% 70%, #03070be6 0%, #03070b8c 45%, #03070b00 76%); filter: blur(calc(12 * var(--k))); pointer-events: none; }
 .rh-face { width: calc(220 * var(--k)); height: calc(178 * var(--k)); border: 0; background: transparent; }
@@ -113,6 +115,12 @@
 .rh-rounds i.spent { background: #4c555455; border-color: #737e6e66; }
 .rh-rounds i.spent::before { background: #737e6e66; }
 .rh-rounds.reloading i:not(.spent) { opacity: .5; }
+/* Large magazines use one bounded gauge and the exact count, not a row per cartridge. */
+.rh-ammo-compact { width: 100%; min-width: 0; gap: calc(12 * var(--k)); }
+.rh-ammo-compact > b { order: -1; flex: 0 0 auto; white-space: nowrap; }
+.rh-ammo-compact .rh-rounds { position: relative; flex: 1 1 0; min-width: 0; height: max(6px, calc(8 * var(--k))); padding: 0; overflow: hidden; background: #4c555455; border: 1px solid #737e6e66; }
+.rh-ammo-compact .rh-rounds i { display: block; flex: 0 0 auto; height: 100%; border: 0; border-radius: 0; background: linear-gradient(90deg, #c6cf99, #f2f3cb); transition: width 70ms linear; }
+.rh-ammo-compact .rh-rounds i::before { content: none; }
 .rh-reload { cursor: pointer; flex: 0 0 auto; }
 #hud.survivor .rh-reload { height: calc(34 * var(--k)); }
 .rh-reload:hover { background: #313536 !important; }
@@ -179,14 +187,14 @@
 #hud.survivor .rd-burst.ready .rb-key { color: #f4f7fa; }
 
 /* bottom right: radar */
-#run-radar { position: absolute; right: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(66 * var(--k)); width: calc(204 * var(--k)); height: calc(180 * var(--k)); border: 0; background: linear-gradient(#20272a33, #0c131633), var(--fill); }
+#run-radar { position: absolute; right: calc(var(--hud-side) + 24 * var(--k)); bottom: calc(66 * var(--k)); width: calc(204 * var(--k)); height: calc(180 * var(--k)); border: 0; background: linear-gradient(#20272a33, #0c131633), var(--fill); }
 #run-radar.run-frame::before, #run-radar.run-frame::after { display: none; }
 .rr-label { position: absolute; top: calc(4 * var(--k)); left: calc(5 * var(--k)); }
 #run-radar canvas { position: absolute; top: calc(10 * var(--k)); left: calc(12 * var(--k)); width: calc(100% - 20 * var(--k)); height: calc(100% - 10 * var(--k)); }
 #hud.survivor #run-radar canvas { pointer-events: none; }
 
 /* bottom edge: level, XP, upgrades */
-#run-xp { position: absolute; left: calc(var(--hud-inset) + 24 * var(--k)); right: calc(var(--hud-inset) + 24 * var(--k)); bottom: calc(18 * var(--k)); display: flex; align-items: center; gap: calc(22 * var(--k)); text-shadow: 0 1px 3px #000c; }
+#run-xp { position: absolute; left: calc(var(--hud-side) + 24 * var(--k)); right: calc(var(--hud-side) + 24 * var(--k)); bottom: calc(18 * var(--k)); display: flex; align-items: center; gap: calc(22 * var(--k)); text-shadow: 0 1px 3px #000c; }
 .rx-level { flex: 0 0 auto; font-size: calc(16 * var(--k)); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--label); }
 .rx-level b { margin-left: calc(4 * var(--k)); font-size: calc(25 * var(--k)); font-weight: 700; letter-spacing: .02em; color: #f2f5f7; }
 .rx-track { position: relative; flex: 1; height: calc(8 * var(--k)); margin-top: calc(8 * var(--k)); border: 1px solid #949d9a7a; background: #090e108c; }
@@ -307,3 +315,28 @@
 @container game (max-width: 760px) {
   .rd-card[data-slot='weapon']:is([data-icon='rocket'], [data-icon='halo']) .rd-icon svg { height: 30px; }
 }
+
+/* Experimental co-op (?coop=host): the room code until the lobby exists. */
+#hud .coop-room-code {
+  position: absolute; top: calc(118 * var(--k)); left: 50%; transform: translateX(-50%);
+  padding: calc(4 * var(--k)) calc(12 * var(--k)); border: 1px solid #ffffff59; background: #05090bb3;
+  color: #fff; font: 700 calc(20 * var(--k)) Rajdhani, sans-serif; letter-spacing: .12em; pointer-events: none;
+}
+
+.run-kit-status { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); z-index: 5; padding: 5px 8px; color: #ffe4a0; background: #10151bf2; border: 1px solid #c09b4f; font: 700 11px sans-serif; letter-spacing: .02em; pointer-events: none; white-space: nowrap; }
+.run-kit-status.has-insight { width:132px; padding:6px 8px; bottom:calc(100% + 8px); white-space:normal; border-color:#ffffff50; background:#0b111bdc; box-sizing:border-box; pointer-events:auto; }
+.nayuta-insight { color:#e8edf0; font:700 10px Rajdhani,'Segoe UI',sans-serif; }
+.ni-heading { display:flex; justify-content:space-between; height:12px; letter-spacing:.12em; }
+.ni-heading b { font-size:10px; }
+.ni-heading span { color:#8effcb; }
+.ni-pips { display:flex; gap:4px; margin:5px 0; }
+.ni-pips i { flex:1; height:7px; border:1px solid #b59b5980; background:linear-gradient(to right,#ffdc6a var(--fill),#202632 var(--fill)); }
+.ni-track { height:2px; background:#39404c; }
+.ni-track i { display:block; height:100%; background:#ffdc6a; }
+.nayuta-insight.meditating .ni-track i { background:#8effcb; }
+.nayuta-insight.expiring .ni-track i { background:#ff956c; }
+/* Bare pause (Space): the run freezes with no menu, just this label. */
+#run-paused { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 6px; padding: 14px 34px; border-top: 1px solid #f2f5f7aa; border-bottom: 1px solid #f2f5f7aa; background: #0b1014b3; color: #f2f5f7; font-family: Rajdhani, 'Segoe UI', sans-serif; pointer-events: none; z-index: 20; }
+#run-paused.hidden { display: none; }
+#run-paused b { font-size: 34px; font-weight: 700; letter-spacing: .3em; }
+#run-paused span { font-size: 14px; font-weight: 600; letter-spacing: .14em; color: #c9d1d6; }

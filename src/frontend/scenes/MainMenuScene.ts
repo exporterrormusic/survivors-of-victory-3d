@@ -1,6 +1,7 @@
 import { cores } from "../ui/cores";
 import { GAME_VERSION, VERSION_LABEL } from "../../version";
 import Phaser from "phaser";
+import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
 import { captureDevelopmentPreview } from "../dev/capturePreview";
@@ -117,10 +118,14 @@ const PATCH_RELEASES: readonly PatchRelease[] = [
   },
 ] as const;
 
+/** extra room between a 150 px card's slanted left edge and its icon, like the smaller buttons have */
+const LARGE_INSET = 26;
+
 type ButtonStyle = "cyan" | "danger" | "dark" | "utility" | "white";
 type MenuIcon =
   | "achievement"
   | "leaderboard"
+  | "multiplayer"
   | "notice"
   | "play"
   | "quit"
@@ -205,7 +210,18 @@ export class MainMenuScene extends Phaser.Scene {
     gameAudio.stopEnvironmentAmbience();
     gameAudio.playLobby(this);
 
-    if (this.revealTransition) {
+    const returningFromGame = document.documentElement.hasAttribute('data-menu-loading');
+    if (returningFromGame) {
+      this.game.events.once('postrender', () => {
+        document.documentElement.removeAttribute('data-menu-loading');
+        document.getElementById('menu-loading-frame')?.remove();
+        try { sessionStorage.removeItem('menu-transition-frame'); } catch {}
+        const url = new URL(location.href);
+        url.searchParams.delete('menuLoading');
+        history.replaceState(null, '', url);
+      });
+    }
+    if (this.revealTransition || returningFromGame) {
       playHexWipeReveal(this, this.transitionProfile ?? "LOBBY");
       if (this.previousScene !== undefined) {
         this.scene.stop(this.previousScene);
@@ -220,7 +236,7 @@ export class MainMenuScene extends Phaser.Scene {
     const travel = (BLIND_SPEED * delta) / 1000;
     this.blinds.forEach((blind) => {
       blind.x -= travel;
-      if (blind.x + BLIND_WIDTH + BLIND_ANGLE_OFFSET < 0) {
+      if (blind.x + BLIND_WIDTH + BLIND_ANGLE_OFFSET < bleed.left) {
         const rightmost = Math.max(...this.blinds.map((entry) => entry.x));
         blind.x = rightmost + BLIND_WIDTH;
         const textureKey =
@@ -235,9 +251,9 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x091016).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x091016).setOrigin(0);
     const blindCount = 8;
-    const startX = -BLIND_WIDTH * 2;
+    const startX = bleed.left - BLIND_WIDTH;
     for (let index = 0; index < blindCount; index += 1) {
       const textureIndex = index % BACKGROUND_KEYS.length;
       const textureKey = BACKGROUND_KEYS[textureIndex]!;
@@ -256,7 +272,7 @@ export class MainMenuScene extends Phaser.Scene {
     }
     this.nextBlindTexture = blindCount;
 
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x081018, 0.55).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x081018, 0.55).setOrigin(0);
   }
 
   private drawBlindMask(blind: MovingBlind): void {
@@ -297,40 +313,40 @@ export class MainMenuScene extends Phaser.Scene {
   private createChrome(): void {
     const chrome = this.add.graphics();
     chrome.fillStyle(0x090d12, 0.94);
-    chrome.fillRect(0, 0, WIDTH, 76);
-    chrome.fillRect(0, HEIGHT - 48, WIDTH, 48);
+    chrome.fillRect(bleed.left, 0, bleed.width, 76);
+    chrome.fillRect(bleed.left, HEIGHT - 48, bleed.width, 48);
     chrome.fillStyle(0x35c5f2, 1);
-    chrome.fillRect(0, 74, 515, 3);
+    chrome.fillRect(bleed.left, 74, 515 - bleed.left, 3);
     chrome.fillStyle(0xaeb7c1, 0.35);
-    chrome.fillRect(515, 75, WIDTH - 515, 1);
+    chrome.fillRect(515, 75, bleed.right - 515, 1);
 
-    this.add.text(52, 25, "ARK SYSTEM / LOBBY", {
+    pinToEdge(this.add.text(view.left + 52, 25, "ARK SYSTEM / LOBBY", {
       color: "#f2f5f7",
       fontFamily: "Rajdhani",
       fontSize: "26px",
       fontStyle: "bold",
       letterSpacing: 1.8,
-    });
-    this.add.text(1774, 26, "01", {
+    }), "left");
+    pinToEdge(this.add.text(view.right - 146, 26, "01", {
       color: "#9aa4af",
       fontFamily: "Rajdhani",
       fontSize: "25px",
       fontStyle: "bold",
-    });
-    this.add.text(52, 1038, VERSION_LABEL, {
+    }), "right");
+    pinToEdge(this.add.text(view.left + 52, 1038, VERSION_LABEL, {
       color: "#8a949f",
       fontFamily: "Rajdhani",
       fontSize: "15px",
       fontStyle: "bold",
       letterSpacing: 2,
-    });
-    this.add.text(1714, 1038, "ONLINE // LOCAL", {
+    }), "left");
+    pinToEdge(this.add.text(view.right - 206, 1038, "ONLINE // LOCAL", {
       color: "#35c5f2",
       fontFamily: "Rajdhani",
       fontSize: "15px",
       fontStyle: "bold",
       letterSpacing: 1.5,
-    });
+    }), "right");
   }
 
   private createLogo(): void {
@@ -379,7 +395,7 @@ export class MainMenuScene extends Phaser.Scene {
     greebles.fillRect(cursor + 10, 321, 154, 1);
 
     this.add
-      .text(logoCenter, 341, "A NIKKE FAN PROJECT // EXPORT / ERROR MUSIC", {
+      .text(logoCenter, 341, "A NIKKE FAN PROJECT // AYAMARI YUSHUTSU", {
         color: "#aeb7c1",
         fontFamily: "Rajdhani",
         fontSize: "15px",
@@ -437,12 +453,23 @@ export class MainMenuScene extends Phaser.Scene {
       height: 150,
       icon: "play",
       onClick: () => this.beginPlay(),
-      style: "white",
+      style: "cyan",
       subtitle: "SELECT NIKKE & DEPLOY",
-      title: "PLAY",
+      title: "SOLO",
       width: 480,
       x: 1368,
-      y: 480,
+      y: 440,
+    });
+    this.createMenuButton({
+      height: 150,
+      icon: "multiplayer",
+      onClick: () => this.openMultiplayer(),
+      style: "white",
+      subtitle: "SETUP OR JOIN LOBBY",
+      title: "MULTIPLAYER",
+      width: 480,
+      x: 1368,
+      y: 612,
     });
     this.createMenuButton({
       height: 58,
@@ -450,8 +477,9 @@ export class MainMenuScene extends Phaser.Scene {
       style: "danger",
       title: "QUIT",
       width: 226,
-      x: 1606,
-      y: 650,
+      // Continues the slanted right edge of the two cards above.
+      x: 1604,
+      y: 784,
     });
     const noticeButton = this.createMenuButton({
       height: 46,
@@ -504,7 +532,7 @@ export class MainMenuScene extends Phaser.Scene {
     this.noticeLayer = layer;
 
     const scrim = this.add
-      .rectangle(0, 0, WIDTH, HEIGHT, 0x03070a, 0.82)
+      .rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x03070a, 0.82)
       .setOrigin(0)
       .setInteractive({ useHandCursor: false });
     scrim.on("pointerup", () => this.closeNotice());
@@ -858,7 +886,7 @@ export class MainMenuScene extends Phaser.Scene {
     this.devMenuLayer = layer;
 
     const scrim = this.add
-      .rectangle(0, 0, WIDTH, HEIGHT, 0x02060a, 0.78)
+      .rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x02060a, 0.78)
       .setOrigin(0)
       .setInteractive({ useHandCursor: false });
     scrim.on("pointerup", () => this.closeDevMenu());
@@ -1084,11 +1112,13 @@ export class MainMenuScene extends Phaser.Scene {
     // The compact cyan New Game action needs a tighter content group. The
     // large white no-save variant uses the standard inset so its badge stays
     // inside the card.
+    // The 150 px cards (Solo, Multiplayer) share one large layout, whatever their colour.
+    const large = options.height >= 140;
     const iconOffset =
-      options.title === "NEW GAME" && options.style !== "white" ? -36 : 0;
+      options.title === "NEW GAME" && !large ? -36 : large ? LARGE_INSET : 0;
     icon.x = iconOffset;
     const titleSize =
-      options.style === "white"
+      large
         ? 48
         : options.style === "utility"
           ? 20
@@ -1100,12 +1130,12 @@ export class MainMenuScene extends Phaser.Scene {
     const titleY =
       options.subtitle === undefined
         ? options.height / 2
-        : options.style === "white"
+        : large
           ? 31
           : 24;
     const titleX =
-      options.style === "white"
-        ? 106
+      large
+        ? 106 + LARGE_INSET
         : options.style === "dark"
           ? 68
           : options.subtitle === undefined
@@ -1117,25 +1147,25 @@ export class MainMenuScene extends Phaser.Scene {
         fontFamily: "Rajdhani",
         fontSize: `${titleSize}px`,
         fontStyle: "bold",
-        letterSpacing: options.style === "white" ? 2 : 1,
+        letterSpacing: large ? 2 : 1,
       })
       .setOrigin(0, options.subtitle === undefined ? 0.5 : 0);
     const subtitle =
       options.subtitle === undefined
         ? undefined
         : this.add.text(
-            options.style === "white" ? 106 : 68,
-            options.style === "white" ? 88 : titleY + 28,
+            large ? 106 + LARGE_INSET : 68,
+            large ? 88 : titleY + 28,
             options.subtitle,
             {
               color: this.palette(options.style).subtitle,
               fontFamily: "Rajdhani",
-              fontSize: options.style === "white" ? "16px" : "13px",
+              fontSize: large ? "16px" : "13px",
               fontStyle: "bold",
               letterSpacing: 1.5,
             },
           );
-    if (options.style === "cyan" || options.style === "dark") {
+    if (!large && (options.style === "cyan" || options.style === "dark")) {
       const textWidth = Math.max(title.width, subtitle?.width ?? 0);
       const contentWidth = 32 + 16 + textWidth;
       const contentLeft = (options.width - contentWidth) / 2;
@@ -1322,6 +1352,16 @@ export class MainMenuScene extends Phaser.Scene {
         graphics.fillStyle(hovered ? 0x35c5f2 : 0xdce3e8, 1);
         graphics.fillTriangle(49, y - 13, 49, y + 13, 69, y);
         break;
+      case "multiplayer":
+        // Same dark tile as Play; a squad of three: two behind, one in front.
+        graphics.fillStyle(0x161b22, 1);
+        graphics.fillRoundedRect(22, y - 34, 68, 68, 7);
+        for (const [x, dy, r, alpha] of [[42, -4, 7, 0.6], [70, -4, 7, 0.6], [56, 2, 9, 1]] as const) {
+          graphics.fillStyle(hovered ? 0x35c5f2 : 0xdce3e8, alpha);
+          graphics.fillCircle(x, y - 10 + dy, r);
+          graphics.fillRoundedRect(x - r - 4, y + 2 + dy, (r + 4) * 2, r + 9, 4);
+        }
+        break;
       case "shop":
         graphics.strokeRect(24, y - 12, 28, 24);
         graphics.lineBetween(29, y - 18, 47, y - 18);
@@ -1375,6 +1415,25 @@ export class MainMenuScene extends Phaser.Scene {
       this,
       () => {
         this.scene.launch("character-select", {
+          previousScene: "main-menu",
+          revealTransition: true,
+          transitionProfile,
+        });
+      },
+      transitionProfile,
+    );
+  }
+
+  private openMultiplayer(): void {
+    if (!this.input.enabled) {
+      return;
+    }
+    this.input.enabled = false;
+    const transitionProfile = nextNikkeTransitionProfile();
+    playHexWipeCover(
+      this,
+      () => {
+        this.scene.launch("multiplayer", {
           previousScene: "main-menu",
           revealTransition: true,
           transitionProfile,

@@ -5,6 +5,7 @@
 import { Vector3 } from '@babylonjs/core';
 import type { FxQuad, Rgb } from '../../vfx';
 import { PLAYER_RADIUS } from './common';
+import { attackEcho } from './echo';
 import type { BehaviorContext } from './types';
 
 const SHELL: Rgb = [2.8, .14, .22];
@@ -32,6 +33,7 @@ export class BoltField {
 
   /** Fire from `from` along `yaw` (atan2(dx, dz)) at `speed` m/s. `size` scales the bolt and its hit radius. */
   fire(from: Vector3, yaw: number, speed: number, damage: number, { range = 18, size = 1 }: { range?: number; size?: number } = {}): void {
+    attackEcho.listener?.({ kind: 'bolt', x: from.x, y: from.y, z: from.z, yaw, speed, range, size });
     const { vfx } = this.ctx;
     const shell = vfx.quad(size > 1.2 ? 'star' : 'streak', SHELL), core = vfx.quad('streak', CORE);
     vfx.glowing(shell); vfx.glowing(core);

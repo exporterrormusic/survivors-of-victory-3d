@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Environment sky review</title>
+<style>html,body,canvas{width:100%;height:100%;margin:0;display:block;overflow:hidden}select{position:fixed;z-index:2;top:12px;left:12px}</style></head>
+<body><select id="theme"></select><canvas id="sky"></canvas><script type="module">
+import { Engine, Scene, FreeCamera, Vector3 } from '@babylonjs/core';
+import { EnvironmentSky } from '/src/survivor/environment-sky.ts';
+const engine=new Engine(document.getElementById('sky'),true);
+const scene=new Scene(engine),camera=new FreeCamera('review',new Vector3(0,0,0),scene);
+camera.maxZ=300;camera.setTarget(new Vector3(0,.12,1));camera.attachControl(document.getElementById('sky'),true);
+let time='day';
+const sky=new EnvironmentSky(scene,()=>time);
+const themes=['forest','outskirts','sakura','frozen','frozen-night','city','storm','volcano'];
+const select=document.getElementById('theme');
+for(const theme of themes)select.add(new Option(theme,theme));
+select.onchange=()=>{time=select.value==='frozen-night'?'night':'day';sky.set(select.value==='frozen-night'?'frozen':select.value);};sky.set('forest');
+window.skyReview={scene,sky,camera};engine.runRenderLoop(()=>scene.render());
+window.addEventListener('resize',()=>engine.resize());
+</script></body></html>

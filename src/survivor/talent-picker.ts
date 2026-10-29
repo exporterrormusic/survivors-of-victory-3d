@@ -164,14 +164,14 @@ export class TalentPicker {
         });
       }
     }
-    const quests = tiers.quests.map((q) => q.done ? `${q.talent.name} · ${q.quest.rewardName} ✓` : `${q.quest.label} ${q.count} / ${q.quest.goal}`).join('\n');
+    const quests = tiers.quests.map((q) => q.done ? `${q.talent.name} · ${q.quest.rewardName} ✓` : `${q.quest.label} ${Math.floor(q.count)} / ${q.quest.goal}`).join('\n');
     if (quests !== this.questText) {
       this.questText = quests;
       this.quests.replaceChildren(...tiers.quests.map((q) => {
         const row = el('div', 'tp-quest');
         row.dataset.done = String(q.done);
         el('b', '', row, q.done ? q.quest.rewardName : q.quest.label);
-        el('span', '', row, q.done ? 'Complete' : `${q.count} / ${q.quest.goal}`);
+        el('span', '', row, q.done ? 'Complete' : `${Math.floor(q.count)} / ${q.quest.goal}`);
         const bar = el('i', '', row);
         bar.style.setProperty('--progress', String(q.count / q.quest.goal));
         return row;
@@ -299,7 +299,7 @@ export class TalentBoard {
           // Goal/progress on one line, the reward on its own line beneath.
           const q = talent.quest, block = el('span', 'tt-quest', copy);
           el('span', 'tt-quest-goal', block, quest?.done ? 'Quest complete'
-            : quest ? `Quest · ${quest.count} / ${q.goal} ${q.label.toLowerCase()}` : `Quest · ${q.goal} ${q.label.toLowerCase()}`);
+            : quest ? `Quest · ${Math.floor(quest.count)} / ${q.goal} ${q.label.toLowerCase()}` : `Quest · ${q.goal} ${q.label.toLowerCase()}`);
           const reward = el('span', 'tt-quest-reward', block);
           el('b', '', reward, `${q.rewardName}:`);
           reward.append(document.createTextNode(` ${q.rewardText}`));

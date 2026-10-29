@@ -1,0 +1,23 @@
+<!doctype html><html><head><title>Dorothy native states</title><style>
+html,body{margin:0;background:#252432;color:#fff;font:16px Arial}canvas{width:100vw;height:100vh;display:block}.labels{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);pointer-events:none}.labels div{padding:20px;background:linear-gradient(#171521aa,transparent 18%)}small{display:block;color:#e6b9d7;margin-top:5px}
+</style></head><body><canvas id="c"></canvas><div class="labels"></div><script type="module">
+import {Engine,Scene,UniversalCamera,Vector3,Color4,HemisphericLight} from '@babylonjs/core';
+import {Chibi,loadChibiIndex} from '/src/chibi.ts';
+const engine=new Engine(document.querySelector('canvas'),true),scene=new Scene(engine);scene.clearColor=new Color4(.14,.13,.19,1);
+const camera=new UniversalCamera('camera',new Vector3(0,5,-17),scene);camera.setTarget(new Vector3(0,3,0));camera.mode=1;camera.orthoLeft=-6;camera.orthoRight=6;camera.orthoTop=4;camera.orthoBottom=-4;
+new HemisphericLight('light',new Vector3(0,1,-1),scene);
+const index=await loadChibiIndex();
+const entries=[['idle_01','Unarmored idle'],['run','Unarmored movement'],['shot','Unarmored firing'],['cover_aim_idle','Armored aiming'],['cover_shot','Armored firing'],['cover_reload','Retracted armor during reload']];
+for(let i=0;i<entries.length;i++){
+ const [clip,label]=entries[i];document.querySelector('.labels').insertAdjacentHTML('beforeend',`<div>${label}<small>${clip} · native default model</small></div>`);
+ const model=await Chibi.load(scene,index.variants.c233_00);
+ model.root.position.set((i%3-1)*4,Math.floor(i/3)===0?4:0,0);
+ model.play(clip,{fade:0,loop:true});model.update(.01);
+ const group=model.animationGroup(clip);group.goToFrame(group.from+(group.to-group.from)*.25);group.pause();
+ // Orient each source clip's face toward the camera for comparison, without modifying its pose.
+ const head=index.variants.c233_00.clips[clip].yaw.head;
+ model.facingNode.rotation.y=Math.PI+(head?.[2]??0)*Math.PI/180;
+}
+await scene.whenReadyAsync();scene.render();window.ready=true;
+engine.runRenderLoop(()=>scene.render());
+</script></body></html>

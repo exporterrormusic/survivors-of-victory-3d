@@ -113,12 +113,35 @@ class Layer {
     for (const group of this.groups.values()) group.dispose();
   }
 
+  /** Build masked animation copies while loading rather than on the first action. */
+  prepare(names: readonly string[]): void {
+    for (const name of names) this.group(name);
+  }
+
   private group(name: string): AnimationGroup | undefined {
     let group = this.groups.get(name);
     if (group) return group;
     const source = this.chibi.animationGroup(name);
     if (!source) return undefined;
     group = source.clone(`${name}@${this.suffix}`, target => this.targets.get(target) ?? target);
+    // Nirvana's floating disk has oversized authored recoil. Keep hands/body animated,
+    // but reduce the disk subtree's shot displacement to 15% of the authored motion.
+    if (/^c223_0[01]$/.test(this.chibi.meta.variant) && name === 'cover_shot') {
+      const gun = this.chibi.joint(GUN);
+      const aim = this.chibi.animationGroup('aim_idle');
+      for (const track of group.targetedAnimations) {
+        const target = track.target;
+        if (!gun || !(target instanceof TransformNode) || (target !== gun && !target.isDescendantOf(gun))) continue;
+        const reference = aim?.targetedAnimations.find(a => a.target === target && a.animation.targetProperty === track.animation.targetProperty);
+        const base = reference?.animation.getKeys()[0]?.value;
+        if (!(base instanceof Vector3) && !(base instanceof Quaternion)) continue;
+        track.animation = track.animation.clone();
+        track.animation.setKeys(track.animation.getKeys().map(key => ({
+          frame: key.frame,
+          value: base instanceof Quaternion ? Quaternion.Slerp(base, key.value, .15) : Vector3.Lerp(base, key.value, .15),
+        })));
+      }
+    }
     group.mask = this.mask;
     group.weight = 0;
     this.groups.set(name, group);
@@ -175,12 +198,16 @@ export class TwinStickRig {
   private readonly chestForward = new Vector3();
   private readonly torsoUp = new Vector3();
   private readonly uprightAxis = new Vector3();
+  // Blender exports the research uniform with +Y crown / +Z face axes.
+  private readonly localHeadUp: Vector3;
+  private readonly localForward: Vector3;
   private readonly headUp = new Vector3();
   private readonly headForward = new Vector3();
   private readonly headAxis = new Vector3();
   /** Ease back to barrel steering after the last reload track fades out. Shots aim immediately. */
   private reloadAimWeight = 0;
   private full = false;
+  private recoilCooldown = 0;
   private readonly muzzlePoint = new Vector3();
   private readonly gunBase = new Vector3();
   /** run clip cycles per metre, so the feet don't skate at any speed */
@@ -193,6 +220,8 @@ export class TwinStickRig {
   private readonly hipCorrection = new Map<string, number>();
 
   constructor(readonly chibi: Chibi, cyclesPerMetre = 1.2 / (5.5 * .73), private readonly aimFacing: 'head' | 'weapon' = 'weapon') {
+    this.localHeadUp = chibi.meta.variant === 'wells_research' ? Vector3.Up() : HEAD_UP;
+    this.localForward = chibi.meta.variant === 'wells_research' ? new Vector3(0, 0, 1) : UP;
     const spine = chibi.joint(SPINE);
     const muzzle = clipMuzzle(chibi.meta, 'aim_idle');
     const gun = chibi.joint(GUN) ?? (muzzle ? chibi.joint(muzzle.joint) : null);
@@ -251,6 +280,14 @@ export class TwinStickRig {
     const hips = new Map(LEG_CLIPS.filter((c) => chibi.has(c)).map((c) => [c, this.hipYaw(c) + chibi.clipYaw(c)] as const));
     const idleHips = hips.get('idle');
     if (idleHips !== undefined) for (const [clip, yaw] of hips) this.hipCorrection.set(clip, wrapAngle(idleHips - yaw));
+    // Dorothy's gameplay idle aliases her rifle stance, whose hips are turned ~65 degrees.
+    // That stance is not a locomotion reference: running hips must face local forward.
+    if (/^(c233_0[012]|c234_00)$/.test(chibi.meta.variant)) {
+      for (const clip of ['run', 'walk']) {
+        const yaw = hips.get(clip);
+        if (yaw !== undefined) this.hipCorrection.set(clip, wrapAngle(-yaw));
+      }
+    }
     // Calibrate even when reload is the first action, before a normal aimed frame has rendered.
     const aimPose = chibi.animationGroup('aim_idle');
     if (aimPose) {
@@ -291,9 +328,16 @@ export class TwinStickRig {
     return this.upper.progress();
   }
 
+  /** Preload the locomotion and firing layers for pooled actors. */
+  prepare(): void {
+    this.lower.prepare(['idle', 'run']);
+    this.upper.prepare(['idle', 'run', 'aim_idle', 'cover_shot', 'cover_reload']);
+  }
+
   /** Before Babylon animates: pick clips and speeds, turn the legs. */
   update(dt: number, input: RigInput): void {
     this.full = false;
+    this.recoilCooldown = input.posture === 'relaxed' ? 0 : Math.max(0, this.recoilCooldown - dt);
     const moving = input.speed > .05 && (input.moveX !== 0 || input.moveZ !== 0);
     const moveYaw = moving ? Math.atan2(input.moveX, input.moveZ) : this.legYaw;
     const aim = this.aimYaw = input.aimYaw;
@@ -336,6 +380,11 @@ export class TwinStickRig {
         if (this.upper.current !== 'cover_shot' || this.upper.progress() >= 1) this.upper.play('aim_idle', { fade: .1 });
         break;
       case 'shot': // the frame a shot fires: the gun snaps up, so the round leaves the real muzzle
+        if (/^c223_0[01]$/.test(this.chibi.meta.variant)) {
+          // Visual recoil is independent of projectile cadence (player and clone rigs).
+          if (this.recoilCooldown > 1e-6) break;
+          this.recoilCooldown = .4;
+        }
         this.upper.play('cover_shot', { loop: false, speed: actionSpeed, fade: this.aimWeight < 1 || this.reloadVisible() ? 0 : .04, restart: true });
         this.aimWeight = 1;
         break;
@@ -354,7 +403,8 @@ export class TwinStickRig {
     let sum = 0, total = 0, ref = 0;
     for (const t of this.lower.tracks) {
       if (t.weight <= 0) continue;
-      const clipYaw = this.chibi.clipYaw(t.name) + (this.hipCorrection.get(t.name) ?? 0) * this.aimWeight;
+      const alignTravel = /^(c233_0[012]|c234_00)$/.test(this.chibi.meta.variant) && (t.name === 'run' || t.name === 'walk');
+      const clipYaw = this.chibi.clipYaw(t.name) + (this.hipCorrection.get(t.name) ?? 0) * (alignTravel ? 1 : this.aimWeight);
       if (total === 0) ref = clipYaw;
       sum += wrapAngle(clipYaw - ref) * t.weight;
       total += t.weight;
@@ -463,7 +513,7 @@ export class TwinStickRig {
   private headYaw(): number {
     this.chest.computeWorldMatrix(true);
     this.neck.computeWorldMatrix(true);
-    Vector3.TransformNormalToRef(UP, this.head!.computeWorldMatrix(true), this.headForward);
+    Vector3.TransformNormalToRef(this.localForward, this.head!.computeWorldMatrix(true), this.headForward);
     return Math.atan2(this.headForward.x, this.headForward.z);
   }
 
@@ -491,8 +541,8 @@ export class TwinStickRig {
     this.chest.computeWorldMatrix(true);
     this.neck.computeWorldMatrix(true);
     const world = head.computeWorldMatrix(true);
-    Vector3.TransformNormalToRef(HEAD_UP, world, this.headUp);
-    Vector3.TransformNormalToRef(UP, world, this.headForward);
+    Vector3.TransformNormalToRef(this.localHeadUp, world, this.headUp);
+    Vector3.TransformNormalToRef(this.localForward, world, this.headForward);
     const yaw = Math.hypot(this.headForward.x, this.headForward.z) > 1e-5
       ? Math.atan2(this.headForward.x, this.headForward.z) : this.aimYaw;
     this.headUp.normalize();
@@ -500,7 +550,7 @@ export class TwinStickRig {
     if (this.headAxis.lengthSquared() < 1e-8) return;
     const tilt = Math.acos(Math.max(-1, Math.min(1, this.headUp.y)));
     head.rotate(this.headAxis.normalize(), tilt, Space.WORLD);
-    Vector3.TransformNormalToRef(UP, head.computeWorldMatrix(true), this.headForward);
+    Vector3.TransformNormalToRef(this.localForward, head.computeWorldMatrix(true), this.headForward);
     const turn = wrapAngle(yaw - Math.atan2(this.headForward.x, this.headForward.z));
     if (Math.abs(turn) > 1e-5) head.rotate(UP.clone(), turn, Space.WORLD);
     head.computeWorldMatrix(true);
@@ -509,7 +559,7 @@ export class TwinStickRig {
   /** Biped's local Y runs through the chest; its sign is calibrated against the aimed rifle. */
   private chestYaw(): number {
     this.chest.computeWorldMatrix(true);
-    Vector3.TransformNormalToRef(UP, this.chest.getWorldMatrix(), this.chestForward);
+    Vector3.TransformNormalToRef(this.localForward, this.chest.getWorldMatrix(), this.chestForward);
     return Math.atan2(this.chestForward.x, this.chestForward.z);
   }
 

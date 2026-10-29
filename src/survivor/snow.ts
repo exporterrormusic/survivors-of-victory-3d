@@ -161,14 +161,27 @@ export class SnowLayer {
   }
 
   get enabled(): boolean { return this.field.enabled; }
-  set enabled(value: boolean) { this.field.enabled = value; this.mesh.setEnabled(value); }
+  set enabled(value: boolean) {
+    this.field.enabled = value;
+    // Presets are filled while loading/paused, before simulation updates can run.
+    if (value) this.flush();
+    this.mesh.setEnabled(value);
+  }
+
+  /** Synchronize prepared snow before a covered frame is revealed, without advancing simulation. */
+  flush(): void {
+    if (this.disposed || !this.field.dirty) return;
+    this.texture.update(this.field.data);
+    this.field.dirty = false;
+    this.uploadIn = 1 / 30;
+  }
 
   /** Bounded storage; upload only changed trails, at most 30 times/second. */
   update(dt: number): void {
     if (this.disposed || !this.enabled || dt <= 0) return;
     this.uploadIn -= dt;
     if (this.field.dirty && this.uploadIn <= 0) {
-      this.texture.update(this.field.data); this.field.dirty = false; this.uploadIn = 1 / 30;
+      this.flush();
     }
   }
 

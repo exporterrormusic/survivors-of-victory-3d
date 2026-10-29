@@ -2,6 +2,8 @@
 // public/chibi/index.json and play its clips on an orbit camera. ?variant=c5028_00&clip=idle
 import { ArcRotateCamera, Color4, HemisphericLight, MeshBuilder, Scene, SceneLoader, Engine, Vector3, type AnimationGroup, type AbstractMesh } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
+import { attachWellsClockEyes } from '../characters/wells/clock-eyes';
+import { attachWellsCoatPhysics } from '../characters/wells/coat-physics';
 
 Object.assign(window, { reviewStarted: true }); // see the start-up check in chibi-review.html
 
@@ -32,6 +34,8 @@ async function show(id: string): Promise<void> {
   for (const g of groups) g.dispose();
   const result = await SceneLoader.ImportMeshAsync('', BASE, index.variants[id].file, scene);
   meshes = result.meshes; groups = result.animationGroups;
+  attachWellsClockEyes(id, meshes);
+  attachWellsCoatPhysics(id, scene, new Map(result.transformNodes.map(n => [n.name, n])), result.meshes[0]);
   for (const g of groups) g.stop();
   clipSelect.replaceChildren(...groups.map((g) => new Option(g.name, g.name)));
   const wanted = params.get('clip');

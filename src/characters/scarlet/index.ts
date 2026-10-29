@@ -14,6 +14,7 @@ export const character: CharacterModule = {
       { variant: 'c222_01', name: "Scarlet: Racer's High" },
       { variant: 'c225_00', name: 'Scarlet: Black Shadow' },
       { variant: 'c225_01', name: 'Scarlet: Black Shadow - Longing Flower' },
+      { variant: 'c472_00', name: 'Scarlet: Goddeath' },
     ],
   },
   weapon: 'sword',

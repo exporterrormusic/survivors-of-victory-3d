@@ -5,13 +5,14 @@
 import { Vector3 } from '@babylonjs/core';
 import type { Player } from './player';
 import type { KitContext } from './kit';
+import type { Vfx } from './vfx';
 import type { WaterLayer } from './water';
 
 /** Seconds of holding still before any passive starts. */
 export const PASSIVE_DELAY = 3;
 
 /** Scarlet: one drink lasts this long and heals this share of max HP over it; she keeps sipping while idle. */
-export const DRINK_TIME = 4, DRINK_HEAL = .096;
+export const DRINK_TIME = 4, DRINK_HEAL = .192;
 /** Scarlet starts drinking after this long without acting (Snow White's Focus keeps PASSIVE_DELAY). */
 export const DRINK_DELAY = 2;
 /** height above her feet where the drink icons start: just over the HUD health bar (2.55 m) */
@@ -44,6 +45,7 @@ export function createPassive(id: string, player: Player, ctx: KitContext, water
   if (id === 'scarlet') return drinking(player, ctx);
   if (id === 'snow-white') return focus(player, ctx);
   if (id === 'rapunzel') return sacredGround(player, ctx, water);
+  if (id === 'nayuta') return { get level() { return player.hp > 0 ? Math.min(1,player.idleTime/1.5) : 0; }, update() {} };
   return null;
 }
 
@@ -61,7 +63,7 @@ function drinking(player: Player, ctx: KitContext): HeroPassive {
       }
       if (!drinking) {
         drinking = true; player.heldClip = 'stun'; player.heldLast = false; sip = drank = 0;
-        drunkEffect(ctx, player, () => drinking);
+        drunkEffect(ctx.vfx, () => player.position, DRINK_ICONS, () => drinking);
       }
       sip = (sip + dt) % DRINK_TIME;
       drank += dt;
@@ -71,9 +73,12 @@ function drinking(player: Player, ctx: KitContext): HeroPassive {
   };
 }
 
-/** Unmistakable tipsy read while she drinks: a swigging sake bottle and rising bubbles, all drawn over models. */
-function drunkEffect(ctx: KitContext, player: Player, alive: () => boolean): void {
-  const vfx = ctx.vfx, top = new Vector3(), at = new Vector3();
+/**
+ * Unmistakable tipsy read while she drinks: a swigging sake bottle and rising bubbles, all drawn over models.
+ * `height` is where the icons start above `feet`; Sakura's shrine blessing (sakura-shrine-egg.ts) puts it over Raptures too.
+ */
+export function drunkEffect(vfx: Vfx, feet: () => Vector3, height: number, alive: () => boolean): void {
+  const top = new Vector3(), at = new Vector3();
   const bottle = vfx.quad('sake', SAKE);
   const bubbles = Array.from({ length: 7 }, (_, i) => ({ q: vfx.quad('bubble', i % 2 ? SAKE : DRINK_PINK), phase: i / 7 }));
   vfx.glowing(bottle);
@@ -88,7 +93,7 @@ function drunkEffect(ctx: KitContext, player: Player, alive: () => boolean): voi
       const a = ease(Math.min(1, age / 1.2)) * ease(Math.max(0, 1 - out / .8));
       if (a <= 0) return false;
       // Icons stack above the health bar, clear of her hat.
-      top.copyFrom(player.position).addInPlaceFromFloats(0, DRINK_ICONS, 0);
+      top.copyFrom(feet()).addInPlaceFromFloats(0, height, 0);
       // The bottle hovers above the bubble column, clear of her hat, tipping to swig every second and a half.
       const swig = Math.max(0, Math.sin(age * Math.PI / .75)) ** 2;
       at.copyFrom(top).addInPlaceFromFloats(0, 1.75 + Math.sin(age * 3) * .05, 0);

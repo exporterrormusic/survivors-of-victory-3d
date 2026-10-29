@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
 import { bindButtonInteraction } from "../ui/interaction/ButtonInteraction";
@@ -7,6 +8,7 @@ import {
   type AchievementCategory,
   type AchievementProgressEntry,
   type AchievementSnapshot,
+  ACHIEVEMENT_OPERATORS,
   loadAchievementSnapshot,
 } from "../profile/AchievementProgress";
 import { CHARACTERS, STARTER_CHARACTER_ID } from "../profile/CharacterRoster";
@@ -52,7 +54,7 @@ const CATEGORIES: readonly CategoryDefinition[] = [
     title: "COMBAT",
   },
   {
-    description: "WAVE & MAP MILESTONES",
+    description: "ROUND & REGION MILESTONES",
     id: "expedition",
     index: "02",
     title: "SURVIVAL",
@@ -127,52 +129,52 @@ export class AchievementsScene extends Phaser.Scene {
   }
 
   private createBackdrop(): void {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xe9edf1).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xe9edf1).setOrigin(0);
     const grid = this.add.graphics();
     grid.lineStyle(1, 0x81909c, 0.085);
-    for (let x = -420; x < WIDTH + 420; x += 205) {
+    for (let x = bleed.left - 420; x < bleed.right + 420; x += 205) {
       grid.lineBetween(x, 76, x + 430, HEIGHT - 48);
     }
     grid.lineStyle(1, 0x81909c, 0.055);
     for (let y = 180; y < HEIGHT - 70; y += 122) {
-      grid.lineBetween(0, y, WIDTH, y);
+      grid.lineBetween(bleed.left, y, bleed.right, y);
     }
 
     const chrome = this.add.graphics();
-    chrome.fillStyle(0x090d12, 0.97).fillRect(0, 0, WIDTH, 76);
-    chrome.fillRect(0, HEIGHT - 48, WIDTH, 48);
-    chrome.fillStyle(0x35c5f2, 1).fillRect(0, 74, 515, 3);
-    chrome.fillStyle(0xaeb7c1, 0.28).fillRect(515, 75, WIDTH - 515, 1);
-    chrome.fillStyle(0xe8392e, 1).fillRect(1450, 74, 470, 3);
+    chrome.fillStyle(0x090d12, 0.97).fillRect(bleed.left, 0, bleed.width, 76);
+    chrome.fillRect(bleed.left, HEIGHT - 48, bleed.width, 48);
+    chrome.fillStyle(0x35c5f2, 1).fillRect(bleed.left, 74, 515 - bleed.left, 3);
+    chrome.fillStyle(0xaeb7c1, 0.28).fillRect(515, 75, bleed.right - 515, 1);
+    chrome.fillStyle(0xe8392e, 1).fillRect(1450, 74, bleed.right - 1450, 3);
 
-    this.add.text(52, 25, "ARK SYSTEM / SERVICE RECORD", {
+    pinToEdge(this.add.text(view.left + 52, 25, "ARK SYSTEM / SERVICE RECORD", {
       color: "#f2f5f7",
       fontFamily: "Rajdhani",
       fontSize: "26px",
       fontStyle: "bold",
       letterSpacing: 1.8,
-    });
-    this.add.text(1774, 26, "03", {
+    }), "left");
+    pinToEdge(this.add.text(view.right - 146, 26, "03", {
       color: "#9aa4af",
       fontFamily: "Rajdhani",
       fontSize: "25px",
       fontStyle: "bold",
-    });
-    this.add.text(52, 1038, "COMMAND DOSSIER // LOCAL PROFILE 01", {
+    }), "right");
+    pinToEdge(this.add.text(view.left + 52, 1038, "COMMAND DOSSIER // LOCAL PROFILE 01", {
       color: "#8a949f",
       fontFamily: "Rajdhani",
       fontSize: "15px",
       fontStyle: "bold",
       letterSpacing: 2,
-    });
-    this.add
-      .text(1818, 1038, "PROGRESS SAVED AUTOMATICALLY", {
+    }), "left");
+    pinToEdge(this.add
+      .text(view.right - 102, 1038, "PROGRESS SAVED AUTOMATICALLY", {
         color: "#35c5f2",
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "bold",
         letterSpacing: 1.4,
-      })
+      }), "right")
       .setOrigin(1, 0);
   }
 
@@ -469,7 +471,7 @@ export class AchievementsScene extends Phaser.Scene {
     );
 
     if (this.currentCategory === "mastery") {
-      CHARACTERS.forEach((character, index) => {
+      ACHIEVEMENT_OPERATORS.forEach((character, index) => {
         layer.add(
           this.createOperatorButton(
             character.id,
@@ -488,7 +490,7 @@ export class AchievementsScene extends Phaser.Scene {
         this.createAchievementCard(
           entry,
           496 + column * 684,
-          (this.currentCategory === "mastery" ? 374 : 294) + row * 292,
+          (this.currentCategory === "mastery" ? 374 : 294) + row * 190,
           index,
         ),
       );
@@ -557,7 +559,8 @@ export class AchievementsScene extends Phaser.Scene {
     index: number,
   ): Phaser.GameObjects.Container {
     const width = 650;
-    const height = 260;
+    // Compact enough for three rows above the footer bar.
+    const height = 176;
     const unlocked = entry.unlocked;
     const container = this.add.container(x, y);
     const surface = this.add.graphics();
@@ -584,14 +587,14 @@ export class AchievementsScene extends Phaser.Scene {
       if (unlocked) {
         surface.fillStyle(0x202832, 1).fillRect(width - 116, 0, 116, 36);
       }
-      surface.fillStyle(0xc4cbd1, 1).fillRect(116, 212, 494, 9);
+      surface.fillStyle(0xc4cbd1, 1).fillRect(116, 144, 494, 8);
       surface
         .fillStyle(unlocked ? 0x35c5f2 : 0x75828c, 1)
         .fillRect(
           116,
-          212,
+          144,
           494 * Math.min(1, entry.current / entry.definition.target),
-          9,
+          8,
         );
     };
     draw(false);
@@ -600,7 +603,7 @@ export class AchievementsScene extends Phaser.Scene {
     this.drawAchievementGlyph(glyph, unlocked);
     const recordIndex = this.add.text(
       117,
-      25,
+      20,
       `${this.categoryCode()}-${String(index + 1).padStart(2, "0")}`,
       {
         color: unlocked ? "#1c93b8" : "#7c8790",
@@ -610,21 +613,21 @@ export class AchievementsScene extends Phaser.Scene {
         letterSpacing: 1.7,
       },
     );
-    const title = this.add.text(116, 50, entry.definition.title, {
+    const title = this.add.text(116, 44, entry.definition.title, {
       color: unlocked ? "#202a33" : "#56616b",
       fontFamily: "Rajdhani",
       fontSize: "27px",
       fontStyle: "bold",
       letterSpacing: 1.2,
     });
-    const description = this.add.text(116, 91, entry.definition.description, {
+    const description = this.add.text(116, 80, entry.definition.description, {
       color: unlocked ? "#58636e" : "#7c858e",
       fontFamily: "Rajdhani",
       fontSize: "16px",
       lineSpacing: 2,
       wordWrap: { width: 490 },
     });
-    const progressLabel = this.add.text(116, 185, "PROGRESS", {
+    const progressLabel = this.add.text(116, 118, "PROGRESS", {
       color: "#89949d",
       fontFamily: "Rajdhani",
       fontSize: "12px",
@@ -632,7 +635,7 @@ export class AchievementsScene extends Phaser.Scene {
       letterSpacing: 1.5,
     });
     const progressValue = this.add
-      .text(610, 184, `${entry.current} / ${entry.definition.target}`, {
+      .text(610, 117, `${entry.current} / ${entry.definition.target}`, {
         color: unlocked ? "#1c93b8" : "#5e6973",
         fontFamily: "Rajdhani",
         fontSize: "14px",
@@ -650,7 +653,7 @@ export class AchievementsScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 0);
     const status = this.add
-      .text(610, 238, unlocked ? "VERIFIED" : "IN PROGRESS", {
+      .text(610, 164, unlocked ? "VERIFIED" : "IN PROGRESS", {
         color: unlocked ? "#1789a9" : "#747f88",
         fontFamily: "Rajdhani",
         fontSize: "12px",
@@ -686,19 +689,19 @@ export class AchievementsScene extends Phaser.Scene {
     const color = unlocked ? 0x35c5f2 : 0x8d979f;
     graphics
       .fillStyle(unlocked ? 0x202832 : 0xcbd1d6, 1)
-      .fillCircle(61, 83, 39);
-    graphics.lineStyle(3, color, 1).strokeCircle(61, 83, 31);
+      .fillCircle(61, 80, 39);
+    graphics.lineStyle(3, color, 1).strokeCircle(61, 80, 31);
     graphics.fillStyle(color, 1);
     if (unlocked) {
-      graphics.fillTriangle(43, 116, 55, 103, 61, 123);
-      graphics.fillTriangle(61, 123, 68, 103, 80, 116);
+      graphics.fillTriangle(43, 113, 55, 100, 61, 120);
+      graphics.fillTriangle(61, 120, 68, 100, 80, 113);
       graphics.lineStyle(5, color, 1);
-      graphics.lineBetween(47, 82, 57, 92);
-      graphics.lineBetween(57, 92, 76, 70);
+      graphics.lineBetween(47, 79, 57, 89);
+      graphics.lineBetween(57, 89, 76, 67);
     } else {
-      graphics.lineStyle(4, color, 1).strokeRoundedRect(48, 78, 26, 23, 3);
-      graphics.strokeCircle(61, 77, 10);
-      graphics.fillCircle(61, 89, 3);
+      graphics.lineStyle(4, color, 1).strokeRoundedRect(48, 75, 26, 23, 3);
+      graphics.strokeCircle(61, 74, 10);
+      graphics.fillCircle(61, 86, 3);
     }
   }
 

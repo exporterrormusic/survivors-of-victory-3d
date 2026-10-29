@@ -19,6 +19,7 @@ function show(asset:ForestAsset|'all'){
   camera.radius=asset==='all'?53:asset==='forest-chapel'?20:asset==='forest-cabin'||asset==='forest-lychgate'?13:7;
   if(asset==='forest-jack-o-lantern'){camera.setTarget(new Vector3(0,.5,0));camera.radius=2.7;camera.alpha=-Math.PI/2-.22;camera.beta=1.15;}
   if(asset==='forest-vapaus-vial'){camera.setTarget(new Vector3(0,.07,0));camera.radius=.30;camera.alpha=-Math.PI/2-.28;camera.beta=1.18;camera.minZ=.001;}
+  if(asset==='forest-sake-set'){camera.setTarget(new Vector3(0,.135,0));camera.radius=.65;camera.alpha=-Math.PI/2-.12;camera.beta=1.18;camera.minZ=.001;}
 }
 for(const id of ['all',...FOREST_ASSETS] as const){const b=document.createElement('button');b.textContent=id==='forest-vapaus-vial'?'Vapaus vial':id.replace('forest-','');b.onclick=()=>show(id);document.querySelector('#assets')!.append(b);}
 show('forest-well');engine.runRenderLoop(()=>scene.render());window.addEventListener('resize',()=>engine.resize());

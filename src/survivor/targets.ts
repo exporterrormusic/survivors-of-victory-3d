@@ -1,7 +1,7 @@
 // Training Raptures can hold their marks or pursue the player. Grounded rigs use
 // body-sized routes around snow banks; their baked crowd animations follow travel.
 
-import { LAKE_ENEMY_ICE_SPEED, LAKE_HESITATION } from './frozen-lake';
+import { LAKE_ENEMY_ICE_SPEED, LAKE_HESITATION, LAKE_RETREAT_REACTION } from './frozen-lake';
 import { type Scene, type ShadowGenerator, Vector3 } from '@babylonjs/core';
 import { CrowdModel, crowdWorld, type CrowdClip } from '../crowd';
 import { RAPTURE_TYPES, modelUrl, type MinionType } from '../enemy';
@@ -57,11 +57,15 @@ export interface Defender {
   readonly hp: number;
   readonly maxHp: number;
   readonly alive: boolean;
+  /** how strongly Raptures prefer this defender over the player, as a distance multiplier
+   * (lower = chased more); supply NIKKEs default to .65, co-op teammates use 1 */
+  readonly threat?: number;
   takeDamage(amount: number): boolean;
 }
 
 /** A squad NIKKE as the field and HUD see it. */
 export interface SquadMember extends Defender {
+  readonly cloneDisplay?: { silver:boolean; progress:number; seconds:number; ready:boolean; retrieving:boolean };
   readonly name: string;
   /** restore health (healer kits: Rapunzel's zones and Burst) */
   heal(amount: number): void;
@@ -87,10 +91,20 @@ export class Target {
   /** seconds of a heavier 50% slow (Rapunzel's Judgement); outranks `slowed` */
   slowedHard = 0;
   stunned = 0;
+  /** Sakura's shrine blessing: sways in its idle, no movement or attacks (it counts as stunned for every behaviour). */
+  drunk = 0;
   /** Frozen in time (Scarlet's D1 Crashout): no movement, attacks or shots in flight. */
   frozen = 0;
+  /** Siren's soap bubble (siren-egg.ts): held like `frozen` until any hit pops it. */
+  bubbled = false;
+  /** 0..1 progress sinking into broken lake ice; stays submerged through death. */
+  drowning = 0;
+  /** frozen in time or in a bubble: no movement, attacks or animation */
+  get held(): boolean { return this.frozen > 0 || this.bubbled || this.drowning > 0; }
   /** Seconds spent waiting at a lake shore for the player to come back to the snow. */
   iceWait = 0;
+  /** Seconds this unit has stood on badly cracked ice; it backs off once it notices. */
+  iceAlarm = 0;
   /** attacking: keeps walking at half speed and faces the player, so Raptures fire on the move */
   attackHold = 0;
   /** planted for an attack whose tell is drawn on the ground (lanes, slams, dives): no movement */
@@ -105,6 +119,9 @@ export class Target {
   pursues = false;
   /** whom this Rapture is after when it isn't the player (the horde picks the nearest) */
   victim: Defender | null = null;
+  /** Co-op guest (src/survivor/coop/net-guest.ts): the host's pose for this Rapture. It walks there
+   * with its walk cycle instead of steering itself. */
+  puppet: { x: number; z: number; yaw: number } | null = null;
   private clip: CrowdClip;
   private clipTime = Math.random() * 3;
   private deadFor = 0;
@@ -141,6 +158,7 @@ export class Target {
 
   hit(damage: number, knock?: Vector3): boolean {
     if (!this.alive) return false;
+    this.bubbled = false;
     this.hp = Math.max(0, this.hp - damage);
     this.flash = .12;
     // Cosmetic kick only: collision, navigation and weapon knockback stay authoritative.
@@ -175,7 +193,9 @@ export class Target {
       if (this.deadFor >= RESPAWN) {
         this.generation++;
         this.marks.clear(); this.breaks.clear();
-        this.slowed = this.slowedHard = this.stunned = this.frozen = 0;
+        this.slowed = this.slowedHard = this.stunned = this.frozen = this.drunk = 0;
+        this.bubbled = false;
+        this.drowning = 0;
         this.alive = true;
         this.hp = this.maxHp;
         this.scale = .001;
@@ -192,9 +212,14 @@ export class Target {
     this.slowedHard = Math.max(0, this.slowedHard - dt);
     this.stunned = Math.max(0, this.stunned - dt);
     this.frozen = Math.max(0, this.frozen - dt);
-    const animationDt = this.stunned > 0 || this.frozen > 0 ? 0 : dt * (this.slowedHard > 0 ? .5 : this.slowed > 0 ? .7 : 1);
-    const motionDt = inactive || this.rooted > 0 ? 0 : animationDt;
+    this.drunk = Math.max(0, this.drunk - dt);
+    if (this.drowning > 0) { this.push.setAll(0); return; }
+    if (this.drunk > 0) this.stunned = Math.max(this.stunned, this.drunk);
+    // A real stun holds the pose; drunk keeps the idle playing.
+    const animationDt = (this.stunned > 0 && this.drunk <= 0) || this.held ? 0 : dt * (this.slowedHard > 0 ? .5 : this.slowed > 0 ? .7 : 1);
+    const motionDt = inactive || this.rooted > 0 || this.drunk > 0 ? 0 : animationDt;
     if (this.scale < 1) this.scale = Math.min(1, this.scale + dt * 4);
+    if (this.puppet) { this.followPuppet(this.puppet, dt, animationDt); return; }
     this.safePosition();
     const oldX = this.position.x, oldZ = this.position.z;
     if (this.navigation) this.navigation.push(this.position, this.push.x * dt, this.push.z * dt, this.radius);
@@ -225,9 +250,6 @@ export class Target {
       if(lake.onIce(this.position,0)||!lake.onIce(goal,0))this.iceWait=0;
       else if((this.iceWait+=motionDt)<LAKE_HESITATION+(this.generation*.37%1)*1.5){const shore=lake.shoreGoal(goal);goal=this.orbit.set(shore.x,0,shore.z);}
     }
-    // Raptures caught by a collapse climb out toward the nearest solid footing.
-    const escape=lake?.enabled&&!this.hover?lake.escape(this.position):null;
-    if(escape)goal=this.orbit.set(escape.x,0,escape.z);
     // Every unit gets out from under a falling meteor or off a burning crater, and won't walk into one.
     let dodging=false;
     for(const d of this.navigation?.dangers??[]){
@@ -239,7 +261,18 @@ export class Target {
       const gx=goal.x-d.x,gz=goal.z-d.z,gd=Math.hypot(gx,gz);
       if(gd<clear&&gd>.01)goal=this.orbit.set(d.x+gx/gd*clear,0,d.z+gz/gd*clear);
     }
-    const fleeing=dodging||!!escape||!!river?.enabled&&!this.hover&&river.phase==='surge'&&river.wet(this.position,this.radius);
+    // Badly cracked ice reads as a warning: after a moment's notice, back away from it (at ice pace, so a
+    // well-timed collapse still catches the slow and the unlucky).
+    let retreating=false;
+    if(lake?.enabled&&!this.hover&&!dodging){
+      const away=lake.retreat(this.position),[soonest,latest]=LAKE_RETREAT_REACTION;
+      if(!away)this.iceAlarm=0;
+      else if((this.iceAlarm+=motionDt)>=soonest+(this.generation*.61%1)*(latest-soonest)){goal=this.orbit.set(away.x,0,away.z);retreating=true;}
+    }
+    // Large grounded Raptures survive a collapse and crawl toward solid footing.
+    const escape=lake?.enabled&&!this.hover&&(this.combatTier==='heavy'||this.combatTier==='boss')?lake.escape(this.position):null;
+    if(escape)goal=this.orbit.set(escape.x,0,escape.z);
+    const fleeing=!!escape||dodging||retreating||!!river?.enabled&&!this.hover&&river.phase==='surge'&&river.wet(this.position,this.radius);
     const moving = fleeing || (pursue ? !this.settled || covered || circling : distance > .04);
     if (moving && motionDt > 0) {
       const pace = (circling ? .45 : 1) * (this.attackHold > 0 ? .55 : 1);
@@ -249,8 +282,8 @@ export class Target {
           this.navigator = new NavigationAgent(this.navigation, this.radius, { delay: .4, distance: .65 });
           this.navigationVersion = this.navigation.version;
         }
-        const resistance = this.hover ? 1 : (this.navigation.snow?.speedScale(this.position.x, this.position.z) ?? 1)*(river?.speed(this.position)??1)*(this.navigation.lake?.speed(this.position)??1)*(this.navigation.lake?.onIce(this.position)?LAKE_ENEMY_ICE_SPEED:1);
-        const routeGoal=river?.steer(this,goal,neighbors,Math.abs(Math.round(this.home.x*73+this.home.z*31))+this.generation,this.hover)??goal;
+        const resistance = escape ? .3 : this.hover ? 1 : (this.navigation.snow?.speedScale(this.position.x, this.position.z) ?? 1)*(river?.speed(this.position)??1)*(this.navigation.lake?.speed(this.position)??1)*(this.navigation.lake?.onIce(this.position)?LAKE_ENEMY_ICE_SPEED:1);
+        const routeGoal=escape?goal:river?.steer(this,goal,neighbors,Math.abs(Math.round(this.home.x*73+this.home.z*31))+this.generation,this.hover)??goal;
         const fromX=this.position.x,fromZ=this.position.z;
         this.navigator.step(this, routeGoal, speed * resistance, motionDt, neighbors);
         if(lake?.enabled&&!this.hover)lake.avoidHoles({x:fromX,z:fromZ},this.position);
@@ -263,7 +296,7 @@ export class Target {
     const travelled = Math.hypot(this.position.x - oldX, this.position.z - oldZ);
     // A longer hold bridges one-frame navigation stalls, which used to flick walk → idle → walk.
     this.walkHold = travelled > .003 ? .3 : Math.max(0, this.walkHold - dt);
-    const walk = this.walkHold > 0 && this.crowd.has('walk');
+    const walk = this.walkHold > 0 && this.drunk <= 0 && this.crowd.has('walk');
     const nextClip = this.crowd.clip(walk ? 'walk' : 'idle');
     // Keep the clip clock running across the swap: restarting at frame 0 read as a hitch.
     if (nextClip !== this.clip) this.clip = nextClip;
@@ -273,6 +306,17 @@ export class Target {
     const want = !aiming && this.navigation && travelled > .003 ? Math.atan2(this.position.x - oldX, this.position.z - oldZ)
       : Math.atan2(player.x - this.position.x, player.z - this.position.z);
     this.yaw = turnToward(this.yaw, want, animationDt * (aiming ? 6 : 3));
+  }
+
+  private followPuppet(pose: { x: number; z: number; yaw: number }, dt: number, animationDt: number): void {
+    const travelled = Math.hypot(pose.x - this.position.x, pose.z - this.position.z);
+    this.position.x = pose.x; this.position.z = pose.z;
+    this.walkHold = travelled > .003 ? .3 : Math.max(0, this.walkHold - dt);
+    const walk = this.walkHold > 0 && this.crowd.has('walk');
+    const nextClip = this.crowd.clip(walk ? 'walk' : 'idle');
+    if (nextClip !== this.clip) this.clip = nextClip;
+    this.clipTime += animationDt * (walk ? Math.max(.35, Math.min(1.5, travelled / dt / this.type.speed)) * (this.type.stride ?? 1) : 1);
+    this.yaw = pose.yaw;
   }
 
   private safePosition(): void {
@@ -294,6 +338,9 @@ export class Target {
     const t = Math.min(1, this.sinceHit / .2);
     const kick = this.alive ? Math.sin(t * Math.PI) * (1 - t) * .24 : 0;
     this.drawPosition.copyFrom(this.position).addInPlaceFromFloats(this.recoil.x * kick, 0, this.recoil.z * kick);
+    this.drawPosition.y -= this.drowning * (this.barHeight + 1);
+    if(!this.hover&&(this.combatTier==='heavy'||this.combatTier==='boss'))
+      this.drawPosition.y -= .7*(this.navigation?.lake?.depth(this.position)??0);
     const world = crowdWorld(this.drawPosition, this.yaw + this.clip.yaw, this.scale * (this.type.size ?? 1), this.type.modelLift);
     this.crowd.add(world, this.clip, this.crowd.frameAt(this.clip, this.clipTime), Math.min(1, this.flash / .07) * 1.6);
   }
@@ -441,9 +488,9 @@ export class TargetField {
     }
   }
 
-  draw(): void {
+  draw(hidden = false): void {
     for (const crowd of this.crowds.values()) crowd.begin();
-    for (const t of this.targets) t.draw();
+    if (!hidden) for (const t of this.targets) t.draw();
     for (const crowd of this.crowds.values()) crowd.end();
   }
 

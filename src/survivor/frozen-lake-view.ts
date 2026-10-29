@@ -169,7 +169,10 @@ export class FrozenLakeHazard {
   set(enabled:boolean):void{this.splashed=0;this.lake.reset(enabled);this.view.set(enabled);this.hurtAt=new WeakMap();this.sink=0;}
   update(dt:number,player:Player,targets:TargetField,run:Run):void{
     const lake=this.lake;
-    if(!lake.enabled){if(this.sink){this.sink=0;player.chibi.root.position.y=0;}if(this.frost)this.showFrost(0,1);return;}
+    if(!lake.enabled){
+      for(const t of targets.targets)if(t.alive&&t.drowning>0){t.drowning=0;t.stunned=0;}
+      if(this.sink){this.sink=0;player.chibi.root.position.y=0;}if(this.frost)this.showFrost(0,1);return;
+    }
     this.clock+=dt;lake.update(dt);this.view.update(dt);
     if(lake.lastBreak&&lake.lastBreak.count!==this.splashed){this.splashed=lake.lastBreak.count;this.onBreak?.(lake.lastBreak.x,lake.lastBreak.z);}
     const affect=(body:Player|Target|SquadMember,radius:number,hp:number,hover:boolean,isPlayer:boolean)=>{
@@ -191,7 +194,16 @@ export class FrozenLakeHazard {
     };
     let playerDepth=0;
     if(player.hp>0&&!player.transported)playerDepth=affect(player,.45,player.maxHp,false,true);
-    for(const t of targets.targets)if(t.alive)affect(t,t.radius,t.maxHp,t.hover,false);
+    for(const t of targets.targets){
+      if(!t.alive||t.hover||dt<=0||t.combatTier==='heavy'||t.combatTier==='boss')continue;
+      if(t.drowning>0||lake.depth(t.position)>=.05){
+        // Once the ice gives way beneath a grounded Rapture it cannot climb out.
+        // Keep its gameplay position at the surface for loot and kill effects.
+        t.drowning=Math.min(1,t.drowning+dt/1.5);
+        t.stunned=Math.max(t.stunned,2);
+        if(t.drowning>=1)run.environmentDamage(t,t.hp);
+      }
+    }
     for(const ally of targets.squad)if(ally.alive)affect(ally,.45,ally.maxHp,false,false);
     // The player drops waist-deep into a hole and climbs back out at its edge.
     const goal=-.7*playerDepth;this.sink+=(goal-this.sink)*Math.min(1,dt*(goal<this.sink?14:6));

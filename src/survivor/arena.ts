@@ -207,6 +207,10 @@ class RangeGround extends MaterialPluginBase {
         // the play area's edge darkens into the fog instead of ending at a wall
         float arenaEdge=rangeTheme>1.5&&rangeTheme<2.5?${FROZEN_RADIUS.toFixed(1)}:rangeTheme>3.5&&rangeTheme<4.5?${(STORM_RADIUS+6).toFixed(1)}:rangeTheme>5.5&&rangeTheme<6.5?${FOREST_RADIUS.toFixed(1)}:34.;
         float outside = smoothstep(arenaEdge-2., arenaEdge+10., r + edge * 1.5);
+        // Sakura's distant orchard hides the horizon; avoid a dark circular band
+        // across the shrine court and let the ground recede gradually behind it.
+        if(rangeTheme>4.5&&rangeTheme<5.5)
+          outside=smoothstep(58.,110.,r+edge*3.);
         // Outskirts stays lit all the way to its movement boundary. A short,
         // outward-only fade makes the dark scenery read as out of bounds.
         if(rangeTheme > 6.5){

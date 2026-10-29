@@ -8,6 +8,7 @@ import type { FxQuad, Rgb } from '../../vfx';
 import { TELL, type Tell } from '../telegraph';
 import { PLAYER_RADIUS, blastFx, clearShot, flatDistance } from './common';
 import { EnergyOrb } from './energy';
+import { attackEcho } from './echo';
 import type { BehaviorContext } from './types';
 
 // No green or blue in the glows: added over the bright scene, any shows up as pink.
@@ -49,6 +50,7 @@ export class MissileVolley {
 
   /** Launch from `from` at the ground spot (x, z). `wait` staggers a volley. */
   fire(from: Vector3, x: number, z: number, { damage, radius = 2.5, flight = 1.4, wait = 0, side = 0, size = 1, loft = 0 }: { damage: number; radius?: number; flight?: number; wait?: number; side?: number; size?: number; loft?: number }): void {
+    attackEcho.listener?.({ kind: 'missile', x: from.x, y: from.y, z: from.z, tx: x, tz: z, radius, flight, wait, side, size, loft });
     this.missiles.push({
       from: from.clone(), to: new Vector3(x, 0, z), side, flight, radius, size, loft, damage, wait, time: 0, head: null, halo: null, corona: null, trail: 0,
       tell: this.ctx.tells.circle(x, z, radius, TELL.area, .7),

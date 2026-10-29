@@ -263,7 +263,7 @@ export class ArrivalElevator {
     this.seals.forEach((g,i)=>g.position.x=(i===0?-1:1)*(1-this.motion.seal)*3.55);
   }
   mount(): void {
-    const body=document.querySelector('#weather-lab .weather-lab-body');if(!body)return;
+    const body=document.querySelector('#weather-lab .lab-page[data-label="Spawns"]');if(!body)return;
     const panel=document.createElement('section');panel.className='elevator-controls';
     panel.innerHTML='<h3>Restored lift tower</h3><p>Center of range · 6 × 6 m deck · 20 m tower</p>';
     for(const [action,label] of [['open','Open gates'],['close','Close gates'],['descend','Extract & seal'],['rise','Unseal & raise'],['cycle','Preview full cycle']] as const) {

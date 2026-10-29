@@ -21,6 +21,8 @@ import {
 import { GLTFLoaderAnimationStartMode } from '@babylonjs/loaders/glTF';
 import '@babylonjs/loaders/glTF';
 import { optimizeStaticTracks } from './model-library';
+import { attachWellsClockEyes } from './characters/wells/clock-eyes';
+import { attachWellsCoatPhysics } from './characters/wells/coat-physics';
 
 export interface ClipMeta {
   duration: number;
@@ -80,7 +82,10 @@ const TRACKED = /aim_start|aim_end/; // the body turns inside the clip: follow i
 const FIRST_FRAME = /death|stun/; // falls and flinches: keep the facing they start with
 const MUZZLE_FALLBACK = ['shot', 'aim_idle', 'cover_shot', 'cover_aim_idle'];
 /** Clips the game plays by name, and what some NKAS models call them instead (Nayuta: idle_eff, Modernia: idle_01). */
-export const CLIP_FALLBACKS: Readonly<Record<string, readonly string[]>> = { idle: ['idle_eff', 'idle_01', 'talk_idle'] };
+export const CLIP_FALLBACKS: Readonly<Record<string, readonly string[]>> = {
+  idle: ['idle_eff', 'idle_01', 'talk_idle'],
+  aim_idle: ['cover_aim_idle'],
+};
 
 export async function loadChibiIndex(): Promise<ChibiIndex> {
   const r = await fetch(`${BASE}index.json`);
@@ -145,12 +150,32 @@ export class Chibi {
       groups.set(g.name, g);
     }
     for (const [clip, alternatives] of Object.entries(CLIP_FALLBACKS)) {
-      const alternative = groups.has(clip) ? undefined : alternatives.find((name) => groups.has(name));
+      // Nayuta's idle_eff is a scripted hat flourish, not a neutral combat idle.
+      // Keep it available explicitly, but use her quiet pose for players and clones.
+      const candidates = meta.variant === 'c223_00' && clip === 'idle'
+        ? ['talk_idle', ...alternatives] : alternatives;
+      const alternative = groups.has(clip) ? undefined : candidates.find((name) => groups.has(name));
       if (!alternative) continue;
       groups.set(clip, groups.get(alternative)!);
-      meta.clips[clip] ??= meta.clips[alternative];
+      meta.clips[clip] = meta.clips[alternative];
+    }
+    // Dorothy's lobby idles include unarmed gestures, a microphone and a
+    // parasol. The rifle remains equipped in gameplay, including lift rides.
+    // Use each outfit's authored rifle hold and retain the lobby animation.
+    if (['c233_00', 'c233_01', 'c233_02', 'c234_00'].includes(meta.variant) && groups.has('aim_idle')) {
+      if (groups.has('idle')) {
+        groups.set('lobby_idle', groups.get('idle')!);
+        meta.clips.lobby_idle = meta.clips.idle;
+      }
+      groups.set('idle', groups.get('aim_idle')!);
+      const armedIdle = meta.clips.aim_idle;
+      // `idle` normally normalizes by head yaw. This is a rifle stance, so
+      // normalize its barrel just as the aimed clip does, without changing
+      // the original aimed metadata or adding the gun offset twice.
+      meta.clips.idle = { ...armedIdle, yaw: { ...armedIdle.yaw, head: armedIdle.yaw.gun ?? armedIdle.yaw.head } };
     }
     const meshes = result.meshes.filter((m) => m.getTotalVertices() > 0);
+    attachWellsClockEyes(meta.variant, meshes);
     for (const m of meshes) {
       m.alwaysSelectAsActiveMesh = true; // skinned bounds don't follow the animation
       m.isPickable = false;
@@ -161,6 +186,7 @@ export class Chibi {
     // joints only: a weapon bone can share its name with the weapon mesh
     const nodes = new Map<string, TransformNode>();
     for (const n of result.transformNodes) if (!nodes.has(n.name)) nodes.set(n.name, n);
+    attachWellsCoatPhysics(meta.variant, scene, nodes, root);
 
     return new Chibi(meta, root, facing, meshes, groups, nodes, aimFacing, muzzleMode);
   }
@@ -343,7 +369,14 @@ export function staticClipYaw(meta: VariantMeta, name: string, gunOffset: number
 
 /** Gun tip used while clip `name` plays: its own if aimed and measured, else an aimed fallback. */
 export function clipMuzzle(meta: VariantMeta, name: string): MuzzleRef | null {
-  return (AIMED.test(name) && meta.clips[name]?.muzzle) || MUZZLE_FALLBACK.map((n) => meta.clips[n]?.muzzle).find(Boolean) || null;
+  const ref = (AIMED.test(name) && meta.clips[name]?.muzzle) || MUZZLE_FALLBACK.map((n) => meta.clips[n]?.muzzle).find(Boolean) || null;
+  // The derivative retains Product 08's measurements, but Blender rebases
+  // Prop1's bind axes: original (x,y,z) becomes (-z,-x,y).
+  if (ref && meta.variant === 'wells_research' && ref.joint === 'Bip001 Prop1') {
+    const [x, y, z] = ref.offset;
+    return { joint: ref.joint, offset: [-z, -x, y] };
+  }
+  return ref;
 }
 
 export function lerpAngle(a: number, b: number, t: number): number {

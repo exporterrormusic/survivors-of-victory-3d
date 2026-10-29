@@ -1,5 +1,7 @@
+import { CHARACTER_MODULES, PLAYABLE_CHARACTER_IDS } from '../characters';
 import { Atmosphere, TIMES_OF_DAY, type TimeOfDay } from './atmosphere';
 import './weather-lab.css';
+import { showAchievementToasts } from './achievement-toast';
 import type { SnowPreset } from './snow-field';
 import type { SnowLayer } from './snow';
 import type { WaterPreset, WaterLayer } from './water';
@@ -40,19 +42,28 @@ export class WeatherLab {
   constructor(private readonly options: WeatherLabOptions) {
     const { parent, atmosphere, clearInput, setWater, setEnemyMovement } = options;
     this.panel.id = 'weather-lab';
-    this.panel.innerHTML = `<summary>WEATHER LAB</summary>
+    // Each .lab-page becomes its own tab, so no single page grows long.
+    this.panel.innerHTML = `<summary>TEST LAB</summary>
       <div class="weather-lab-body">
-        <p id="lab-condition"></p>
-        <label id="lab-character-row">Character<select id="lab-character"><option value="snow-white">Snow White</option><option value="scarlet">Scarlet</option><option value="rapunzel">Rapunzel</option></select></label>
-        <label>Time of day<select id="lab-time"></select></label>
-        <label id="lab-wet-row">Wet ground<input id="lab-wet" type="checkbox"></label>
-        <button type="button" id="lab-grant-level">Grant level</button>
-        <button type="button" id="lab-spawn-ally">Spawn ally</button>
-        <button type="button" id="lab-drop-crate">Drop health box</button>
-        <details class="lab-enemies"><summary>Training controls</summary>
+        <div class="lab-page" data-label="World">
+          <p id="lab-condition"></p>
+          <label>Time of day<select id="lab-time"></select></label>
+          <label id="lab-wet-row">Wet ground<input id="lab-wet" type="checkbox"></label>
+        </div>
+        <div class="lab-page" data-label="Player">
+          <label id="lab-character-row">Character<select id="lab-character"></select></label>
+          <button type="button" id="lab-grant-level">Grant level</button>
           <label id="lab-burst-row">Burst always max<input id="lab-burst" type="checkbox"></label>
+        </div>
+        <div class="lab-page" data-label="Spawns">
+          <button type="button" id="lab-spawn-ally">Spawn ally</button>
+          <button type="button" id="lab-drop-crate">Drop health box</button>
           <label>Enemies<select id="lab-enemy-movement"></select></label>
-        </details>
+        </div>
+        <div class="lab-page" data-label="UI">
+          <button type="button" id="lab-achievement">Test achievement pop-up</button>
+          <button type="button" id="lab-achievements">Test 3 pop-ups</button>
+        </div>
       </div>`;
     parent.append(this.panel);
     const burst = this.panel.querySelector<HTMLInputElement>('#lab-burst')!;
@@ -67,7 +78,16 @@ export class WeatherLab {
       button.hidden = !action;
       button.addEventListener('click', () => { action?.(); button.blur(); });
     }
+    const placeholder = (n: number) => showAchievementToasts(Array.from({ length: n }, (_, i) => ({
+      category: 'combat' as const, id: `lab-test-${i}`, points: 100 * (i + 1), source: 'totalKills' as const, target: 1,
+      title: i ? `TEST ACHIEVEMENT ${i + 1}` : 'TEST ACHIEVEMENT', description: 'Placeholder pop-up from the Test Lab. Nothing is saved.',
+    })));
+    for (const [id, count] of [['#lab-achievement', 1], ['#lab-achievements', 3]] as const) {
+      const button = this.panel.querySelector<HTMLButtonElement>(id)!;
+      button.addEventListener('click', () => { placeholder(count); button.blur(); });
+    }
     const character = this.panel.querySelector<HTMLSelectElement>('#lab-character')!;
+    for (const id of PLAYABLE_CHARACTER_IDS) character.add(new Option(CHARACTER_MODULES[id].name, id));
     character.value = options.character ?? 'snow-white';
     this.panel.querySelector<HTMLElement>('#lab-character-row')!.hidden = !options.switchCharacter;
     character.addEventListener('change', () => options.switchCharacter?.(character.value));
@@ -86,6 +106,7 @@ export class WeatherLab {
     this.enemies.addEventListener('change', () => setEnemyMovement(this.enemies.value as EnemyMovement));
     this.panel.addEventListener('pointerdown', clearInput);
     this.panel.addEventListener('keydown', event => { if (event.code !== 'Escape') event.stopPropagation(); });
+    this.initTabs();
     this.sync();
   }
   sync(): void {
@@ -102,27 +123,23 @@ export class WeatherLab {
       petals: 'Sakura ? drifting petals and pink lighting.',
     }[weather];
   }
-  /** Adds a tab beside the World controls; the first call turns the panel into a tabbed TEST LAB. */
-  addTab(label: string, content: HTMLElement, select = false): void {
+  private initTabs(): void {
     const body = this.panel.querySelector<HTMLElement>('.weather-lab-body')!;
-    let bar = this.panel.querySelector<HTMLElement>('.lab-tabs');
-    if (!bar) {
-      this.panel.classList.add('tabbed');
-      this.panel.querySelector('summary')!.textContent = 'TEST LAB';
-      bar = document.createElement('div');
-      bar.className = 'lab-tabs';
-      bar.setAttribute('role', 'tablist');
-      body.before(bar);
-      const world = document.createElement('div');
-      world.append(...body.childNodes);
-      body.append(world);
-      this.tab(bar, body, 'World', world);
-      bar.addEventListener('click', event => {
-        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[role="tab"]');
-        if (button) { this.selectTab(Number(button.dataset.tab)); button.blur(); }
-      });
-    }
-    this.tab(bar, body, label, content);
+    this.panel.classList.add('tabbed');
+    const bar = document.createElement('div');
+    bar.className = 'lab-tabs';
+    bar.setAttribute('role', 'tablist');
+    body.before(bar);
+    for (const page of [...body.querySelectorAll<HTMLElement>(':scope > .lab-page')]) this.tab(bar, body, page.dataset.label!, page);
+    bar.addEventListener('click', event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[role="tab"]');
+      if (button) { this.selectTab(Number(button.dataset.tab)); button.blur(); }
+    });
+  }
+  /** Adds a tab after the built-in ones (ENEMY, Events). */
+  addTab(label: string, content: HTMLElement, select = false): void {
+    const bar = this.panel.querySelector<HTMLElement>('.lab-tabs')!;
+    this.tab(bar, this.panel.querySelector<HTMLElement>('.weather-lab-body')!, label, content);
     if (select) { this.selectTab(bar.children.length - 1); this.panel.open = true; }
   }
   private tab(bar: HTMLElement, body: HTMLElement, label: string, content: HTMLElement): void {

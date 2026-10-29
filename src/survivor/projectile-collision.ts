@@ -21,3 +21,19 @@ export function targetContact(from: Vector3, to: Vector3, target: Target): numbe
   const t = (-b - Math.sqrt(disc)) / a;
   return t >= 0 && t <= 1 ? t : null;
 }
+
+/** Swept ground-plane circle for horizontal rifle shots, like the sniper's footprint targeting.
+ * Weapon height must not let a shot pass over a small ground enemy. Target.radius already
+ * reflects the model size; pad is the damaging beam radius, excluding its soft glow. */
+export function targetFootprintContact(from: Vector3, to: Vector3, target: Pick<Target, 'position' | 'radius'>, pad: number): number | null {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  const ox = from.x - target.position.x, oz = from.z - target.position.z;
+  const radius = target.radius + pad, c = ox * ox + oz * oz - radius * radius;
+  if (c <= 0) return 0;
+  const a = dx * dx + dz * dz;
+  if (a < 1e-12) return null;
+  const b = ox * dx + oz * dz, disc = b * b - a * c;
+  if (disc < 0) return null;
+  const t = (-b - Math.sqrt(disc)) / a;
+  return t >= 0 && t <= 1 ? t : null;
+}

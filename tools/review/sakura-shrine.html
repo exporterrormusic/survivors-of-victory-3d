@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Sakura shrine join review</title>
+<style>html,body,canvas{width:100%;height:100%;margin:0;display:block;overflow:hidden}</style></head>
+<body><canvas id="view"></canvas><script type="module">
+import { Engine, Scene, FreeCamera, HemisphericLight, Vector3 } from '@babylonjs/core';
+import { SakuraMaterials, createSakuraAsset } from '/src/survivor/sakura-kit.ts';
+const engine=new Engine(document.getElementById('view'),true),scene=new Scene(engine);
+const camera=new FreeCamera('review',new Vector3(-8,4,-10),scene);camera.setTarget(new Vector3(0,2.8,0));
+new HemisphericLight('sky',new Vector3(0,1,0),scene);
+createSakuraAsset(scene,'sakura-shrine',new SakuraMaterials(scene));
+window.shrineReview={scene,camera};engine.runRenderLoop(()=>scene.render());
+</script></body></html>

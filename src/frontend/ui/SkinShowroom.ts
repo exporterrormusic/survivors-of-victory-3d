@@ -26,7 +26,7 @@ export function createSkinShowroom(characterId: CharacterId, mode: 'shop' | 'equ
     const owned = ownsSkin(selected), locked = !!characterLockReason(characterId), equipped = equippedSkin(characterId)?.id === selected.id;
     name.textContent = selected.name;
     buttons.forEach((button, i) => { button.setAttribute('aria-pressed', String(skins[i].id === selected.id)); button.querySelector('small')!.textContent = skins[i].cost === 0 ? 'INCLUDED' : ownsSkin(skins[i]) ? 'OWNED' : locked ? 'COMING SOON' : cores(skins[i].cost); });
-    state.textContent = locked ? 'This character is not available yet.' : selected.cost === 0 ? 'Default appearance / Included' : owned ? 'Permanently unlocked' : `${selected.cost} Rapture Core${selected.cost === 1 ? '' : 's'}`;
+    state.textContent = locked ? 'Preview all appearances. Deployment is coming soon.' : selected.cost === 0 ? 'Default appearance / Included' : owned ? 'Permanently unlocked' : `${selected.cost} Rapture Core${selected.cost === 1 ? '' : 's'}`;
     action.disabled = locked || (mode === 'shop' ? owned || loadRosterState().pristineCores < selected.cost : !owned || equipped);
     action.textContent = locked ? 'COMING SOON' : mode === 'shop' ? owned ? 'OWNED' : action.disabled ? 'NOT ENOUGH CORES' : 'BUY SKIN' : equipped ? 'EQUIPPED' : owned ? 'EQUIP SKIN' : 'UNLOCK IN SHOP';
   };

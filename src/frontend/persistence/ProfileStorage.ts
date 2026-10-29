@@ -3,7 +3,6 @@ import { GAME_VERSION } from "../../version";
 export type ProfileSection =
   | "achievements"
   | "progress"
-  | "records"
   | "roster"
   | "settings"
   | "stage"
@@ -14,7 +13,6 @@ const META_KEY = "nikke-moba.profile-meta-v1";
 const SECTION_KEYS: Readonly<Record<ProfileSection, string>> = {
   achievements: "nikke-moba.achievements-v1",
   progress: "nikke-moba.progress-v1",
-  records: "nikke-moba.records-v1",
   roster: "nikke-moba.roster-v1",
   settings: "nikke-moba.front-settings-v1",
   stage: "nikke-moba.stage-v1",
@@ -61,7 +59,7 @@ export function writeProfileSection(
 export function resetProfileProgress(): void {
   const storage = browserStorage();
   if (storage === undefined) return;
-  (["achievements", "progress", "records", "roster", "stage", "survival"] as const).forEach((section) =>
+  (["achievements", "progress", "roster", "stage", "survival"] as const).forEach((section) =>
     storage.removeItem(SECTION_KEYS[section]),
   );
   writeMetadata(storage);

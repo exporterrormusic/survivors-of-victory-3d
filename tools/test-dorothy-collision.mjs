@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { register } from 'node:module';
+register('./ts-hooks.mjs', import.meta.url);
+const { Vector3 } = await import('@babylonjs/core');
+const { targetFootprintContact } = await import('../src/survivor/projectile-collision.ts');
+const { LASER_HIT_RADIUS } = await import('../src/survivor/dorothy/laser-effects.ts');
+const small = { position: new Vector3(0,0,5), radius: .18 };
+const from = new Vector3(0,1.8,0), to = new Vector3(0,1.8,10);
+assert.ok(Math.abs(targetFootprintContact(from,to,small,.18)-.464)<1e-8, 'small enemy hit despite elevated muzzle');
+assert.equal(targetFootprintContact(from,new Vector3(0,1.8,3),small,.18),null,'no hit past segment end');
+assert.equal(targetFootprintContact(from,to,{...small,position:new Vector3(.5,0,5)},.18),null,'near miss outside body plus beam');
+assert.ok(targetFootprintContact(from,to,{...small,position:new Vector3(.3,0,5)},.18)!==null,'beam edge catches small enemy');
+assert.equal(targetFootprintContact(to,from,{position:to,radius:.18},.18),0,'starts inside target');
+assert.equal(targetFootprintContact(from,from,small,.18),null,'stationary outside target');
+assert.equal(targetFootprintContact(from,to,{...small,position:new Vector3(0,0,-2)},.18),null,'no hit behind shooter');
+assert.ok(targetFootprintContact(from,to,{...small,position:new Vector3(.45,0,5)},LASER_HIT_RADIUS)!==null,'chibi pulse catches a grazing small target');
+assert.equal(targetFootprintContact(from,to,{...small,position:new Vector3(.6,0,5)},LASER_HIT_RADIUS),null,'wider pulse still misses outside its footprint');
+console.log('Dorothy swept beam collision: passed');

@@ -45,7 +45,11 @@ export interface GameplaySettings {
 }
 
 export type ControlAction =
+  | "fire"
+  | "reload"
+  | "talents"
   | "pause"
+  | "menu"
   | "dash"
   | "moveDown"
   | "moveLeft"
@@ -55,7 +59,7 @@ export type ControlAction =
   | "burst";
 
 export type MouseBindingButton =
-  "BACK" | "FORWARD" | "MIDDLE" | "RIGHT" | "WHEEL DOWN" | "WHEEL UP";
+  "LEFT" | "BACK" | "FORWARD" | "MIDDLE" | "RIGHT" | "WHEEL DOWN" | "WHEEL UP";
 
 export type ControlBinding =
   | { readonly device: "keyboard"; readonly keyCode: number }
@@ -73,10 +77,14 @@ export const CONTROL_BINDING_DEFINITIONS: readonly {
   { action: "moveDown", label: "MOVE DOWN" },
   { action: "moveLeft", label: "MOVE LEFT" },
   { action: "moveRight", label: "MOVE RIGHT" },
+  { action: "fire", label: "FIRE" },
+  { action: "reload", label: "RELOAD" },
+  { action: "talents", label: "UPGRADES" },
   { action: "dash", label: "DASH" },
   { action: "burst", label: "BURST" },
   { action: "specialAttack", label: "SPECIAL ATTACK" },
   { action: "pause", label: "PAUSE" },
+  { action: "menu", label: "MENU" },
 ] as const;
 
 export const SUPPORTED_RESOLUTIONS: readonly DisplayResolution[] = [
@@ -105,6 +113,9 @@ const DEFAULT_GAMEPLAY_SETTINGS: GameplaySettings = {
 
 const DEFAULT_CONTROL_SETTINGS: ControlSettings = {
   bindings: {
+    fire: { device: "mouse", button: "LEFT" },
+    reload: { device: "keyboard", keyCode: 82 },
+    talents: { device: "keyboard", keyCode: 9 },
     burst: { device: "keyboard", keyCode: KEY.E },
     dash: { device: "keyboard", keyCode: KEY.SHIFT },
     moveDown: { device: "keyboard", keyCode: KEY.S },
@@ -114,7 +125,8 @@ const DEFAULT_CONTROL_SETTINGS: ControlSettings = {
       keyCode: KEY.D,
     },
     moveUp: { device: "keyboard", keyCode: KEY.W },
-    pause: { device: "keyboard", keyCode: KEY.ESC },
+    pause: { device: "keyboard", keyCode: KEY.SPACE },
+    menu: { device: "keyboard", keyCode: KEY.ESC },
     specialAttack: { button: "RIGHT", device: "mouse" },
   },
 };
@@ -251,20 +263,29 @@ export function loadControlSettings(): ControlSettings {
       ? (stored.controlBindings as Partial<Record<ControlAction, unknown>>)
       : {};
   const bindings = { ...DEFAULT_CONTROL_SETTINGS.bindings };
+  // Saves from before the Menu binding stored the Escape menu key as "pause" (or "cancel").
+  const legacyMenu = savedBindings.menu === undefined;
   CONTROL_BINDING_DEFINITIONS.forEach(({ action }) => {
     const legacyAction =
       action === "specialAttack"
         ? "special"
-        : action === "pause"
-          ? "cancel"
+        : action === "menu" && legacyMenu
+          ? savedBindings.pause === undefined ? "cancel" : "pause"
           : action;
     const candidate =
-      savedBindings[action] ?? savedBindings[legacyAction as ControlAction];
+      action === "pause" && legacyMenu
+        ? undefined
+        : savedBindings[action] ?? savedBindings[legacyAction as ControlAction];
     const normalized = normalizeControlBinding(candidate);
     if (normalized !== undefined) {
       bindings[action] = normalized;
     }
   });
+  // An old save may already use Space for something else; Pause then takes P.
+  if (legacyMenu && CONTROL_BINDING_DEFINITIONS.some(({ action }) =>
+    action !== "pause" && controlBindingsEqual(bindings[action], bindings.pause))) {
+    bindings.pause = { device: "keyboard", keyCode: 80 };
+  }
   return { bindings };
 }
 
@@ -273,6 +294,7 @@ export function saveControlSettings(settings: ControlSettings): void {
     ...readStoredSettings(),
     controlBindings: { ...settings.bindings },
   });
+  if (typeof window !== 'undefined') window.dispatchEvent?.(new Event('sov:controls-changed'));
 }
 
 export function resetControlSettings(): ControlSettings {
@@ -320,6 +342,7 @@ function normalizeControlBinding(value: unknown): ControlBinding | undefined {
     return { device: "keyboard", keyCode: candidate.keyCode };
   }
   const mouseButtons: readonly MouseBindingButton[] = [
+    "LEFT",
     "BACK",
     "FORWARD",
     "MIDDLE",

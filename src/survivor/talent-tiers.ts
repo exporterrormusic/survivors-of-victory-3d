@@ -11,6 +11,7 @@ export interface TalentSet { readonly abilities: Readonly<Record<TalentAbility, 
 export interface TalentKill { readonly marked: boolean; readonly burning: boolean; readonly source: string }
 
 export interface TalentQuest {
+  readonly event?: 'clone-return' | 'insight-time';
   readonly goal: number;
   /** progress label, e.g. "Marked kills" */
   readonly label: string;
@@ -88,13 +89,26 @@ export class TalentTiers {
   recordKill(kill: TalentKill): TierTalent[] {
     const completed: TierTalent[] = [];
     for (const state of this.quests) {
-      if (state.done || !state.quest.counts(kill)) continue;
+      if (state.done || state.quest.event || !state.quest.counts(kill)) continue;
       const count = state.count + 1;
       this.counts.set(state.talent.id, count);
       if (count >= state.quest.goal) {
         for (const effect of state.quest.reward) this.effects.add(effect);
         completed.push(state.talent);
       }
+    }
+    return completed;
+  }
+
+  /** Ability events and elapsed seconds; only the selected quest can progress. */
+  recordEvent(event: NonNullable<TalentQuest['event']>, amount = 1): TierTalent[] {
+    if(!Number.isFinite(amount)||amount<=0)return [];
+    const completed: TierTalent[]=[];
+    for(const state of this.quests){
+      if(state.done||state.quest.event!==event)continue;
+      const count=Math.min(state.quest.goal,state.count+amount);
+      this.counts.set(state.talent.id,count);
+      if(count>=state.quest.goal){for(const effect of state.quest.reward)this.effects.add(effect);completed.push(state.talent);}
     }
     return completed;
   }

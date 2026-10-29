@@ -1,0 +1,7 @@
+.coop-indicators { position: absolute; inset: 0; pointer-events: none; z-index: 7; overflow: hidden; }
+.coop-indicator { position: absolute; width: 0; height: 0; color: #6ee7ff; }
+.coop-indicator[hidden] { display: none; }
+.coop-indicator-arrow { position: absolute; left: -15px; top: -20px; width: 30px; height: 40px; text-align: center; font: 700 34px/40px sans-serif; text-shadow: 0 0 8px #19bde9, 0 2px 3px #00111f; }
+.coop-indicator-label { position: absolute; top: 22px; left: 0; transform: translateX(-50%); white-space: nowrap; padding: 2px 6px; border-left: 2px solid currentColor; background: #061421df; font: 700 12px/16px Rajdhani, sans-serif; letter-spacing: .04em; }
+.coop-indicator.down { color: #ffbd69; }
+.coop-indicator.down .coop-indicator-arrow { text-shadow: 0 0 8px #ed872b, 0 2px 3px #261100; }

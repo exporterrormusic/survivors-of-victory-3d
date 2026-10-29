@@ -47,6 +47,8 @@ These links open the archived MOBA. For Scarlet in the current survivor runtime,
 `?run=test-range&character=scarlet`, or Weather Lab > Character. Tab opens her ordered talent tree.
 Switching characters restarts the run. See [Scarlet port notes](docs/SCARLET.md).
 Rapunzel uses `?run=test-range&character=rapunzel`; see [Rapunzel port notes](docs/RAPUNZEL.md).
+Nayuta uses `?run=test-range&character=nayuta`; her first playable clone/Asceticism pass and remaining work are in [Nayuta port notes](docs/NAYUTA.md).
+Dorothy uses `?run=test-range&character=dorothy`; her pink-beam rifle, offensive Flight and Paradise Lost transformation/Brand are ready for a first playtest. See [Dorothy setup and research](docs/DOROTHY.md). Commander is shelved with his assets preserved.
 
 ## Battlegrounds
 

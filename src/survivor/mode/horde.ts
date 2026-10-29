@@ -75,7 +75,7 @@ export class Horde {
   update(dt: number): Target[] {
     const huntersKilled: Target[] = [];
     for (const [target, member] of this.members) {
-      const step = this.ctx.player.kit.freezesEnemies || target.frozen > 0 ? 0 : dt;
+      const step = this.ctx.player.kit.freezesEnemies || target.held ? 0 : dt;
       if ((member.pickIn -= dt) <= 0) { member.pickIn = .4 + Math.random() * .2; this.pickVictim(target); }
       member.behavior.update(step);
       this.touch(target, member, step);
@@ -89,9 +89,9 @@ export class Horde {
   }
 
   /**
-   * Go after whoever is nearest: the player or a squad NIKKE. Squad members count as a third
-   * closer than they are, so they draw a real share of the horde; a Rapture keeps its current
-   * victim unless someone is clearly closer.
+   * Go after whoever is nearest: the player, a co-op teammate or a squad NIKKE. Supply NIKKEs count
+   * as a third closer than they are (Defender.threat), so they draw a real share of the horde; a
+   * Rapture keeps its current victim unless someone is clearly closer.
    */
   private pickVictim(target: Target): void {
     const p = this.ctx.player.position;
@@ -99,7 +99,7 @@ export class Horde {
     let best = flatDistance(target.position, p) * keep(null), victim: Defender | null = null;
     for (const ally of this.ctx.field.squad) {
       if (!ally.alive) continue;
-      const d = flatDistance(target.position, ally.position) * .65 * keep(ally);
+      const d = flatDistance(target.position, ally.position) * (ally.threat ?? .65) * keep(ally);
       if (d < best) { best = d; victim = ally; }
     }
     target.victim = victim;

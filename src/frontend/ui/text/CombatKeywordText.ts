@@ -202,6 +202,8 @@ export interface CombatKeywordTextOptions {
   readonly fontStyle?: string;
   readonly letterSpacing?: number;
   readonly lineSpacing?: number;
+  /** Cap compact summaries without shrinking their font. */
+  readonly maxLines?: number;
   readonly onTooltipHoverChange?: (hovered: boolean) => void;
   readonly surface?: "dark" | "light";
   readonly width: number;
@@ -304,6 +306,21 @@ export class CombatKeywordText extends Phaser.GameObjects.Container {
       this.add(word);
     });
 
+    const maxLines = this.options.maxLines;
+    if (maxLines !== undefined && cursorY >= maxLines * lineHeight) {
+      const lastY = (maxLines - 1) * lineHeight;
+      const words = this.list as Phaser.GameObjects.Text[];
+      for (const word of [...words]) if (word.y > lastY) this.remove(word, true);
+      const ellipsis = this.scene.add.text(0, lastY, '…', baseStyle);
+      let last = this.list.at(-1) as Phaser.GameObjects.Text | undefined;
+      while (last && last.y === lastY && last.x + last.width + ellipsis.width > this.options.width) {
+        this.remove(last, true);
+        last = this.list.at(-1) as Phaser.GameObjects.Text | undefined;
+      }
+      ellipsis.x = last?.y === lastY ? last.x + last.width : 0;
+      this.add(ellipsis);
+      cursorY = lastY;
+    }
     this.setSize(this.options.width, cursorY + lineHeight);
     return this;
   }

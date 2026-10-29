@@ -1,6 +1,9 @@
+﻿import { coopEndActions } from '../coop/guest-hud';
 import { awardRoundCore } from '../../frontend/profile/RoundRewards';
 import { recordSurvivalRound } from '../../frontend/profile/SurvivalStats';
 import { applyAchievementProgress } from '../../frontend/profile/AchievementProgress';
+import { operationZone } from '../../frontend/profile/StageData';
+import { showAchievementToasts } from '../achievement-toast';
 import type { ArrivalElevator } from '../arrival-elevator';
 import { ELEVATOR_DEPTH } from '../elevator-motion';
 import { EnemyAttackPacing } from '../enemy-attack';
@@ -23,7 +26,7 @@ const clock=(seconds:number)=>`${Math.floor(seconds/60).toString().padStart(2,'0
 export class SurvivalMode {
   readonly round:SurvivalRound;
   readonly roundId=crypto.randomUUID();
-  private readonly objective=document.createElement('div');
+
   private readonly bossHud=document.createElement('div');
   private readonly notice=document.createElement('div');
   private readonly random=seededRandom(Date.now()&0xffffff);
@@ -43,10 +46,17 @@ export class SurvivalMode {
   private saved=false;
   /** ENDLESS: an Obelisk has been defeated (the run's core is earned) */
   private coreEarned=false;
+  /** Achievement progress not yet saved; flushed within a second (at once for an Obelisk) so pop-ups land as it happens. */
+  private pendingKills=0;
+  private pendingObelisks=0;
+  private pendingHeavies=0;
+  private achievementsIn=1;
+  private fullTreeSaved=false;
+  private lowestHealth=1;
   private readonly previousKill:SortieModeInit['run']['onKill'];
 
   private constructor(private readonly init:SortieModeInit, private readonly elevator:ArrivalElevator,
-    private readonly horde:Horde, private readonly tells:TelegraphLayer, private readonly pacing:EnemyAttackPacing, endless:boolean){
+    private readonly horde:Horde, readonly tells:TelegraphLayer, private readonly pacing:EnemyAttackPacing, endless:boolean){
     this.round=new SurvivalRound(endless);
     document.body.classList.add('survival-round');
     const {run,player,field,camera,scene}=init;
@@ -57,12 +67,15 @@ export class SurvivalMode {
     elevator.motion.height=-ELEVATOR_DEPTH;elevator.motion.gateOpen=0;elevator.motion.seal=1;
     elevator.command('rise');elevator.update(0);camera.snap(player.position);
     this.supply=new SupplyLift(init,elevator,tells,text=>this.banner(text),this.random);
-    this.objective.className='survival-objective';this.bossHud.className='survival-boss';this.notice.className='survival-notice';
+    this.bossHud.className='survival-boss';this.notice.className='survival-notice';
     this.notice.setAttribute('role','status');this.notice.setAttribute('aria-live','polite');
-    document.getElementById('hud')!.append(this.objective,this.bossHud,this.notice);
+    document.getElementById('hud')!.append(this.bossHud,this.notice);
     this.previousKill=run.onKill;
     run.onKill=target=>{
       this.previousKill?.(target);
+      this.pendingKills++;
+      if(target.combatTier==='heavy')this.pendingHeavies++;
+      if(target.type.id===raptureSpec(FINAL_BOSS).model){this.pendingObelisks++;this.achievementsIn=0;}
       if(this.round.endless&&target.type.id===raptureSpec(FINAL_BOSS).model&&!this.coreEarned){
         this.coreEarned=true;this.saved=awardRoundCore(this.roundId);
         this.banner(this.saved?'OBELISK DEFEATED · Rapture Core earned · keep going':'OBELISK DEFEATED · core not saved — storage unavailable');
@@ -85,7 +98,12 @@ export class SurvivalMode {
   get arriving():boolean{return this.round.phase==='arrival';}
   abandon():void{if(!this.ended){this.round.abandon();this.finish();}}
   /** A short status line under the clock: slides in, holds `seconds`, fades out (survival-mode.css). */
+  /** Co-op: every banner, so a host can pass it to guests (coop/net-host.ts). */
+  onBanner:((text:string,seconds:number)=>void)|null=null;
+  /** Co-op host: the room code, so the results offer the lobby and main menu instead (coop/guest-hud.ts). */
+  coopRoom:string|null=null;
   private banner(text:string,seconds=3):void{
+    this.onBanner?.(text,seconds);
     this.notice.textContent=text;this.noticeFor=seconds;
     this.notice.classList.remove('show');void this.notice.offsetWidth;this.notice.classList.add('show');
   }
@@ -95,20 +113,26 @@ export class SurvivalMode {
     const {player,run}=this.init;
     if(this.arriving){
       const lift=this.elevator.state;
-      player.position.x=this.elevator.root.position.x;player.position.z=this.elevator.root.position.z;
-      // Face the gates (−Z) for the ride up, so she steps straight out when they open.
+      // Co-op: each hero has a spot on the deck (coop/coop-squad.ts deckSpot).
+      const spot=this.init.coop?.deckSpotOf(0)??{x:0,z:0};
+      player.position.x=this.elevator.root.position.x+spot.x;player.position.z=this.elevator.root.position.z+spot.z;
+      // Face the gates (âˆ’Z) for the ride up, so she steps straight out when they open.
       player.rig.legYaw=Math.PI;
       player.setTransportPose(this.elevator.transportHeight,this.elevator.transportHidden);
       if(this.elevator.isVault&&lift.gateOpen>0)this.openedGates=true;
       if(lift.height>=-.001&&lift.action==='idle'&&!this.openedGates){this.elevator.command('open');this.openedGates=true;}
       if(this.openedGates&&lift.gateOpen>=.999&&lift.action==='idle'){
         player.setTransportPose(0,false);player.transported=false;this.round.start();
-        this.banner(this.round.endless?'ENDLESS · survive as long as you can':`Survive ${ROUND_SECONDS/60} minutes · defeat the final boss`);
+        this.saveAchievements({mapId:operationZone(this.init.params.get('zone')??'').biome});
+        this.banner(this.round.endless?'ENDLESS · survive as long as you can':`Survive ${ROUND_SECONDS/60} minutes · Defeat the final boss`);
       }
       this.drawHud();return;
     }
     this.pacing.update(dt);this.horde.update(dt);
-    const events=this.round.update(dt,player.hp,!!this.boss&&!this.boss.alive);
+    this.lowestHealth=Math.min(this.lowestHealth,player.hp/Math.max(1,player.maxHp));
+    if((this.achievementsIn-=dt)<=0){this.achievementsIn=1;this.flushAchievements();}
+    // Co-op: the round is lost only when the whole squad is down.
+    const events=this.round.update(dt,this.init.coop?.squadHp??player.hp,!!this.boss&&!this.boss.alive);
     if(this.ended){this.finish();return;}
     if(events.boss&&this.round.endless){
       // ENDLESS: Obelisk crashes in on top of the horde.
@@ -120,17 +144,18 @@ export class SurvivalMode {
     }
     if(events.heavy){this.heavyQueue.push(events.heavy);this.banner(`${raptureSpec(events.heavy).name.toUpperCase()} INCOMING · heavy Rapture`);}
     if(events.unlocked.length)this.banner(`New Raptures: ${events.unlocked.map(k=>raptureSpec(k).name).join(', ')}`);
-    if(this.bossPending&&this.spawnHidden(FINAL_BOSS,this.round.endless?2*Math.max(1,this.round.cycle):2))this.bossPending=false;
-    if(this.heavyQueue.length&&this.spawnHidden(this.heavyQueue[0],hpScale(this.round.elapsed)))this.heavyQueue.shift();
+    const coop=this.init.coop?.scale??{hp:1,spawn:1,alive:1};
+    if(this.bossPending&&this.spawnHidden(FINAL_BOSS,(this.round.endless?2*Math.max(1,this.round.cycle):2)*coop.hp))this.bossPending=false;
+    if(this.heavyQueue.length&&this.spawnHidden(this.heavyQueue[0],hpScale(this.round.elapsed)*coop.hp))this.heavyQueue.shift();
     if(this.round.phase==='survive'){
       const elapsed=this.round.elapsed;
       // Steer XP toward the round's pace so the last talent arrives in the last waves.
       run.xpScale=catchUp(run.level,run.xp/Math.max(1,run.xpToNext),elapsed);
-      this.spawnBudget=Math.min(6,this.spawnBudget+dt*spawnRate(elapsed));
-      for(let i=0;i<4&&this.spawnBudget>=1&&this.alive<aliveCap(elapsed);i++){
+      this.spawnBudget=Math.min(6,this.spawnBudget+dt*spawnRate(elapsed)*coop.spawn);
+      for(let i=0;i<4&&this.spawnBudget>=1&&this.alive<aliveCap(elapsed)*coop.alive;i++){
         const key=this.pickType();
         if(!key){this.spawnBudget-=1;continue;}
-        if(!this.spawnHidden(key,hpScale(elapsed)))break;
+        if(!this.spawnHidden(key,hpScale(elapsed)*coop.hp))break;
         this.spawnBudget-=1;
       }
       if(this.previousWave!==this.round.waveIndex){this.previousWave=this.round.waveIndex;if(!events.unlocked.length)this.banner(this.round.wave.name);}
@@ -202,14 +227,18 @@ export class SurvivalMode {
     if(key===FINAL_BOSS)this.boss=enemy;
     return true;
   }
-  private drawHud():void{
-    const {run}=this.init;
+  /** The objective box's text; co-op guests show the host's copy (coop/guest-hud.ts). */
+  objectiveText():{mode:string;status:string;detail:string}{
     const phase=this.round.phase;
     const squad=this.supply.count,lift=Math.ceil(this.supply.nextIn);
     const supplies=` · Lift ${lift>0?`${Math.floor(lift/60)}:${String(lift%60).padStart(2,'0')}`:'opening'}${squad?` · Squad ${squad}`:''}${this.supply.crateWaiting?' · Crate on lift':''}`;
     const mode=this.round.endless?'ENDLESS':'WAVE';
     const status=phase==='arrival'?(this.elevator.isVault?'Opening mountain vault':'Deploying by elevator'):phase==='boss'?'Defeat Obelisk':this.round.endless?`Survived ${clock(this.round.elapsed)}`:`Survive · ${clock(this.round.remaining)} remaining`;
-    this.objective.innerHTML=`<b>${mode}</b>${status}<small>${phase==='arrival'?'Basic abilities ready · talents reset each round':`${this.round.wave.name}${supplies}`}</small><small>${run.tiers?run.tiers.pending(run.level)>=0?'Talent ready · press 1 / 2 / 3':'Earn XP by defeating Raptures':run.skillPoints>0?`${run.skillPoints} SP · Tab to advance your talent trees`:run.talents.pointsToMax===0?'All talent ranks unlocked':'Earn XP by defeating Raptures'}</small>`;
+    return {mode,status,detail:phase==='arrival'?'Basic abilities ready · talents reset each round':`${this.round.wave.name}${supplies}`};
+  }
+  /** the final boss's health, while it stands */
+  get bossHealth():[number,number]|null{return this.boss?.alive?[Math.ceil(this.boss.hp),this.boss.maxHp]:null;}
+  private drawHud():void{
     this.bossHud.hidden=!this.boss?.alive;
     if(this.boss?.alive)this.bossHud.innerHTML=`OBELISK · ${Math.ceil(this.boss.hp)} / ${this.boss.maxHp}<progress aria-label="Obelisk health" max="${this.boss.maxHp}" value="${this.boss.hp}"></progress>`;
   }
@@ -221,9 +250,11 @@ export class SurvivalMode {
     const won=this.round.phase==='victory'||(endless&&this.coreEarned);
     if(won&&!endless)this.saved=awardRoundCore(this.roundId);
     const record=recordSurvivalRound({roundId:this.roundId,characterId:this.init.characterId,endless,won,
-      bossDefeated:won||this.coreEarned,kills:run.kills,level:run.level,seconds:this.round.elapsed});
-    if(record.counted)applyAchievementProgress({characterId:this.init.characterId,characterKills:run.kills,operatorWin:won,
-      additions:{totalKills:run.kills,bossVictories:won||this.coreEarned?1:0,characterWins:won?1:0}});
+      bossDefeated:won||this.coreEarned,kills:run.kills,level:run.level,seconds:this.round.elapsed,
+      mapName:operationZone(this.init.params.get('zone')??'').name});
+    this.flushAchievements();
+    if(record.counted)this.saveAchievements({operatorWin:won&&!endless,
+      additions:{roundsPlayed:1,characterWins:won&&!endless?1:0,steadyWins:won&&!endless&&this.lowestHealth>=.5?1:0}});
     const best=record.stats,bests=new Set(record.newBests);
     const personal=!record.saved?'Stats not saved — storage unavailable'
       :endless?`${bests.has('endless')?'NEW BEST · ':''}Best run ${clock(best.bestEndlessSeconds)} · ${best.rounds} rounds played`
@@ -244,12 +275,27 @@ export class SurvivalMode {
       retry.onclick=()=>{this.saved=awardRoundCore(this.roundId);renderReward();if(this.saved)retry.remove();};
       this.result.querySelector('[data-actions]')!.prepend(retry);
     }
+    if(this.coopRoom)this.result.querySelector('[data-actions]')!.replaceChildren(...coopEndActions('host',this.coopRoom));
     renderReward();(this.result.querySelector('button') as HTMLButtonElement).focus();
+  }
+  /** Saves progress gathered since the last flush and pops up anything it unlocks. */
+  private flushAchievements():void{
+    const {run}=this.init;
+    const fullTree=!this.fullTreeSaved&&(run.tiers?run.tiers.tiers.every((_,i)=>run.tiers!.choice(i)!==null):run.talents.pointsToMax===0);
+    if(fullTree)this.fullTreeSaved=true;
+    this.saveAchievements({characterKills:this.pendingKills,fullTalentTree:fullTree,
+      additions:{totalKills:this.pendingKills,bossVictories:this.pendingObelisks,heavyKills:this.pendingHeavies,fullTalentTrees:fullTree?1:0},
+      maxima:{maxRoundKills:run.kills,bestEndlessSeconds:this.round.endless?Math.floor(this.round.elapsed):0}});
+    this.pendingKills=this.pendingObelisks=this.pendingHeavies=0;
+  }
+  private saveAchievements(update:Omit<Parameters<typeof applyAchievementProgress>[0],'characterId'>):void{
+    showAchievementToasts(applyAchievementProgress({...update,characterId:this.init.characterId}));
   }
   dispose():void{
     this.init.run.onKill=this.previousKill;this.init.run.xpScale=1;this.horde.dispose();this.tells.dispose();
     this.supply.dispose();
-    this.objective.remove();this.bossHud.remove();this.notice.remove();this.result?.remove();
+    this.bossHud.remove();this.notice.remove();this.result?.remove();
     document.body.classList.remove('survival-round');
   }
 }
+

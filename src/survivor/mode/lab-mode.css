@@ -1,4 +1,4 @@
-/* The Rapture Lab's spawn list, shown as the Raptures tab inside #weather-lab. */
+/* The Rapture Lab's spawn list, shown as the ENEMY tab inside #weather-lab. */
 .rapture-lab { color:#e8eef4; font:600 13px/1.25 Rajdhani, sans-serif; }
 .rapture-lab * { box-sizing:border-box; }
 .rapture-lab details { border-top:1px solid #9aa8ae44; }

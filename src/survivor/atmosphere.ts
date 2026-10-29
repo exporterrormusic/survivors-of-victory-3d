@@ -313,9 +313,17 @@ export class Atmosphere {
     this.syncAudio();
   }
 
+  private rainSoftened = false;
+  /** Temporary radio/dialogue mix; leaves weather and the user's audio settings intact. */
+  softenRain(soft: boolean): void {
+    if (this.disposed || this.rainSoftened === soft) return;
+    this.rainSoftened = soft;
+    this.stopRain?.(); this.stopRain = null;
+    this.syncAudio();
+  }
   private syncAudio(): void {
     const wet = !this.paused && this.weather === 'storm';
-    if (wet && !this.stopRain) this.stopRain = audioEngine.loop({ ...RAIN, volume: RAIN.volume * STRENGTH[this.intensity] }, .6);
+    if (wet && !this.stopRain) this.stopRain = audioEngine.loop({ ...RAIN, volume: RAIN.volume * STRENGTH[this.intensity] * (this.rainSoftened ? .25 : 1) }, .6);
     if (!wet && this.stopRain) { this.stopRain();this.stopRain = null; }
   }
 

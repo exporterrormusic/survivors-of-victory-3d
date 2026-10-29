@@ -1,4 +1,4 @@
-// The Survival Round's supply lift: every minute the arrival elevator cycles down and back up,
+﻿// The Survival Round's supply lift: every minute the arrival elevator cycles down and back up,
 // bringing a health crate and a squad of one to five mass-produced NIKKEs (Soldier, Product and
 // iDoll models) who fight beside the player until they fall. Both ride up visibly on the deck.
 //
@@ -247,7 +247,7 @@ class Ally implements NavigationBody, SquadMember {
     }
     this.aimTarget = best;
 
-    // 0. Off the lift first, out through the gates (−Z): the next delivery needs the deck clear.
+    // 0. Off the lift first, out through the gates (âˆ’Z): the next delivery needs the deck clear.
     if (onElevatorFootprint(p.x, p.z, .3)) { this.setGoal(ELEVATOR_ORIGIN.x+Math.max(-2, Math.min(2, p.x-ELEVATOR_ORIGIN.x)), ELEVATOR_ORIGIN.z-SHAFT_HALF_WIDTH - 1.6, true); return; }
     // 1. Out of any red warning, toward the player's side if there's a choice.
     if (tells.dangerAt(p.x, p.z, .6)) {
@@ -437,9 +437,6 @@ export class SupplyLift {
         this.cycling = true; this.risen = false; this.elevatorTime = 0; this.delivery++;
         this.elevator.command('cycle');
         this.board(this.squadSize());
-        this.banner(this.elevator.isVault?'Vault delivery inbound ? squad and supplies':'Supply lift inbound · squad and supplies');
-      } else if (elapsed >= this.nextDelivery + .1 && Math.floor(elapsed) !== Math.floor(elapsed - dt)) {
-        this.banner(this.elevator.isVault?'Vault delivery waiting ? leave the chamber':'Supply lift waiting · step off the deck');
       }
     }
     if (lift.action !== 'idle' || lift.height < -.001) this.clearDeck();
@@ -571,8 +568,6 @@ export class SupplyLift {
     if (this.crateRiding) { this.crateReady = true; this.crateRiding = false; }
     const joined = this.allies.filter((a) => a.riding);
     for (const ally of joined) { ally.disembark(); this.init.field.squad.push(ally); }
-    const label=this.elevator?.isVault?'Vault delivery':'Supply lift';
-    this.banner(`${label} ? ${joined.length ? `${joined.length} NIKKE${joined.length>1?'s':''} joined` : 'Delivery complete'}${this.crateReady?' ? health crate ready':''}`);
   }
 
   dispose(): void {
@@ -591,3 +586,4 @@ export class SupplyLift {
 function flat(a: { x: number; z: number }, b: { x: number; z: number }): number {
   return Math.hypot(a.x - b.x, a.z - b.z);
 }
+

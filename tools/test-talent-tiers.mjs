@@ -61,3 +61,24 @@ assert.ok(tiers.quests[0].done);
 tiers.reset();
 assert.ok(!tiers.has('weak_point') && !tiers.has('explosive_rounds') && tiers.pending(1) === 0, 'reset clears picks and quests');
 console.log('talent tiers: ok');
+
+const { NAYUTA_TALENTS } = await import('../src/survivor/nayuta/tiers.ts');
+assert.deepEqual(NAYUTA_TALENTS.tiers.map(t => t.level), [1, 4, 7, 10, 13, 16, 20]);
+const nayutaCode = await fs.readFile(new URL('../src/survivor/nayuta/index.ts', import.meta.url), 'utf8');
+for (const talent of NAYUTA_TALENTS.tiers.flatMap(t => t.options)) for (const flag of talent.effects)
+  assert.ok(nayutaCode.includes(`'${flag}'`), `Nayuta ${talent.name}: implemented flag ${flag}`);
+
+for(const [option,event,amount,reward] of [[0,'clone-return',20,'return_gauge'],[2,'insight-time',60,'shared_insight']]){
+ const tree=new TalentTiers(NAYUTA_TALENTS);
+ tree.recordEvent(event,amount);assert.equal(tree.quests.length,0);
+ tree.choose(0,option,1);
+ tree.recordKill({source:'burst',marked:false,burning:false});assert.equal(tree.quests[0].count,0);
+ tree.recordEvent(event,amount-.5);assert.ok(!tree.has(reward));
+ assert.equal(tree.recordEvent(event,.5).length,1);assert.ok(tree.has(reward));
+ assert.equal(tree.recordEvent(event,100).length,0);
+ tree.reset();assert.ok(!tree.has(reward));
+}
+const cloneQuest=new TalentTiers(NAYUTA_TALENTS);cloneQuest.choose(0,1,1);
+for(let i=0;i<30;i++){cloneQuest.recordKill({source:'special',marked:false,burning:false});cloneQuest.recordKill({source:'burst',marked:false,burning:false});}
+assert.ok(cloneQuest.has('united_volley'));
+console.log('Nayuta quests: retrieval events, cumulative seconds, both clone kill sources and reset: ok');

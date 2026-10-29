@@ -1,7 +1,9 @@
 import Phaser from "phaser";
+import { bleed, view } from "../rendering/DisplayQualityPlugin";
 import { goddessFallUnlocked } from "../../goddess-fall-unlock";
 
 import { bindButtonInteraction } from "../ui/interaction/ButtonInteraction";
+import { ZoneAmbience } from "../ui/ZoneAmbience";
 
 import {
   gameAudio,
@@ -12,6 +14,7 @@ import { captureDevelopmentPreview } from "../dev/capturePreview";
 import { deployMatch } from "../handoff";
 import {
   CHARACTERS,
+  characterLockReason,
   loadRosterState,
   type CharacterDefinition,
 } from "../profile/CharacterRoster";
@@ -59,6 +62,7 @@ export class StageSelectScene extends Phaser.Scene {
   private armFxLayer?: Phaser.GameObjects.Container;
   private armScanY = -72;
   private backgroundImage?: Phaser.GameObjects.Image;
+  private ambience?: ZoneAmbience;
   private character: CharacterDefinition = CHARACTERS[0]!;
   private goddessFall = false;
   private hazardLayer?: Phaser.GameObjects.Container;
@@ -81,7 +85,7 @@ export class StageSelectScene extends Phaser.Scene {
     // Returning from a run (?preview=stage-select) passes no data: use the last selected NIKKE.
     const characterId = data.characterId ?? loadRosterState().selectedCharacterId;
     this.character =
-      CHARACTERS.find((character) => character.id === characterId) ??
+      CHARACTERS.find((character) => character.id === characterId && characterLockReason(character.id) === undefined) ??
       CHARACTERS[0]!;
     this.previousScene = data.previousScene;
     this.revealTransition = data.revealTransition ?? false;
@@ -89,7 +93,7 @@ export class StageSelectScene extends Phaser.Scene {
     this.goddessFall = false;
     this.leaving = false;
     this.modeId = MISSION_MODES[0]!.id;
-    this.zoneIndex = 0;
+    this.zoneIndex = Math.floor(Math.random() * OPERATION_ZONES.length);
   }
 
   public preload(): void {
@@ -110,6 +114,9 @@ export class StageSelectScene extends Phaser.Scene {
     this.renderHazard();
     this.renderMapIdentity();
     this.renderCarousel();
+    // The carousel crop is in screen space, so it follows the window width.
+    this.events.on("view-resize", () => this.renderCarousel());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off("view-resize"));
     this.renderStartAction();
     this.renderArmEffects();
 
@@ -119,6 +126,8 @@ export class StageSelectScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       gameAudio.stopStageHazard();
       this.destroyGoddessCrtEffects();
+      this.ambience?.destroy();
+      this.ambience = undefined;
     });
     this.input.keyboard?.on("keydown-ESC", () => this.back());
     this.input.keyboard?.on("keydown-LEFT", () => this.stepZone(-1));
@@ -134,7 +143,7 @@ export class StageSelectScene extends Phaser.Scene {
 
   private createBackground(): void {
     const zone = this.currentZone();
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x0e1116).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x0e1116).setOrigin(0);
     this.backgroundImage = this.add.image(
       WIDTH / 2,
       HEIGHT / 2,
@@ -142,14 +151,16 @@ export class StageSelectScene extends Phaser.Scene {
     );
     this.fitBackground();
     this.backgroundImage.setTint(0xccccd6);
+    this.ambience = new ZoneAmbience(this, 5, this.backgroundImage);
+    this.ambience.set(zone.id);
 
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x071019, 0.24).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x071019, 0.24).setOrigin(0);
     const shade = this.add.graphics();
-    shade.fillStyle(0x071019, 0.62).fillRect(0, 820, WIDTH, 260);
+    shade.fillStyle(0x071019, 0.62).fillRect(bleed.left, 820, bleed.width, 260);
     const scan = this.add.graphics().setDepth(7);
     for (let y = 0; y < HEIGHT; y += 4) {
-      scan.fillStyle(0x01060a, 0.11).fillRect(0, y, WIDTH, 2);
-      scan.fillStyle(0xffffff, 0.018).fillRect(0, y + 2, WIDTH, 1);
+      scan.fillStyle(0x01060a, 0.11).fillRect(bleed.left, y, bleed.width, 2);
+      scan.fillStyle(0xffffff, 0.018).fillRect(bleed.left, y + 2, bleed.width, 1);
     }
   }
 
@@ -474,10 +485,13 @@ export class StageSelectScene extends Phaser.Scene {
     root.add(strip);
     // External filters use camera coordinates, keeping the crop fixed as the
     // thumbnails slide. Leave a gap between the fade and each arrow button.
-    if (!this.textures.exists(CAROUSEL_MASK_KEY)) {
-      const texture = this.textures.createCanvas(CAROUSEL_MASK_KEY, WIDTH, HEIGHT);
+    // The mask spans the whole visible view, so wide screens shift the crop by the side margin.
+    const maskKey = `${CAROUSEL_MASK_KEY}-${view.width}`;
+    if (!this.textures.exists(maskKey)) {
+      const texture = this.textures.createCanvas(maskKey, view.width, HEIGHT);
       if (texture !== null) {
         const context = texture.getContext();
+        context.translate(-view.left, 0);
         const fade = 64 / (CAROUSEL_RIGHT - CAROUSEL_LEFT);
         const gradient = context.createLinearGradient(CAROUSEL_LEFT, 0, CAROUSEL_RIGHT, 0);
         gradient.addColorStop(0, "rgba(255,255,255,0)");
@@ -490,7 +504,7 @@ export class StageSelectScene extends Phaser.Scene {
       }
     }
     strip.enableFilters();
-    strip.filters?.external.addMask(CAROUSEL_MASK_KEY);
+    strip.filters?.external.addMask(maskKey);
     OPERATION_ZONES.forEach((zone, index) => {
       const relative = this.circularDelta(
         index,
@@ -706,27 +720,27 @@ export class StageSelectScene extends Phaser.Scene {
     const root = this.add.container(0, 0).setDepth(8);
     this.armFxLayer = root;
     const fullScreenTint = this.add
-      .rectangle(0, 0, WIDTH, HEIGHT, RED, 0.11)
+      .rectangle(bleed.left, 0, bleed.width, HEIGHT, RED, 0.11)
       .setOrigin(0)
       .setBlendMode(Phaser.BlendModes.ADD);
     const pulse = this.add
-      .rectangle(0, 0, WIDTH, HEIGHT, 0xff5147, 0.08)
+      .rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xff5147, 0.08)
       .setOrigin(0)
       .setBlendMode(Phaser.BlendModes.ADD);
     const scanBand = this.add.container(0, this.armScanY);
     const bandShade = this.add
-      .rectangle(0, 0, WIDTH, 68, 0x240000, 0.14)
+      .rectangle(bleed.left, 0, bleed.width, 68, 0x240000, 0.14)
       .setOrigin(0);
     const topEdge = this.add
-      .rectangle(0, 0, WIDTH, 3, 0xff8a83, 0.68)
+      .rectangle(bleed.left, 0, bleed.width, 3, 0xff8a83, 0.68)
       .setOrigin(0)
       .setBlendMode(Phaser.BlendModes.ADD);
     const hotCore = this.add
-      .rectangle(0, 27, WIDTH, 9, 0xff4037, 0.22)
+      .rectangle(bleed.left, 27, bleed.width, 9, 0xff4037, 0.22)
       .setOrigin(0)
       .setBlendMode(Phaser.BlendModes.ADD);
     const bottomEdge = this.add
-      .rectangle(0, 66, WIDTH, 2, 0xb80f09, 0.62)
+      .rectangle(bleed.left, 66, bleed.width, 2, 0xb80f09, 0.62)
       .setOrigin(0);
     const glitchA = this.add
       .rectangle(112, 14, 420, 3, 0xff8b84, 0.38)
@@ -930,6 +944,7 @@ export class StageSelectScene extends Phaser.Scene {
       onComplete: () => {
         image.setTexture(this.zoneKey(this.currentZone()));
         this.fitBackground();
+        this.ambience?.set(this.currentZone().id);
         this.tweens.add({
           alpha: 1,
           duration: 240,
@@ -1010,7 +1025,7 @@ export class StageSelectScene extends Phaser.Scene {
       height: number;
       width: number;
     };
-    const scale = Math.max(WIDTH / texture.width, HEIGHT / texture.height);
+    const scale = Math.max(bleed.width / texture.width, HEIGHT / texture.height);
     image.setDisplaySize(texture.width * scale, texture.height * scale);
   }
 

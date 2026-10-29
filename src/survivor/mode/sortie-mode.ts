@@ -31,6 +31,7 @@ import { FEATURES } from '../../features';
 import { SITE_KINDS, SiteSet, type SiteInit } from './sites';
 import { SiteView } from './site-view';
 import { TelegraphLayer, groundHeight } from './telegraph';
+import type { CoopSquad } from '../coop/coop-squad';
 
 export interface SortieModeInit {
   readonly scene: Scene;
@@ -45,6 +46,8 @@ export interface SortieModeInit {
   readonly toScreen: (x: number, y: number, z: number) => ScreenPoint;
   readonly arenaRadius: number;
   readonly params: URLSearchParams;
+  /** experimental co-op squad (?coop=bot); absent in normal play */
+  readonly coop?: CoopSquad;
   /** whose saved level and ranks the run starts from, and where the trip's result is saved */
   readonly characterId: CharacterId;
   /** name and banner art (a path under public/) for the results screen */

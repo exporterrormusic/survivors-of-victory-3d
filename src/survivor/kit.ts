@@ -2,6 +2,7 @@
 // dash, magazine, reload and the Burst gauge; a kit supplies what its weapon, Special and Burst
 // do and look like (src/survivor/<character>/). Numbers follow Survivors of Victory's CombatData.
 
+import type { Chibi } from '../chibi';
 import type { Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
 import type { Cue } from '../audio/sound-bank';
 import type { SurvivorCamera } from './camera';
@@ -30,6 +31,9 @@ export interface WeaponSpec {
 }
 
 export interface SpecialState {
+  available?: boolean;
+  label?: string;
+  hint?: string;
   /** Held special charge, normalized; null/absent when not charging. */
   charge?: number | null;
   charges: number;
@@ -40,6 +44,7 @@ export interface SpecialState {
 
 /** Everything a kit can reach. */
 export interface KitContext {
+  playerModel?: Chibi;
   readonly scene: Scene;
   readonly shadows: ShadowGenerator;
   readonly vfx: Vfx;
@@ -71,6 +76,25 @@ export interface KitContext {
 }
 
 export interface CharacterKit {
+  readonly insightDisplay?: { stacks:number; seconds:number; duration:number; damage:number; speed:number; meditating:boolean; regular:number; mature:number; silver:number; armySeconds:number };
+  /** Passive receives the shared player's complete-idle state. */
+  setMeditating?(active: boolean): void;
+  readonly meditateWhileCommanding?: boolean;
+  /** False for weapon-only prototypes whose Burst is not designed yet. */
+  readonly burstAvailable?: boolean;
+  readonly presentationLift?: number;
+  /** Ability-driven movement, still swept against terrain by Player. Weapons stay usable. */
+  specialMovement?(dt: number): Vector3 | null;
+  afterPlayerAnimation?(): void;
+  /** Temporarily hide auxiliary models and poses during story cutscenes. */
+  setCutscenePresentation?(active: boolean): void;
+  readonly blocksWeapon?: boolean;
+  readonly burstActionReady?: boolean;
+  readonly burstLabel?: string;
+  continueBurst?(): void;
+  readonly unlimitedAmmo?: boolean;
+  readonly burstActive?: boolean;
+  readonly status?: string;
   /** Staff users look toward the cursor; their carried weapon axis is not their facing. */
   readonly aimFacing?: 'head' | 'weapon';
   /** Pick the ground under the cursor and preserve that endpoint, including close shots. */
@@ -93,6 +117,13 @@ export interface CharacterKit {
   fire(muzzle: Vector3, aim: Vector3, charge?: number): void;
   /** Right mouse. Returns false if it couldn't be used (no charge). */
   useSpecial(): boolean;
+  cancelSpecial?(): void;
+  /** Clear persistent ability state immediately on death. */
+  onDeath?(): void;
+  /** Ignore unit separation while airborne, including the landing frame. */
+  readonly throughEnemies?: boolean;
+  /** Ability-owned immunity; ends immediately with the ability. */
+  readonly invulnerable?: boolean;
   chargeSpecial?(dt: number, held: boolean, released: boolean): void;
   onDash?(): void;
   readonly dashThroughEnemies?: boolean;
@@ -106,4 +137,6 @@ export interface CharacterKit {
   update(dt: number): void;
   /** Build pooled models and compile effect shaders while the loading screen is up. */
   prepare?(): Promise<void>;
+  /** Release kit-owned summons when a teammate leaves or the scene closes. */
+  dispose?(): void;
 }

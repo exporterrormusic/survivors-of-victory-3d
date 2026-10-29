@@ -60,6 +60,9 @@ export function createSakuraAsset(scene:Scene,asset:SakuraAsset,materials:Sakura
     const edge=(a:number,b:number)=>indices.push(a,b,a+count,b,b+count,a+count);
     for(let i=0;i<nx;i++){edge(i,i+1);edge(nz*(nx+1)+i+1,nz*(nx+1)+i);}
     for(let j=0;j<nz;j++){edge((j+1)*(nx+1),j*(nx+1));edge(j*(nx+1)+nx,(j+1)*(nx+1)+nx);}
+    // Babylon's front-face winding is opposite the authored grid's ordering.
+    // Render the exterior roof skin, not the lower skin seen through a culled top.
+    for(let i=0;i<indices.length;i+=3){const b=indices[i+1];indices[i+1]=indices[i+2];indices[i+2]=b;}
     VertexData.ComputeNormals(positions,indices,normals);
     const data=new VertexData();Object.assign(data,{positions,indices,normals,uvs});
     const mesh=new Mesh(name,scene);data.applyToMesh(mesh);finish(mesh,stone?'stone':'tile');
@@ -131,19 +134,65 @@ export function createSakuraAsset(scene:Scene,asset:SakuraAsset,materials:Sakura
     box('granite-plinth',0,.22,0,6.4,.44,4.6,'stone');
     for(let i=0;i<3;i++)box('approach-step',0,.08+i*.12,-2.95+i*.30,2.8,.16+i*.24,.62,'stone');
     box('raised-wood-floor',0,.56,0,6.0,.25,4.2);
-    box('rear-wall',0,2.03,1.65,5.4,2.7,.22);
-    for(const x of [-2.6,2.6])box('side-wall',x,2.03,.1,.22,2.7,3.3);
-    for(const x of [-2.7,-1.15,1.15,2.7])for(const z of [-1.65,1.65])beam('shrine-post',x,2.1,z,.28,3.0,.28);
+    box('rear-wall',0,2.57,1.65,5.6,3.8,.26);
+    for(const x of [-2.7,2.7]){
+      box('side-wall',x,2.57,0,.28,3.8,3.55);
+      // One continuous solid gable follows the roof, rather than overlapping
+      // boxes whose coplanar side faces flicker under the cinematic camera.
+      const positions:number[]=[],uvs:number[]=[],indices:number[]=[],normals:number[]=[];
+      for(let i=0;i<=24;i++){
+        const z=-1.76+i*3.52/24,edge=Math.abs(z)/2.75;
+        const top=4.10+1.15*(1-edge)+.25*edge**4+.18*(Math.abs(x)/3.85)**6-.10;
+        for(const dx of [-.15,.15]){
+          positions.push(x+dx,3.95,z,x+dx,top,z);
+          uvs.push(i/24,0,i/24,(top-3.95)/.9);
+        }
+      }
+      const quad=(a:number,b:number,c:number,d:number)=>indices.push(a,b,c,a,c,d);
+      for(let i=0;i<24;i++){
+        const a=i*4,b=a+4;
+        quad(a,b,b+1,a+1);quad(a+2,a+3,b+3,b+2);
+        quad(a+1,b+1,b+3,a+3);quad(a,a+2,b+2,b);
+      }
+      quad(0,1,3,2);quad(96,98,99,97);
+      VertexData.ComputeNormals(positions,indices,normals);
+      const data=new VertexData();Object.assign(data,{positions,indices,normals,uvs});
+      const gable=new Mesh('gable-infill',scene);data.applyToMesh(gable);finish(gable,'wood');
+      beam('side-wall-plate',x,4.28,0,.4,.22,3.7);
+    }
+    for(const x of [-2.7,-1.15,1.15,2.7])for(const z of [-1.65,1.65])beam('shrine-post',x,2.44,z,.32,3.6,.32);
+    // Close the facade from corner post to corner post. Slight overlaps at
+    // jambs and meeting stiles prevent daylight cracks at oblique angles.
+    for(const x of [-2.35,2.35])box('front-side-infill',x,2.61,-1.40,.9,3.88,.26);
+    // Recess this infill slightly behind the outer wall panels at their joins.
+    box('front-upper-wall',0,3.89,-1.40,3.84,1.32,.22);
+    box('enclosed-ceiling',0,4.28,0,5.6,.18,3.65);
+    box('door-upper-track',0,3.25,-1.40,4.25,.18,.25);
+    box('door-lower-track',0,.70,-1.40,4.25,.10,.25);
     for(const x of [-1.55,-.55,.55,1.55]){
-      box('door-panel',x,1.95,-1.40,.95,2.5,.15);
+      const start=parts.length;
+      box('door-panel',x,1.95,-1.40,1.11,2.5,.15);
       box('door-paper',x,2.24,-1.50,.78,1.45,.035,'paper');
       for(let j=0;j<5;j++)box('door-slats',x-.36+j*.18,2.24,-1.54,.035,1.5,.035);
       for(const y of [1.65,2.2,2.85])box('door-crossbar',x,y,-1.55,.85,.055,.04);
+      if(Math.abs(x)<1){
+        const side=x<0?'left':'right',leaf=new TransformNode(`shrine-door-${side}`,scene);leaf.parent=root;
+        leaf.metadata={closedX:0,openX:x<0?-1.1:1.1,slideAxis:'x'};
+        // Keep the centre leaves out of the static building merge, with each
+        // leaf's paper and lattice attached to one future animation target.
+        const pieces=parts.splice(start);
+        for(const material of materials.materials.values()){
+          const group=pieces.filter(p=>p.material===material);
+          if(group.length){const merged=Mesh.MergeMeshes(group,true,true)!;merged.name=`shrine-door-${side}-${material.name}`;merged.parent=leaf;merged.isPickable=false;merged.receiveShadows=true;}
+        }
+      }
     }
     beam('front-lintel',0,3.48,-1.65,5.9,.32,.4);
-    for(let x=-2.7;x<=2.71;x+=.6)beam('roof-bracket',x,3.65,-1.65,.18,.32,.8);
-    roof('shrine-main-roof',0,3.75,0,7.7,5.5,1.15);
-    roof('entry-canopy',0,3.02,-2.05,3.25,2,.42);
+    beam('roof-bearing-beam',0,4.22,-1.65,5.9,.26,.45);
+    for(let x=-2.7;x<=2.71;x+=.6)beam('roof-bracket',x,4.24,-1.65,.18,.30,.8);
+    for(const x of [-1.48,1.48])beam('canopy-support',x,2.0,-2.45,.16,2.7,.16);
+    roof('shrine-main-roof',0,4.10,0,7.7,5.5,1.15);
+    roof('entry-canopy',0,3.20,-2.05,3.25,2,.42);
     box('offering-box',0,.97,-2.0,1.05,.65,.55);
     for(let i=0;i<7;i++)box('offering-slats',-.45+i*.15,1.32,-2,.075,.06,.55,'tile');
     tube('bell-rope',[new Vector3(0,3.0,-2.45),new Vector3(.06,1.5,-2.45)],.035,'wood');

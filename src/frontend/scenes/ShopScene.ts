@@ -2,6 +2,7 @@ import { cores } from "../ui/cores";
 import { characterSkins } from '../profile/Skins';
 import { createSkinShowroom } from '../ui/SkinShowroom';
 import Phaser from "phaser";
+import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
 import { FEATURES } from "../../features";
 import { gameAudio, preloadLobbyAudio } from "../audio/GameAudio";
@@ -23,6 +24,8 @@ import {
   purchasePermanentUpgrade,
   unlockCharacter,
   unlockNipmh,
+  characterLockReason,
+  canPreviewCharacterTalents,
 } from "../profile/CharacterRoster";
 import {
   nextNikkeTransitionProfile,
@@ -169,61 +172,62 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private createBackdrop(): void {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xe9edf1).setOrigin(0);
+    this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0xe9edf1).setOrigin(0);
     const grid = this.add.graphics();
     grid.lineStyle(1, 0x81909c, 0.1);
-    for (let x = -360; x < WIDTH + 360; x += 190) {
+    for (let x = bleed.left - 360; x < bleed.right + 360; x += 190) {
       grid.lineBetween(x, 138, x + 420, HEIGHT);
     }
-    grid.fillStyle(0x202832, 1).fillRect(0, 0, WIDTH, 136);
-    grid.fillStyle(0xe8392e, 1).fillRect(0, 132, 1180, 4);
-    grid.fillStyle(0x35c5f2, 1).fillRect(1180, 132, WIDTH - 1180, 4);
+    grid.fillStyle(0x202832, 1).fillRect(bleed.left, 0, bleed.width, 136);
+    grid.fillStyle(0xe8392e, 1).fillRect(bleed.left, 132, 1180 - bleed.left, 4);
+    grid.fillStyle(0x35c5f2, 1).fillRect(1180, 132, bleed.right - 1180, 4);
   }
 
   private createHeader(): void {
-    this.add.text(56, 36, "ARK PROCUREMENT // PERMANENT ACCESS", {
+    pinToEdge(this.add.text(view.left + 56, 36, "ARK PROCUREMENT // PERMANENT ACCESS", {
       color: "#8e9aa7",
       fontFamily: "Rajdhani",
       fontSize: "18px",
       fontStyle: "bold",
       letterSpacing: 2.2,
-    });
-    this.add.text(54, 64, "CORE EXCHANGE", {
+    }), "left");
+    pinToEdge(this.add.text(view.left + 54, 64, "CORE EXCHANGE", {
       color: "#f7f9fb",
       fontFamily: "Rajdhani",
       fontSize: "45px",
       fontStyle: "bold",
       letterSpacing: 2.4,
-    });
-    this.add.text(430, 80, FEATURES.nipmh ? "OPERATORS, SKINS AND SUPPLY AUTHORIZATIONS" : "UNLOCK OPERATORS AND SKINS", {
+    }), "left");
+    pinToEdge(this.add.text(view.left + 430, 80, FEATURES.nipmh ? "OPERATORS, SKINS AND SUPPLY AUTHORIZATIONS" : "UNLOCK OPERATORS AND SKINS", {
       color: "#aeb7c1",
       fontFamily: "Rajdhani",
       fontSize: "19px",
       fontStyle: "bold",
       letterSpacing: 1.2,
-    });
+    }), "left");
 
-    const corePanel = this.add.graphics();
+    // The core counter rides the right edge on wide screens.
+    const corePanel = pinToEdge(this.add.graphics().setX(view.right - 1920), "right");
     corePanel.fillStyle(0x111820, 1).fillRect(1538, 39, 326, 66);
     corePanel.lineStyle(1, 0x5e6a76, 1).strokeRect(1538.5, 39.5, 325, 65);
     corePanel.fillStyle(0xe8392e, 1).fillCircle(1575, 72, 10);
     corePanel.lineStyle(1, 0xff8179, 1).strokeCircle(1575, 72, 15);
-    this.coreValueText = this.add
-      .text(1605, 72, "0", {
+    this.coreValueText = pinToEdge(this.add
+      .text(view.right - 315, 72, "0", {
         color: "#f7f9fb",
         fontFamily: "Rajdhani",
         fontSize: "32px",
         fontStyle: "bold",
-      })
+      }), "right")
       .setOrigin(0, 0.5);
-    this.add
-      .text(1838, 73, "RAPTURE CORES", {
+    pinToEdge(this.add
+      .text(view.right - 82, 73, "RAPTURE CORES", {
         color: "#8f99a5",
         fontFamily: "Rajdhani",
         fontSize: "13px",
         fontStyle: "bold",
         letterSpacing: 1.4,
-      })
+      }), "right")
       .setOrigin(1, 0.5);
   }
 
@@ -371,8 +375,8 @@ export class ShopScene extends Phaser.Scene {
     host.style.width = '674px'; host.style.height = '744px'; host.append(showroom.element); document.body.append(host);
     const canvas = this.game.canvas;
     const position = () => {
-      const bounds = canvas.getBoundingClientRect(), scale = bounds.width / WIDTH;
-      host.style.left = `${bounds.left + 1188 * scale}px`; host.style.top = `${bounds.top + 244 * scale}px`;
+      const bounds = canvas.getBoundingClientRect(), scale = bounds.width / view.width;
+      host.style.left = `${bounds.left + (1188 - view.left) * scale}px`; host.style.top = `${bounds.top + 244 * scale}px`;
       host.style.transform = `scale(${scale})`;
     };
     const observer = new ResizeObserver(position); observer.observe(canvas); window.addEventListener('resize', position); position();
@@ -655,6 +659,7 @@ export class ShopScene extends Phaser.Scene {
           this.renderContent();
         }
       },
+      characterLockReason(character.id),
     );
     const message = this.add
       .text(28, 600, this.message, {
@@ -722,9 +727,10 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private openTalentPreview(character: CharacterDefinition): void {
+    if (!canPreviewCharacterTalents(character.id)) return;
     this.talentPreview?.destroy();
     this.currentTalentPreview?.close(); this.currentTalentPreview?.remove();
-    if (character.id === 'snow-white' || character.id === 'scarlet' || character.id === 'rapunzel') {
+    if (character.id === 'snow-white' || character.id === 'scarlet' || character.id === 'rapunzel' || character.id === 'nayuta') {
       const dialog = openLobbyTalentTree(character.id);
       this.currentTalentPreview = dialog;
       const inputEnabled = this.input.enabled;
@@ -1488,10 +1494,12 @@ export class ShopScene extends Phaser.Scene {
     unlocked: boolean,
     cost: number,
     onPurchase: () => void,
+    /** unfinished kits can't be bought: shows the reason instead of a price */
+    lockReason?: string,
   ): Phaser.GameObjects.Container {
     const state = loadRosterState();
     const affordable = state.pristineCores >= cost;
-    const enabled = !unlocked && affordable;
+    const enabled = !unlocked && affordable && lockReason === undefined;
     const container = this.add.container(x, y);
     const surface = this.add.graphics();
     const label = this.add
@@ -1500,6 +1508,8 @@ export class ShopScene extends Phaser.Scene {
         0,
         unlocked
           ? "UNLOCKED"
+          : lockReason !== undefined
+            ? lockReason
           : cost === 0
             ? "UNLOCK FREE"
             : affordable
@@ -1632,6 +1642,9 @@ export class ShopScene extends Phaser.Scene {
       return;
     }
     this.leaving = true;
+    // The DOM showroom sits above Phaser's transition canvas; remove it before covering.
+    this.skinShowroom?.dispose();
+    this.skinShowroom = undefined;
     gameAudio.playUi(this, "back");
     const transitionProfile = nextNikkeTransitionProfile();
     playHexWipeCover(

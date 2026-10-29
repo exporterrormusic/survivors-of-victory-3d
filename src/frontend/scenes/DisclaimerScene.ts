@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
 import { GAME_AUDIO_KEYS, gameAudio } from "../audio/GameAudio";
 import { captureDevelopmentPreview } from "../dev/capturePreview";
@@ -56,7 +57,8 @@ export class DisclaimerScene extends Phaser.Scene {
       preview === "settings" ||
       preview === "shop" ||
       preview === "character-select" ||
-      preview === "stage-select"
+      preview === "stage-select" ||
+      preview === "multiplayer"
     ) {
       this.scene.start(preview);
       return;
@@ -79,8 +81,8 @@ export class DisclaimerScene extends Phaser.Scene {
     }
     this.walker.x += 150 * (delta / 1000);
     this.walker.y = this.walkerBaseY + Math.sin(this.time.now * 0.008) * 3;
-    if (this.walker.x > SCREEN_WIDTH + 100) {
-      this.walker.x = -100;
+    if (this.walker.x > bleed.right + 100) {
+      this.walker.x = bleed.left - 100;
     }
   }
 
@@ -102,20 +104,20 @@ export class DisclaimerScene extends Phaser.Scene {
   private renderHybridVariant(root: Phaser.GameObjects.Container): void {
     root.add(
       this.add
-        .rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x11151b)
+        .rectangle(bleed.left, 0, bleed.width, SCREEN_HEIGHT, 0x11151b)
         .setOrigin(0),
     );
 
     const decoration = this.add.graphics();
     decoration.lineStyle(1, 0x5c6570, 0.12);
-    for (let x = -360; x < SCREEN_WIDTH + 360; x += 180) {
+    for (let x = bleed.left - 360; x < bleed.right + 360; x += 180) {
       decoration.lineBetween(x, 0, x + 470, SCREEN_HEIGHT);
     }
     decoration.fillStyle(0x0b0e13, 0.9);
-    decoration.fillRect(0, 0, SCREEN_WIDTH, 76);
-    decoration.fillRect(0, SCREEN_HEIGHT - 54, SCREEN_WIDTH, 54);
+    decoration.fillRect(bleed.left, 0, bleed.width, 76);
+    decoration.fillRect(bleed.left, SCREEN_HEIGHT - 54, bleed.width, 54);
     decoration.fillStyle(0x35c5f2, 1);
-    decoration.fillRect(0, 74, 520, 3);
+    decoration.fillRect(bleed.left, 74, 520 - bleed.left, 3);
     decoration.fillRect(238, 375, 4, 330);
     decoration.lineStyle(1, 0x76808c, 0.5);
     decoration.lineBetween(238, 375, 292, 375);
@@ -123,21 +125,21 @@ export class DisclaimerScene extends Phaser.Scene {
     root.add(decoration);
 
     root.add(
-      this.add.text(52, 25, "SYSTEM NOTICE / LEGAL", {
+      pinToEdge(this.add.text(view.left + 52, 25, "SYSTEM NOTICE / LEGAL", {
         color: "#f0f4f8",
         fontFamily: "Rajdhani",
         fontSize: "27px",
         fontStyle: "bold",
         letterSpacing: 1.5,
-      }),
+      }), "left"),
     );
     root.add(
-      this.add.text(1780, 25, "00", {
+      pinToEdge(this.add.text(view.right - 140, 25, "00", {
         color: "#8f98a4",
         fontFamily: "Rajdhani",
         fontSize: "27px",
         fontStyle: "bold",
-      }),
+      }), "right"),
     );
 
     root.add(
@@ -199,13 +201,13 @@ export class DisclaimerScene extends Phaser.Scene {
     root.add(promptHit);
 
     root.add(
-      this.add.text(52, 1023, "SOV // CLIENT INITIALIZATION", {
+      pinToEdge(this.add.text(view.left + 52, 1023, "SOV // CLIENT INITIALIZATION", {
         color: "#69727d",
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "bold",
         letterSpacing: 2,
-      }),
+      }), "left"),
     );
 
     this.updateContinuePrompt();
