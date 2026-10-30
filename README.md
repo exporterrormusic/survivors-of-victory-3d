@@ -23,15 +23,15 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 <td width="50%"><img src="docs/screenshots/02-nihilister.jpg" alt="Nihilister"><br><b>Nihilister</b> · a giant meteor cracks open the Ashen Caldera and she rises from the lava to burn a path across the map.</td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/03-scarlet-flash.jpg" alt="Scarlet · Scarlet Flash"><br><b>Scarlet · Scarlet Flash</b> · time stops and the Sakura Grove drains to grey while she cuts through the horde.</td>
-<td width="50%"><img src="docs/screenshots/04-rapunzel-stormbringer.jpg" alt="Rapunzel · Garden of Shangri-La"><br><b>Rapunzel · Garden of Shangri-La</b> · a golden seal of light in the rain and lightning of the Stormbringer.</td>
+<td width="50%"><img src="docs/screenshots/03-scarlet-flash.jpg" alt="Sakura Grove"><br><b>Sakura Grove</b> · torii gates, stone lanterns and cherry blossoms around the shrine, with Scarlet holding the lift.</td>
+<td width="50%"><img src="docs/screenshots/04-rapunzel-stormbringer.jpg" alt="Stormbringer flood"><br><b>Stormbringer</b> · the storm surge floods the rivers into whitewater while the horde closes in.</td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/screenshots/05-snow-white-frozen-north.jpg" alt="Snow White · The Frozen North"><br><b>Snow White · The Frozen North</b> · holding a snowfield against the swarm.</td>
 <td width="50%"><img src="docs/screenshots/06-rapunzel-divine-blessing.jpg" alt="Rapunzel · Divine Blessing"><br><b>Rapunzel · Divine Blessing</b> · a holy circle burning Raptures in the Ashen Caldera.</td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/07-broken-ice.jpg" alt="Breaking ice"><br><b>Breaking ice</b> · the Frozen North's lakes crack and give way underfoot.</td>
+<td width="50%"><img src="docs/screenshots/07-broken-ice.jpg" alt="Breaking ice"><br><b>Breaking ice</b> · stress cracks spread across the frozen lake until the ice gives way.</td>
 <td width="50%"><img src="docs/screenshots/08-graveyard.jpg" alt="Haunted Pine Forest"><br><b>Haunted Pine Forest</b> · a ruined chapel and its churchyard in the fog.</td>
 </tr>
 <tr>
