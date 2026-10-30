@@ -63,6 +63,7 @@
     ],
     "compression": "normal",
     "win": {
+      "icon": "public/icon-sov-v1.ico",
       "target": [
         {
           "target": "nsis",
@@ -74,10 +75,21 @@
       "artifactName": "SurvivorsOfVictory-Setup-${version}.${ext}"
     },
     "nsis": {
-      "oneClick": true,
+      "installerIcon": "public/icon-sov-v1.ico",
+      "uninstallerIcon": "public/icon-sov-v1.ico",
+      "installerHeaderIcon": "public/icon-sov-v1.ico",
+      "oneClick": false,
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true
+      "runAfterFinish": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Survivors of Victory 3D",
+      "uninstallDisplayName": "Survivors of Victory 3D",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp"
     },
     "publish": [
       {

@@ -20,6 +20,7 @@ function createWindow() {
     width: 1600,
     height: 900,
     backgroundColor: '#000000',
+    icon: path.join(DIST, 'icon-sov-v1.ico'),
     autoHideMenuBar: true,
     show: false,
     webPreferences: { contextIsolation: true, sandbox: true, backgroundThrottling: false },

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/screenshots/00-logo-banner.png" alt="Survivors of Victory: a Goddess of Victory: NIKKE fan game" width="900">
+
 # SURVIVORS OF VICTORY 3D
 
 **A 3D horde-survival fan game set in the world of *Goddess of Victory: NIKKE*.**
@@ -7,7 +9,7 @@
 Pick a Nikke, ride the lift down to the surface and hold out against an ever-growing Rapture horde.
 Level up, choose talents, build Burst gauge, and survive long enough to face the boss.
 
-[**⬇ Download for Windows (v0.1)**](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest)
+[**⬇ Download for Windows**](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest)
 
 <img src="docs/screenshots/02-nihilister.jpg" alt="Nihilister rising from the lava in the Ashen Caldera" width="900">
 
@@ -83,9 +85,10 @@ Some maps hide secrets. Look around.
 
 ## Install
 
-1. Download `SurvivorsOfVictory-Setup-0.1.0.exe` from the [latest release](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest).
+1. Download `SurvivorsOfVictory-Setup-<version>.exe` from the [latest release](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest).
 2. Run it. Windows SmartScreen may warn because the installer isn't code-signed: choose **More info → Run anyway**.
-3. The game updates itself when a new release is published.
+3. Choose where to install it. The installer adds a desktop shortcut and a Start Menu entry.
+4. The game updates itself when a new release is published.
 
 Your cores, unlocks, skins, records and settings are saved on your PC. **Settings → Data** exports a backup file.
 
