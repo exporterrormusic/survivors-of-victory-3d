@@ -1,0 +1,70 @@
+# Every push to main builds the Windows installer and publishes it as a GitHub pre-release.
+# Players who turn on Settings > Data > EXPERIMENTAL UPDATES get it automatically; everyone else
+# stays on stable releases (GitHub's "latest release" never points at a pre-release).
+name: Experimental build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'tools/**', '.github/ISSUE_TEMPLATE/**']
+  workflow_dispatch:
+
+concurrency:
+  group: experimental-build
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Stamp the test build version
+        id: version
+        shell: bash
+        run: |
+          node tools/sync-version.mjs --beta ${{ github.run_number }}
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - run: npm run build
+
+      - name: Build installer
+        run: npx electron-builder --win --publish never
+
+      # electron-builder names a beta's update feed beta.yml; the updater on a stable install
+      # reads latest.yml from the newest release, so ship the feed under both names.
+      - name: Publish pre-release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cd release
+          [ -f latest.yml ] || cp beta.yml latest.yml
+          gh release create "v$VERSION" \
+            "SurvivorsOfVictory-Setup-$VERSION.exe" \
+            "SurvivorsOfVictory-Setup-$VERSION.exe.blockmap" \
+            latest.yml $( [ -f beta.yml ] && echo beta.yml ) \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "Experimental build $VERSION" \
+            --notes "Automatic test build of ${GITHUB_SHA::7}: $(git log -1 --format=%s). May be unstable. Installed automatically for players with Settings > Data > EXPERIMENTAL UPDATES turned on."
+
+      # Each installer is ~750 MB; keep only the five newest test builds.
+      - name: Prune old pre-releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+            --jq '[.[] | select(.isPrerelease and (.tagName | test("-beta\\.")))] | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+          while read -r tag; do gh release delete "$tag" --yes --cleanup-tag; done
