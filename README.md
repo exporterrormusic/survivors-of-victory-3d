@@ -7,7 +7,7 @@
 Pick a Nikke, ride the lift down to the surface and hold out against an ever-growing Rapture horde.
 Level up, choose talents, build Burst gauge, and survive long enough to face the boss.
 
-[**⬇ Download for Windows (v0.1)**](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest) · Closed alpha
+[**⬇ Download for Windows (v0.1)**](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest)
 
 <img src="docs/screenshots/02-nihilister.jpg" alt="Nihilister rising from the lava in the Ashen Caldera" width="900">
 
@@ -89,7 +89,7 @@ Some maps hide secrets. Look around.
 
 Your cores, unlocks, skins, records and settings are saved on your PC. **Settings → Data** exports a backup file.
 
-This is a closed alpha. Please report bugs, and how rounds felt, in [Issues](https://github.com/exporterrormusic/survivors-of-victory-3d/issues), with the version shown in the bottom-left of the main menu.
+This is an early build. Please report bugs, and how rounds felt, in [Issues](https://github.com/exporterrormusic/survivors-of-victory-3d/issues), with the version shown in the bottom-left of the main menu.
 
 ---
 

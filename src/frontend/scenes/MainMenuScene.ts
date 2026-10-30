@@ -85,7 +85,7 @@ interface PatchRelease {
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
     version: "0.1",
-    title: "CLOSED ALPHA",
+    title: "V0.1",
     sections: [
       {
         heading: "WELCOME",
@@ -610,7 +610,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(
         panelX + 42,
         panelY + panelHeight - 43,
-        `VERSION ${GAME_VERSION} // ${PATCH_RELEASES[0]!.title}`,
+        `VERSION ${GAME_VERSION}`,
         {
           color: "#8b959e",
           fontFamily: "Rajdhani",
