@@ -9,7 +9,7 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 
 [**⬇ Download for Windows (v0.1)**](https://github.com/exporterrormusic/survivors-of-victory-3d/releases/latest) · Closed alpha
 
-<img src="docs/screenshots/03-snow-white-seven-dwarves.jpg" alt="Snow White firing her Seven Dwarves Burst into a Rapture horde" width="900">
+<img src="docs/screenshots/02-nihilister.jpg" alt="Nihilister rising from the lava in the Ashen Caldera" width="900">
 
 </div>
 
@@ -19,23 +19,24 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/02-character-select.jpg" alt="Character select"><br><b>Character Select</b> · each Nikke has her own weapon, Special, Burst, passive and skins.</td>
-<td width="50%"><img src="docs/screenshots/01-main-menu.jpg" alt="Main menu"><br><b>The Ark lobby</b> · solo or multiplayer, shop, records and achievements.</td>
+<td width="50%"><img src="docs/screenshots/01-character-select.jpg" alt="Character Select"><br><b>Character Select</b> · each Nikke has her own weapon, Special, Burst, passive and skins.</td>
+<td width="50%"><img src="docs/screenshots/02-nihilister.jpg" alt="Nihilister"><br><b>Nihilister</b> · a giant meteor cracks open the Ashen Caldera and she rises from the lava to burn a path across the map.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/03-snow-white-seven-dwarves.jpg" alt="Snow White Burst"><br><b>Snow White · Seven Dwarves</b> · a 90° cone of heavy rifle fire across a massive range.</td>
-<td><img src="docs/screenshots/04-scarlet-flash-sakura.jpg" alt="Scarlet Burst"><br><b>Scarlet · Scarlet Flash</b> · time stops and the world drains to grey while she cuts through the horde.</td>
+<td width="50%"><img src="docs/screenshots/03-scarlet-flash.jpg" alt="Scarlet · Scarlet Flash"><br><b>Scarlet · Scarlet Flash</b> · time stops and the Sakura Grove drains to grey while she cuts through the horde.</td>
+<td width="50%"><img src="docs/screenshots/04-rapunzel-stormbringer.jpg" alt="Rapunzel · Garden of Shangri-La"><br><b>Rapunzel · Garden of Shangri-La</b> · a golden seal of light in the rain and lightning of the Stormbringer.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/05-rapunzel-frozen-north.jpg" alt="Rapunzel Burst in the Frozen North"><br><b>Rapunzel · Garden of Shangri-La</b> · golden rings of light in the Frozen North.</td>
-<td><img src="docs/screenshots/06-rapunzel-divine-blessing.jpg" alt="Rapunzel Divine Blessing in the Ashen Caldera"><br><b>Rapunzel · Divine Blessing</b> · a holy circle burning Raptures in the Ashen Caldera.</td>
+<td width="50%"><img src="docs/screenshots/05-snow-white-frozen-north.jpg" alt="Snow White · The Frozen North"><br><b>Snow White · The Frozen North</b> · holding a snowfield against the swarm.</td>
+<td width="50%"><img src="docs/screenshots/06-rapunzel-divine-blessing.jpg" alt="Rapunzel · Divine Blessing"><br><b>Rapunzel · Divine Blessing</b> · a holy circle burning Raptures in the Ashen Caldera.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/07-nihilister-caldera.jpg" alt="Nihilister rising from the lava"><br><b>Nihilister</b> · a giant meteor cracks the Caldera open and she tears a burning path across the map.</td>
-<td><img src="docs/screenshots/08-stormfront.jpg" alt="Night storm map"><br><b>Stormbringer</b> · fighting through rain and lightning at night.</td>
+<td width="50%"><img src="docs/screenshots/07-broken-ice.jpg" alt="Breaking ice"><br><b>Breaking ice</b> · the Frozen North's lakes crack and give way underfoot.</td>
+<td width="50%"><img src="docs/screenshots/08-graveyard.jpg" alt="Haunted Pine Forest"><br><b>Haunted Pine Forest</b> · a ruined chapel and its churchyard in the fog.</td>
 </tr>
 <tr>
-<td colspan="2" align="center"><img src="docs/screenshots/09-scarlet-city.jpg" alt="Scarlet in the Grey Ruins" width="50%"><br><b>Grey Ruins</b> · Scarlet's sword against a swarm.</td>
+<td width="50%"><img src="docs/screenshots/09-liliweiss.jpg" alt="A secret in the forest"><br><b>A secret in the forest</b> · someone is waiting in the graveyard...</td>
+<td width="50%"><img src="docs/screenshots/10-sakura-shrine.jpg" alt="A secret in the Sakura Grove"><br><b>A secret in the Sakura Grove</b> · leave the right offering at the shrine.</td>
 </tr>
 </table>
 
@@ -61,7 +62,7 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 
 ### Maps
 
-Ashen Caldera · Ark Outskirts · Sakura Grove · The Frozen North · Grey Ruins · Stormbringer · Haunted Pine Forest
+Ashen Caldera · Sakura Grove · The Frozen North · Stormbringer · Haunted Pine Forest
 
 Some maps hide secrets. Look around.
 
