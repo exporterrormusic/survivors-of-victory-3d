@@ -1,12 +1,12 @@
 import { returnToMainMenu } from '../frontend/return-to-menu';
 import { EnvironmentSky } from './environment-sky';
-import { equippedSkin } from '../frontend/profile/Skins';
+import { characterSkins, equippedSkin } from '../frontend/profile/Skins';
 import { TeammateIndicators } from './coop/teammate-indicators';
-// Survivor run entry (Stage Select → deploy, or ?run=test-range). For now this is the test range:
+// Survivor run entry (Stage Select â†’ deploy, or ?run=test-range). For now this is the test range:
 // an empty plaza with training Raptures, used to settle the camera, controls, HUD and kits.
 //
-// Frame order: gameplay runs before Babylon animates (input → player → kit → targets → camera →
-// effects → HUD); after animation the rig twists the torso toward the aim.
+// Frame order: gameplay runs before Babylon animates (input â†’ player â†’ kit â†’ targets â†’ camera â†’
+// effects â†’ HUD); after animation the rig twists the torso toward the aim.
 
 import { Engine, Matrix, Plane, Ray, Scene, Vector3, Viewport } from '@babylonjs/core';
 import '@fontsource/rajdhani/600.css';
@@ -40,6 +40,7 @@ import { EnemyAttackPacing, EnemyLaserAttack } from './enemy-attack';
 import { CAMERA_LIMITS, SurvivorCamera } from './camera';
 import { SurvivorHud, type ScreenPoint } from './hud';
 import { SurvivorInput } from './input';
+import { FirstPersonView } from './first-person';
 import type { KitContext } from './kit';
 import { Player } from './player';
 import { spawnAfterimage } from './afterimage';
@@ -155,11 +156,14 @@ async function main(): Promise<void> {
   };
   const input = new SurvivorInput(canvas);
 
-  const skin = equippedSkin(character.id);
+  const sandbox = !relayMode && !survivalMode && params.get('mission') !== 'salvage_run' && params.get('mode') !== 'sortie';
+  const skins = characterSkins(character.id);
+  const skin = (sandbox ? skins.find(skin => skin.id === params.get('skin')) : undefined)
+    ?? equippedSkin(character.id);
   const variant = HERO_VARIANTS.find((h) => h.character === character && h.variant === skin?.id)
     ?? HERO_VARIANTS.find((h) => h.character === character)!;
   const portrait = skin && skin.cost > 0 ? skin.icon : characterPortrait(character.id);
-  $('loading').textContent = `INITIALIZING / ${variant.name.toUpperCase()}`;
+  $('loading').textContent = `INITIALIZING / ${character.name.toUpperCase()}`;
   // The Salvage Run mission (or ?mode=sortie) runs the game-mode loop (src/survivor/mode/) on this
   // plaza instead of training targets.
   const sortieMode = params.get('mission') === 'salvage_run' || params.get('mode') === 'sortie';
@@ -215,7 +219,7 @@ async function main(): Promise<void> {
   // here; the host runs the Raptures, damage and round, and everything else is drawn from its snapshots.
   const joinCode = params.get('coop') === 'join' ? normalizeRoomCode(params.get('room') ?? '') : null;
   const coopGuest = joinCode ? new CoopNetGuest({ scene, shadows: arena.shadows, vfx, targets, camera, snow: snow.field, sound, run },
-    player, input, () => aimPoint, joinCode, character.id as HeroId, variant.name, takeCoopHandoff('guest', joinCode)?.lobby ?? null) : null;
+    player, input, () => aimPoint, joinCode, character.id as HeroId, character.name, takeCoopHandoff('guest', joinCode)?.lobby ?? null) : null;
   if (coopGuest) {
     disableLocalDamage(run);
     coopGuest.onHeroesChanged = () => { visuals.setPlayerMeshes([...chibi.meshes, ...coopGuest.heroMeshes]); visuals.refreshUnits(); };
@@ -232,9 +236,9 @@ async function main(): Promise<void> {
     : character.id === 'rapunzel' ? 'ui/survivor/rapunzel-burst-prayer.png'
     : character.id === 'scarlet' ? 'ui/survivor/scarlet-burst-blade.png' : characterBurstArt(character.id);
   const hud = new SurvivorHud(kit, {
-    name: variant.name,
+    name: character.name,
     affiliation: kit.affiliation,
-    portrait,
+    portrait: characterPortrait(character.id),
     burstArt: characterBurstButtonArt(character.id) ?? burstArt,
     burstArtPosition: character.id === 'dorothy' ? '50% 50%' : character.id === 'scarlet' || character.id === 'rapunzel' || character.id === 'nayuta' ? '50% 50%' : undefined,
   }, () => (paused ? closeMenu() : openMenu()), (action) => input.trigger(action));
@@ -265,12 +269,20 @@ async function main(): Promise<void> {
     if (!PLAYABLE_CHARACTER_IDS.some(characterId => characterId === id)) return;
     const url = new URL(location.href);
     url.searchParams.set('character', id);
+    url.searchParams.delete('skin');
+    location.assign(url.href);
+  }
+  function switchSkin(id: string): void {
+    if (!sandbox || !skins.some(skin => skin.id === id)) return;
+    const url = new URL(location.href);
+    url.searchParams.set('skin', id);
     location.assign(url.href);
   }
   const weatherLab = new WeatherLab({
     parent: $('hud'), atmosphere, snow, water, onEnvironmentChange: syncEnvironment, clearInput: () => input.clear(),
     setSnow: setSnowPreset, setWater: setWaterPreset, setEnemyMovement,
     character: character.id, switchCharacter: !sortieMode && !relayMode && !survivalMode ? switchCharacter : undefined,
+    skins, skin: variant.variant, switchSkin: sandbox ? switchSkin : undefined,
     burstAlwaysMax: run.burstAlwaysMax,
     setBurstAlwaysMax: testRange ? enabled => {
       run.burstAlwaysMax = enabled;
@@ -478,9 +490,9 @@ async function main(): Promise<void> {
     characterSelect.addEventListener('change', () => switchCharacter(characterSelect.value));
     camera.setAngle('standard');
     $('help').innerHTML =
-      '<b>WASD</b> move · <b>mouse</b> aim · <b>left-click</b> fire<br />' +
-      '<b>Right-click</b> Special · <b>E</b> Burst (full gauge) · <b>R</b> reload<br />' +
-      '<b>Shift</b> dash · <b>Wheel</b> zoom · <b>Tab</b> upgrades · <b>Esc</b> pause';
+      '<b>WASD</b> move Â· <b>mouse</b> aim Â· <b>left-click</b> fire<br />' +
+      '<b>Right-click</b> Special Â· <b>E</b> Burst (full gauge) Â· <b>R</b> reload<br />' +
+      '<b>Shift</b> dash Â· <b>Wheel</b> zoom Â· <b>Tab</b> upgrades Â· <b>Esc</b> pause';
     // The user's rule: lighting & color is always Anime. The selector is hidden and saved choices are
     // ignored; the other presets stay in visuals.ts for dev comparisons (artifacts scripts call apply()).
     const visualSel = $<HTMLSelectElement>('visuals');
@@ -513,7 +525,7 @@ async function main(): Promise<void> {
     const zone = params.get('zone') ?? '';
     const zoneTime: TimeOfDay = zone.endsWith('dusk') ? 'dusk' : zone.endsWith('night') || zone === 'storm' || zone === 'haunted-forest' ? 'night' : 'day';
     const zoneWeather: Weather = zone === 'storm' ? 'storm' : zone.startsWith('snow') ? 'snow' : 'clear';
-    // A zone picked in Stage Select (e.g. Ark Outskirts · DAY) sets the time and weather. The saved
+    // A zone picked in Stage Select (e.g. Ark Outskirts Â· DAY) sets the time and weather. The saved
     // Environment preference only applies to runs opened without one; ?time= / ?weather= still win.
     const time = zone && !params.has('time') ? zoneTime : preferred(params.get('time'), 'survivor-time', TIMES_OF_DAY, zoneTime);
     // Old links and saved preferences used a separate rain mode; it is the thunderstorm now.
@@ -605,6 +617,7 @@ async function main(): Promise<void> {
     hud.setPaused(false);
     audioEngine.play(UI.back);
     canvas.focus({ preventScroll: true });
+    firstPerson.resumeMouseLook();
   }
 
   // --- frame layout ---------------------------------------------------------------
@@ -620,7 +633,11 @@ async function main(): Promise<void> {
   const ray = new Ray(Vector3.Zero(), Vector3.Forward());
   const aimPoint = new Vector3(0, AIM_HEIGHT, 6);
   const identity = Matrix.Identity();
+  const firstPerson = new FirstPersonView(canvas, camera, input, player,
+    () => !startingLevel && player.hp > 0 && !player.transported && !eggFreezesWorld() && !(mode?.ended ?? false),
+    () => { if (!paused) openMenu(); });
   const readAim = () => {
+    if (firstPerson.aim(aimPoint)) return;
     if (!input.pointer.inside) return; // keep the last aim while the cursor is over the HUD or outside
     scene.createPickingRayToRef(input.pointer.x, input.pointer.y, identity, ray, camera.camera);
     aimPlane.d=-(player.position.y+(kit.groundTargeted?0:AIM_HEIGHT));
@@ -644,11 +661,12 @@ async function main(): Promise<void> {
   const shaderCompare = import.meta.env.DEV && params.has('shader-compare');
   if (shaderCompare) mountShaderCompare({ hud: $('hud'), visuals, atmosphere, snow, water, targets, focus: camera.focus });
 
+  if (coopGuest) coopGuest.nikke = { name: character.name, art: burstArt ? `${import.meta.env.BASE_URL}${burstArt}` : null };
   const modeInit:SortieModeInit = {
     scene, shadows: arena.shadows, vfx, field: targets, run, player, kit, camera, snow: snow.field, toScreen, get arenaRadius(){return arena.radius;}, params,
     // progress is saved under the NIKKE whose kit runs (only Snow White has one so far)
     characterId: character.id,
-    nikke: { name: variant.name, art: burstArt ? `${import.meta.env.BASE_URL}${burstArt}` : null },
+    nikke: { name: character.name, art: burstArt ? `${import.meta.env.BASE_URL}${burstArt}` : null },
     refreshUnits: () => visuals.refreshUnits(),
     coop: coop ?? undefined,
   };
@@ -738,10 +756,11 @@ async function main(): Promise<void> {
     new EnemyLaserAttack(ctx, target, player, 3 + index * .37, enemyPacing));
   scene.onDisposeObservable.addOnce(() => { for (const attack of enemyAttacks) attack.dispose(); });
 
-  const coopNet = coop && coopHost ? new CoopNetHost(coop, player, input, variant.name, character.id as HeroId, targets, () => ({
+  const coopNet = coop && coopHost ? new CoopNetHost(coop, player, input, character.name, character.id as HeroId, targets, () => ({
     elapsed: mode instanceof SurvivalMode ? mode.round.elapsed : run.time, phase: mode instanceof SurvivalMode ? mode.round.phase : 'range',
     level: run.level, kills: run.kills, objective: mode instanceof SurvivalMode ? mode.objectiveText() : undefined,
-    boss: mode instanceof SurvivalMode ? mode.bossHealth : null }), () => mode instanceof SurvivalMode ? mode.tells : null,
+    boss: mode instanceof SurvivalMode ? mode.bossHealth : null,
+    lift: mode instanceof SurvivalMode && mode.arriving && !mode.waitingForSquad ? mode.liftClock : undefined }), () => mode instanceof SurvivalMode ? mode.tells : null,
     variant.variant, takeCoopHandoff('host', normalizeRoomCode(params.get('room') ?? '') ?? '')) : null;
   if (coopNet && mode instanceof SurvivalMode) { mode.onBanner = (text, seconds) => coopNet.banner(text, seconds); mode.coopRoom = coopNet.code; }
   if (coopNet) {
@@ -751,25 +770,29 @@ async function main(): Promise<void> {
     lobbyButton.textContent = 'QUIT TO LOBBY';
     lobbyButton.title = 'Return everyone to the multiplayer lobby';
     leave.before(lobbyButton);
-    lobbyButton.addEventListener('click', async () => {
+    // The host's lobby return takes the whole squad with it (pause menu and results screen alike).
+    const returnAll = async () => {
       if (lobbyButton.disabled) return;
+      // Ending a match others are still fighting in needs a yes first.
+      if (mode && !mode.ended && coop?.teammates.some(t => t.alive)
+        && !confirm('Return everyone to the lobby? This ends the current game for all players.')) return;
       lobbyButton.disabled = true;
       leave.disabled = true;
-      lobbyButton.textContent = 'RETURNING TO LOBBY…';
+      lobbyButton.textContent = 'RETURNING TO LOBBYâ€¦';
       input.enabled = false;
       input.clear();
       if (mode && !mode.ended) mode.abandon();
       try { await coopNet.returnToLobby(); }
       finally { location.assign(`${location.pathname}?preview=multiplayer&lobby=host&room=${encodeURIComponent(coopNet.code)}`); }
-    });
-  }
-  if (coopNet || coopGuest) {
-    // Dev readout until the lobby exists (Phase 3): the code to give friends.
-    const label = document.createElement('div');
-    label.className = 'coop-room-code';
-    $('hud').append(label);
-    if (coopNet) { label.textContent = `CO-OP ROOM ${coopNet.code}`; scene.onDisposeObservable.addOnce(() => void coopNet.close()); }
-    else setInterval(() => { label.textContent = `CO-OP ${coopGuest!.code} · ${coopGuest!.status}`; }, 500);
+    };
+    lobbyButton.addEventListener('click', () => void returnAll());
+    if (mode instanceof SurvivalMode) {
+      mode.coopReturnToLobby = () => void returnAll();
+      // Hold the arrival lift until every guest is in (at most 30 s), so the squad rides up together.
+      const holdUntil = performance.now() + 30000;
+      mode.holdArrival = () => coopNet.squadLoading && performance.now() < holdUntil;
+    }
+    scene.onDisposeObservable.addOnce(() => void coopNet.close());
   }
 
   await kit.prepare?.();
@@ -779,7 +802,10 @@ async function main(): Promise<void> {
   // Stepping onto the lift deck pulls the camera in; stepping off pulls it out to its widest view.
   let wasOnDeck: boolean | null = null;
   scene.onBeforeAnimationsObservable.add(() => {
+    firstPerson.sync();
     if (input.wasPressed('menu')) { if (paused && !barePause) closeMenu(); else openMenu(); }
+    // Browser-reserved Escape may arrive only as a pointer-lock exit, not keydown.
+    if (input.wasPressed('openMenu') && !paused) openMenu();
     // No bare pause online: a networked match never stops.
     if (input.wasPressed('pause') && !online) { if (barePause) closeMenu(); else if (!paused) openBarePause(); }
     if (input.wasPressed('talents')) { if (talentMenu.isOpen) closeMenu(); else if (!paused) openTalents(); }
@@ -831,7 +857,8 @@ async function main(): Promise<void> {
       const onDeck = !!elevator && elevator.onDeck(player.position);
       if (wasOnDeck !== null && onDeck !== wasOnDeck) camera.zoomTo(onDeck ? LIFT_ZOOM : CAMERA_LIMITS.max);
       wasOnDeck = onDeck;
-      camera.update(dt, player.position);
+      camera.update(dt, player.position, !firstPerson.active);
+      firstPerson.updateCamera();
       atmosphere.setFogLights(eggFreezesWorld() ? [] : targets.targets,eggFreezesWorld() ? cutsceneVfx.fogEmitters : vfx.fogEmitters);
       // The cutscene's altar strike still has to fade while the world holds still.
       atmosphere.update(eggFreezesWorld() ? dt : worldDt, camera.focus);
@@ -843,13 +870,18 @@ async function main(): Promise<void> {
       water.update(worldDt,atmosphere.rainStrength,atmosphere.lightningStrength);
       arena.followSun(camera.focus);
     }
-    sceneryOcclusion.update(engine.getDeltaTime()/1000,player.position,[...dressing.meshes,...(elevator?.root.getChildMeshes().filter(m=>m.parent?.name==='elevator-fixed-mast')??[]),...scene.meshes.filter(m=>m.metadata?.cameraOccluder)]);
+    sceneryOcclusion.setEnabled(!firstPerson.active);
+    if (!firstPerson.active) sceneryOcclusion.update(engine.getDeltaTime()/1000,player.position,[...dressing.meshes,...(elevator?.root.getChildMeshes().filter(m=>m.parent?.name==='elevator-fixed-mast')??[]),...scene.meshes.filter(m=>m.metadata?.cameraOccluder)]);
     const cutsceneActive = eggFreezesWorld();
     vfx.hidden = cutsceneActive;
     kit.setCutscenePresentation?.(cutsceneActive);
     targets.draw(cutsceneActive);
     camera.camera.getViewMatrix().multiplyToRef(camera.camera.getProjectionMatrix(), transform);
-    hud.update(player, run, targets, toScreen, input.pointer);
+    // Reuse the normal reticle (including charge/reload feedback), fixed at the
+    // view centre in first person instead of drawing a second cursor reticle.
+    hud.update(player, run, targets, toScreen, firstPerson.active
+      ? { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2, inside: true }
+      : input.pointer);
     teammateIndicators.update(coopGuest?.teammates ?? coop?.teammates ?? [], player, camera.camera, toScreen);
     egg.layout();
     shrineEgg.layout();

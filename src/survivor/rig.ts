@@ -10,6 +10,7 @@
 import { AnimationGroup, AnimationGroupMask, AnimationGroupMaskMode, Matrix, type Node, Quaternion, Space, TransformNode, Vector3 } from '@babylonjs/core';
 import { aimOffset, clipMuzzle, lerpAngle, type Chibi, type MuzzleRef } from '../chibi';
 import { wrapAngle } from './math';
+import { SwiftBunnyGrounding } from '../characters/sin/grounding';
 
 // The gun (Prop1) and the arms (under Spine1) both hang off Spine, so the whole twist goes there;
 // splitting it with Spine1 would pull the hands off the rifle.
@@ -52,6 +53,7 @@ class Layer {
     private readonly suffix: string,
     private readonly mask: AnimationGroupMask,
     private readonly targets = new Map<TransformNode, TransformNode>(),
+    private readonly smoothRecoil = false,
   ) {}
 
   play(name: string, { loop = true, speed = 1, fade = .12, restart = false, hold = false } = {}): void {
@@ -126,12 +128,17 @@ class Layer {
     group = source.clone(`${name}@${this.suffix}`, target => this.targets.get(target) ?? target);
     // Nirvana's floating disk has oversized authored recoil. Keep hands/body animated,
     // but reduce the disk subtree's shot displacement to 15% of the authored motion.
+    // Wu Wei's overhead ribbons also need gentler firing motion.
     if (/^c223_0[01]$/.test(this.chibi.meta.variant) && name === 'cover_shot') {
       const gun = this.chibi.joint(GUN);
+      const ribbons = this.chibi.meta.variant === 'c223_01' ? this.chibi.joint('root_shawl') : null;
       const aim = this.chibi.animationGroup('aim_idle');
       for (const track of group.targetedAnimations) {
         const target = track.target;
-        if (!gun || !(target instanceof TransformNode) || (target !== gun && !target.isDescendantOf(gun))) continue;
+        if (!(target instanceof TransformNode)) continue;
+        const weapon = gun && (target === gun || target.isDescendantOf(gun));
+        const ribbon = ribbons && (target === ribbons || target.isDescendantOf(ribbons));
+        if (!weapon && !ribbon) continue;
         const reference = aim?.targetedAnimations.find(a => a.target === target && a.animation.targetProperty === track.animation.targetProperty);
         const base = reference?.animation.getKeys()[0]?.value;
         if (!(base instanceof Vector3) && !(base instanceof Quaternion)) continue;
@@ -143,6 +150,24 @@ class Layer {
       }
     }
     group.mask = this.mask;
+    if (this.smoothRecoil && name === 'cover_shot') {
+      const aim = this.chibi.animationGroup('aim_idle');
+      for (const track of group.targetedAnimations) {
+        if (track.animation.targetProperty === 'scaling') continue;
+        const reference = aim?.targetedAnimations.find(a => (this.targets.get(a.target) ?? a.target) === track.target
+          && a.animation.targetProperty === track.animation.targetProperty);
+        const base = reference?.animation.getKeys()[0]?.value;
+        if (!(base instanceof Vector3) && !(base instanceof Quaternion)) continue;
+        track.animation = track.animation.clone();
+        const span = Math.max(1, group.to - group.from);
+        track.animation.setKeys(track.animation.getKeys().map(key => {
+          // Each cycle eases out of and back into the same aiming pose.
+          const amount = .3 * Math.sin(Math.PI * Math.max(0, Math.min(1, (key.frame - group.from) / span)));
+          return { frame: key.frame, value: base instanceof Quaternion
+            ? Quaternion.Slerp(base, key.value, amount) : Vector3.Lerp(base, key.value, amount) };
+        }));
+      }
+    }
     group.weight = 0;
     this.groups.set(name, group);
     return group;
@@ -162,6 +187,7 @@ export interface RigInput {
 }
 
 export class TwinStickRig {
+  private readonly grounding: SwiftBunnyGrounding;
   /** yaw of the legs (the gameplay root's yaw) */
   legYaw = 0;
   aimYaw = 0;
@@ -175,6 +201,11 @@ export class TwinStickRig {
   private readonly head: TransformNode | null;
   private readonly gun: TransformNode;
   private readonly detachedWeapons: TransformNode[] = [];
+  private readonly crownHold: { node: TransformNode; position: Vector3; rotation: Quaternion }[] = [];
+  private crownHoldApplied = false;
+  private readonly hoveringAttachments: { node: TransformNode; offset: Matrix }[] = [];
+  private sanctuaryHalo: { node: TransformNode; fromCenter: Matrix; scale: Vector3 } | null = null;
+  private readonly lowerSpine: TransformNode | null;
   private readonly torsoBefore = Matrix.Identity();
   private readonly weaponDelta = Matrix.Identity();
   private readonly weaponLocal = Matrix.Identity();
@@ -219,29 +250,62 @@ export class TwinStickRig {
    */
   private readonly hipCorrection = new Map<string, number>();
 
-  constructor(readonly chibi: Chibi, cyclesPerMetre = 1.2 / (5.5 * .73), private readonly aimFacing: 'head' | 'weapon' = 'weapon') {
+  constructor(readonly chibi: Chibi, cyclesPerMetre = 1.2 / (5.5 * .73), private readonly aimFacing: 'head' | 'weapon' = 'weapon', private readonly smoothRecoil = false) {
+    this.grounding = new SwiftBunnyGrounding(chibi);
+    // Queen's floating dress weapons have no forward barrel: the sampled
+    // accessory tip points behind her. Steer her beam by her face instead.
+    if (/^c019_0[01]$/.test(chibi.meta.variant)) this.aimFacing = 'head';
     this.localHeadUp = chibi.meta.variant === 'wells_research' ? Vector3.Up() : HEAD_UP;
     this.localForward = chibi.meta.variant === 'wells_research' ? new Vector3(0, 0, 1) : UP;
     const spine = chibi.joint(SPINE);
-    const muzzle = clipMuzzle(chibi.meta, 'aim_idle');
-    const gun = chibi.joint(GUN) ?? (muzzle ? chibi.joint(muzzle.joint) : null);
+    // Crown's Glorious King aim sample picks a moving side barrel. Use the
+    // central lance tip measured in her firing clip for every combat posture.
+    const muzzle = clipMuzzle(chibi.meta, /^c330_0[012]$/.test(chibi.meta.variant) ? 'cover_shot' : 'aim_idle');
+    const gun = (chibi.meta.variant === 'c471_01' ? chibi.joint('Bone_weapon01') : null)
+      ?? chibi.joint(GUN) ?? (muzzle ? chibi.joint(muzzle.joint) : null);
     if (!spine || !gun) throw new Error(`${chibi.meta.variant}: the twin-stick rig needs ${SPINE} and ${GUN}`);
     this.spine = spine;
     this.chest = chibi.joint('Bip001 Spine1') ?? spine;
     this.neck = chibi.joint('Bip001 Neck') ?? this.chest;
     this.head = chibi.joint('Bip001 Head') ?? null;
     this.gun = gun;
+    if (/^(c330_0[012]|c471_01)$/.test(chibi.meta.variant)) {
+      for (const node of [chibi.joint('Bip001 L Clavicle'), chibi.joint('Bip001 R Clavicle'), gun]) {
+        if (node) this.crownHold.push({ node, position: node.position.clone(), rotation: node.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(node.rotation) });
+      }
+    }
     this.muzzleRef = muzzle ?? { joint: gun.name, offset: [0, 1, 0] };
     spine.rotationQuaternion ??= Quaternion.FromEulerVector(spine.rotation);
     this.restSpine = spine.rotationQuaternion.clone();
     if (this.head) this.head.rotationQuaternion ??= Quaternion.FromEulerVector(this.head.rotation);
     this.restHead = this.head?.rotationQuaternion?.clone() ?? null;
     this.cyclesPerMetre = cyclesPerMetre;
-    this.reloadFacingOffset = aimOffset(chibi.meta, aimFacing) * DEG;
+    this.reloadFacingOffset = aimOffset(chibi.meta, this.aimFacing) * DEG;
+
+    // T.A.L.O.S. hangs its thighs off Spine instead of Pelvis. Give those legs
+    // a locomotion-driven copy of that parent, so upper-body masking and aiming
+    // cannot freeze or twist the whole leg assembly along with the gun.
+    const lowerTargets = new Map<TransformNode, TransformNode>();
+    const spineLegs = THIGHS.map(name => chibi.joint(name)).filter((node): node is TransformNode => !!node && node.parent === spine);
+    this.lowerSpine = spineLegs.length ? new TransformNode('lower-clip-spine', chibi.root.getScene()) : null;
+    if (this.lowerSpine) {
+      this.lowerSpine.parent = spine.parent;
+      this.lowerSpine.position.copyFrom(spine.position);
+      this.lowerSpine.scaling.copyFrom(spine.scaling);
+      this.lowerSpine.rotationQuaternion = spine.rotationQuaternion.clone();
+      lowerTargets.set(spine, this.lowerSpine);
+      for (const leg of spineLegs) leg.parent = this.lowerSpine;
+    }
 
     const upperNames: string[] = [];
     const collect = (n: Node) => { upperNames.push(n.name); for (const c of n.getChildren()) collect(c); };
     collect(spine);
+    // Swift Bunny's gun is a sibling of the pelvis, not part of the torso.
+    // Give it the combat clip and the same final aiming correction as her arms.
+    if (chibi.meta.variant === 'c405_00' && !gun.isDescendantOf(spine)) {
+      this.detachedWeapons.push(gun);
+      collect(gun);
+    }
     // Heavy Arms animates its weapons beside the biped instead of under the spine.
     // Keep them on the upper-body animation layer and carry the torso correction over.
     if (!gun.isDescendantOf(spine)) {
@@ -250,7 +314,21 @@ export class TwinStickRig {
         if (weapon && !weapon.isDescendantOf(spine)) { this.detachedWeapons.push(weapon); collect(weapon); }
       }
     }
-    this.lower = new Layer(chibi, 'lower', new AnimationGroupMask(upperNames, AnimationGroupMaskMode.Exclude));
+    // Marian's hovering assemblies are authored beside the biped, rather
+    // than beneath its spine. They need both the upper clip and its final
+    // torso correction; otherwise they keep the legs' heading while aiming.
+    const marianAttachments: Record<string, readonly string[]> = {
+      c019_00: ['Bip001 Prop1', 'Bip001 Prop2'],
+      c019_01: ['Bip001 Prop1', 'Bip001 Prop2'],
+    };
+    for (const name of marianAttachments[chibi.meta.variant] ?? []) {
+      const attachment = chibi.joint(name);
+      if (attachment && !attachment.isDescendantOf(spine)) {
+        this.detachedWeapons.push(attachment);
+        collect(attachment);
+      }
+    }
+    this.lower = new Layer(chibi, 'lower', new AnimationGroupMask(upperNames, AnimationGroupMaskMode.Exclude), lowerTargets);
     // Local spine keys are relative to each clip's own pelvis/root orientation. Using aim keys
     // directly under idle/run hips changes their pitch and roll as well as their yaw. Animate a
     // transform-only copy of those ancestors with the upper clip, then rebase at the waist.
@@ -273,17 +351,59 @@ export class TwinStickRig {
       upperNames.push(proxy.name);
       parent = proxy;
     }
-    this.upper = new Layer(chibi, 'upper', new AnimationGroupMask(upperNames, AnimationGroupMaskMode.Include), targets);
+    this.upper = new Layer(chibi, 'upper', new AnimationGroupMask(upperNames, AnimationGroupMaskMode.Include), targets, smoothRecoil);
 
     this.chain = [];
     for (let n: Node | null = gun; n; n = n.parent) if (n instanceof TransformNode) this.chain.unshift(n);
+    // Some rifles/floating weapons measure the muzzle on a child of Prop1.
+    // Refresh that entire branch after steering, not only Prop1: reading a
+    // cached child matrix makes aim feedback trail the current torso pose.
+    const muzzleChain: TransformNode[] = [];
+    for (let n: Node | null = chibi.joint(this.muzzleRef.joint) ?? null; n; n = n.parent) {
+      if (n instanceof TransformNode) muzzleChain.unshift(n);
+    }
+    for (const n of muzzleChain) if (!this.chain.includes(n)) this.chain.push(n);
     const hips = new Map(LEG_CLIPS.filter((c) => chibi.has(c)).map((c) => [c, this.hipYaw(c) + chibi.clipYaw(c)] as const));
     const idleHips = hips.get('idle');
     if (idleHips !== undefined) for (const [clip, yaw] of hips) this.hipCorrection.set(clip, wrapAngle(idleHips - yaw));
+    // Second Affection hides its floating drones in every cover/aim clip.
+    // Keep their lower-layer hover animation, but anchor the assembly to the
+    // torso using its visible idle pose instead of inheriting those hide keys.
+    // Sanctuary uses its halo center as an upright, head-aligned attachment.
+    if (chibi.meta.variant === 'c260_02' || chibi.meta.variant === 'c473_00') {
+      const node = chibi.joint(chibi.meta.variant === 'c473_00' ? 'P_base_acc_01' : 'Dummy_Wp_root'), idle = chibi.animationGroup('idle');
+      if (node && idle) {
+        const weight = idle.weight;
+        idle.weight = -1; idle.start(false); idle.pause();
+        idle.goToFrame(idle.from + (chibi.meta.variant === 'c473_00' ? 6.3 * 30 : 0));
+        const refresh = (n: TransformNode): void => {
+          if (n.parent instanceof TransformNode) refresh(n.parent);
+          n.computeWorldMatrix(true);
+        };
+        refresh(node); refresh(spine);
+        if (chibi.meta.variant === 'c473_00') {
+          const center = chibi.joint('P_light_acc_03')!;
+          refresh(center);
+          const scale = new Vector3();
+          center.getWorldMatrix().decompose(scale);
+          // Keep glTF's handedness reflection on X; a negative Y would turn
+          // the display upside down when replacing its cinematic rotation.
+          scale.set(-Math.abs(scale.x), Math.abs(scale.y), Math.abs(scale.z));
+          this.sanctuaryHalo = {
+            node, scale,
+            fromCenter: node.getWorldMatrix().multiply(Matrix.Invert(center.getWorldMatrix())),
+          };
+        } else {
+          this.hoveringAttachments.push({ node, offset: node.getWorldMatrix().multiply(Matrix.Invert(spine.getWorldMatrix())) });
+        }
+        idle.stop(true); idle.weight = weight;
+      }
+    }
     // Dorothy's gameplay idle aliases her rifle stance, whose hips are turned ~65 degrees.
     // That stance is not a locomotion reference: running hips must face local forward.
-    if (/^(c233_0[012]|c234_00)$/.test(chibi.meta.variant)) {
-      for (const clip of ['run', 'walk']) {
+    // Queen and Lacrimosa also turn their idle hips; align all combat leg clips.
+    if (/^(c233_0[012]|c234_00|c019_0[01]|c471_01|c405_00)$/.test(chibi.meta.variant)) {
+      for (const clip of /^(c019_0[01]|c471_01|c405_00)$/.test(chibi.meta.variant) ? LEG_CLIPS : ['run', 'walk']) {
         const yaw = hips.get(clip);
         if (yaw !== undefined) this.hipCorrection.set(clip, wrapAngle(-yaw));
       }
@@ -310,6 +430,7 @@ export class TwinStickRig {
   /** A full-body clip on both halves (death, stun). Ends when update() is called again.
    * `hold` blends to the clip's final frame and stays there (Scarlet passed out). */
   playFull(name: string, loop = false, hold = false): void {
+    this.restoreCrownHold();
     this.full = true;
     const fade = hold ? .45 : .1;
     this.lower.play(name, { loop, fade, restart: true, hold });
@@ -336,8 +457,9 @@ export class TwinStickRig {
 
   /** Before Babylon animates: pick clips and speeds, turn the legs. */
   update(dt: number, input: RigInput): void {
+    this.restoreCrownHold();
     this.full = false;
-    this.recoilCooldown = input.posture === 'relaxed' ? 0 : Math.max(0, this.recoilCooldown - dt);
+    this.recoilCooldown = input.posture === 'relaxed' || input.posture === 'reload' ? 0 : Math.max(0, this.recoilCooldown - dt);
     const moving = input.speed > .05 && (input.moveX !== 0 || input.moveZ !== 0);
     const moveYaw = moving ? Math.atan2(input.moveX, input.moveZ) : this.legYaw;
     const aim = this.aimYaw = input.aimYaw;
@@ -380,12 +502,14 @@ export class TwinStickRig {
         if (this.upper.current !== 'cover_shot' || this.upper.progress() >= 1) this.upper.play('aim_idle', { fade: .1 });
         break;
       case 'shot': // the frame a shot fires: the gun snaps up, so the round leaves the real muzzle
-        if (/^c223_0[01]$/.test(this.chibi.meta.variant)) {
+        if (this.smoothRecoil || /^c223_0[01]$/.test(this.chibi.meta.variant)) {
           // Visual recoil is independent of projectile cadence (player and clone rigs).
           if (this.recoilCooldown > 1e-6) break;
           this.recoilCooldown = .4;
         }
-        this.upper.play('cover_shot', { loop: false, speed: actionSpeed, fade: this.aimWeight < 1 || this.reloadVisible() ? 0 : .04, restart: true });
+        this.upper.play('cover_shot', { loop: false,
+          speed: this.smoothRecoil ? this.chibi.duration('cover_shot') / .4 : actionSpeed,
+          fade: this.aimWeight < 1 || this.reloadVisible() ? 0 : .04, restart: true });
         this.aimWeight = 1;
         break;
       case 'reload':
@@ -403,7 +527,7 @@ export class TwinStickRig {
     let sum = 0, total = 0, ref = 0;
     for (const t of this.lower.tracks) {
       if (t.weight <= 0) continue;
-      const alignTravel = /^(c233_0[012]|c234_00)$/.test(this.chibi.meta.variant) && (t.name === 'run' || t.name === 'walk');
+      const alignTravel = /^(c233_0[012]|c234_00|c471_01|c405_00)$/.test(this.chibi.meta.variant) && (t.name === 'run' || t.name === 'walk');
       const clipYaw = this.chibi.clipYaw(t.name) + (this.hipCorrection.get(t.name) ?? 0) * (alignTravel ? 1 : this.aimWeight);
       if (total === 0) ref = clipYaw;
       sum += wrapAngle(clipYaw - ref) * t.weight;
@@ -436,6 +560,7 @@ export class TwinStickRig {
     this.rebaseTorso();
     this.uprightTorso();
     this.followTorsoWithWeapons();
+    this.levelCrownHold();
     const toAim = wrapAngle(this.aimYaw - this.legYaw);
     const relaxed = Math.max(-RELAXED_MAX, Math.min(RELAXED_MAX, toAim * RELAXED_SHARE));
     const gunYaw = this.measure();
@@ -457,6 +582,32 @@ export class TwinStickRig {
       this.chestAimOffset = wrapAngle(this.chestYaw() - this.aimYaw);
     }
     this.levelHead();
+    if (this.sanctuaryHalo && this.head) {
+      // Anchor to her look direction and world up, not the animated spine's
+      // roll or sideways firing stance. The halo stays upright behind her head.
+      const { node, fromCenter, scale } = this.sanctuaryHalo;
+      const yaw = this.headYaw();
+      const center = this.head.getAbsolutePosition().add(new Vector3(-Math.sin(yaw) * .65, .65, -Math.cos(yaw) * .65));
+      const world = fromCenter.multiply(Matrix.Compose(scale, Quaternion.RotationYawPitchRoll(yaw, 0, 0), center));
+      const local = node.parent ? world.multiply(Matrix.Invert(node.parent.computeWorldMatrix(true))) : world;
+      node.rotationQuaternion ??= Quaternion.Identity();
+      local.decompose(node.scaling, node.rotationQuaternion, node.position);
+      node.computeWorldMatrix(true);
+    }
+    for (const { node, offset } of this.hoveringAttachments) {
+      offset.multiplyToRef(this.spine.computeWorldMatrix(true), this.weaponLocal);
+      if (node.parent) {
+        node.parent.computeWorldMatrix(true).invertToRef(this.weaponParentInverse);
+        this.weaponLocal.multiplyToRef(this.weaponParentInverse, this.weaponLocal);
+      }
+      node.rotationQuaternion ??= Quaternion.Identity();
+      this.weaponLocal.decompose(node.scaling, node.rotationQuaternion, node.position);
+      node.computeWorldMatrix(true);
+    }
+    if (this.chibi.meta.variant === 'c405_00') {
+      this.grounding.apply();
+      this.measure();
+    }
   }
 
   private followTorsoWithWeapons(): void {
@@ -489,6 +640,10 @@ export class TwinStickRig {
     this.lower.dispose();
     this.upper.dispose();
     this.upperFacing.dispose();
+    if (this.lowerSpine) {
+      for (const leg of [...this.lowerSpine.getChildren()]) leg.parent = this.spine;
+      this.lowerSpine.dispose();
+    }
   }
 
   /** Keep the upper clip's authored orientation, anchored to the moving legs' waist. */
@@ -531,6 +686,46 @@ export class TwinStickRig {
     Vector3.CrossToRef(this.torsoUp, UP, this.uprightAxis);
     if (this.uprightAxis.lengthSquared() < 1e-8) return;
     this.spine.rotate(this.uprightAxis.normalize(), tilt * this.aimWeight, Space.WORLD);
+  }
+
+  private restoreCrownHold(): void {
+    if (!this.crownHoldApplied) return;
+    for (const { node, position, rotation } of this.crownHold) {
+      node.position.copyFrom(position);
+      node.rotationQuaternion!.copyFrom(rotation);
+    }
+    this.crownHoldApplied = false;
+  }
+
+  /** Lower the entire firing hold around the shoulders, keeping both hands on
+   * Crown's lance or Lacrimosa's coffin without pitching the chest or changing lobby animation. */
+  private levelCrownHold(): void {
+    const weight = this.aimWeight * (1 - this.reloadAimWeight);
+    if (this.crownHold.length !== 3 || weight <= 0) return;
+    this.measure();
+    const barrel = this.chibi.joint(this.chibi.meta.variant === 'c471_01' ? 'Bone_weapon01_01' : 'B_weapon_01');
+    if (!barrel) return;
+    const direction = Vector3.TransformNormal(new Vector3(1, 0, 0), barrel.computeWorldMatrix(true)).normalize();
+    const forward = new Vector3(direction.x, 0, direction.z).normalize();
+    const axis = Vector3.Cross(direction, forward);
+    if (axis.lengthSquared() < 1e-8) return;
+    const rotation = Quaternion.RotationAxis(axis.normalize(), Math.acos(Math.max(-1, Math.min(1, Vector3.Dot(direction, forward)))) * weight);
+    const [left, right] = this.crownHold;
+    this.chest.computeWorldMatrix(true);
+    left.node.computeWorldMatrix(true);
+    right.node.computeWorldMatrix(true);
+    const pivot = Vector3.Center(left.node.getAbsolutePosition(), right.node.getAbsolutePosition());
+    const delta = Matrix.Translation(-pivot.x, -pivot.y, -pivot.z)
+      .multiply(Matrix.Compose(Vector3.One(), rotation, pivot));
+    for (const hold of this.crownHold) {
+      const { node } = hold;
+      hold.position.copyFrom(node.position);
+      hold.rotation.copyFrom(node.rotationQuaternion!);
+      const local = node.computeWorldMatrix(true).multiply(delta).multiply(node.parent!.getWorldMatrix().clone().invert());
+      local.decompose(undefined, node.rotationQuaternion!, node.position);
+      node.computeWorldMatrix(true);
+    }
+    this.crownHoldApplied = true;
   }
 
   /** The head has its own animated nod, separate from the waist-to-neck lean. Level it
@@ -610,6 +805,10 @@ export class TwinStickRig {
     const joint = this.muzzleRef.joint === GUN ? this.gun : this.chibi.joint(this.muzzleRef.joint) ?? this.gun;
     Vector3.TransformCoordinatesFromFloatsToRef(x, y, z, joint.getWorldMatrix(), this.muzzlePoint);
     this.gun.getWorldMatrix().getTranslationToRef(this.gunBase);
+    if (/^c019_0[01]$/.test(this.chibi.meta.variant) && this.head) {
+      const yaw = this.headYaw();
+      this.gunBase.set(this.muzzlePoint.x - Math.sin(yaw), this.muzzlePoint.y, this.muzzlePoint.z - Math.cos(yaw));
+    }
     return this.gunYaw();
   }
 }

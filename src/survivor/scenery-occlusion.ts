@@ -2,6 +2,7 @@ import { Matrix, Ray, Vector3, type AbstractMesh, type Material, type Scene, typ
 
 /** Camera-only transparency: collision, shadows and shared material alpha stay intact. */
 export class SceneryOcclusion {
+  private enabled=true;
   private faded=new Map<AbstractMesh,{base:number;blocked:boolean;hold:number}>();
   private elapsed=1;
   private groupFade=new Map<unknown,{value:number;velocity:number}>();
@@ -28,7 +29,16 @@ export class SceneryOcclusion {
     for(const [mesh,visibility] of this.shadowVisibility)if(!mesh.isDisposed())mesh.visibility=visibility;
     this.shadowVisibility.clear();
   }
+  /** Eye-level play has no third-person silhouette to uncover. Restore both
+   * visibility and material depth/blending overrides before suspending scans. */
+  setEnabled(enabled:boolean):void{
+    if(this.enabled===enabled)return;
+    this.enabled=enabled;
+    if(!enabled)this.reset();
+    this.elapsed=1;
+  }
   update(dt:number,player:Vector3,meshes:readonly AbstractMesh[],excluded:readonly AbstractMesh[]=[]):void{
+    if(!this.enabled)return;
     // Loading shaders or returning to the tab must not consume the entire fade
     // in one rendered frame. All parts still advance on the same visual clock.
     dt=Number.isFinite(dt)?Math.max(0,Math.min(dt,1/30)):0;
@@ -117,10 +127,13 @@ export class SceneryOcclusion {
     }
     for(const key of this.groupFade.keys())if(!groups.has(key))this.groupFade.delete(key);
   }
-  dispose():void{
-    this.detachShadowPass?.();this.restoreCameraVisibility();
+  private reset():void{
+    this.restoreCameraVisibility();
     for(const [mesh,state] of this.faded)if(!mesh.isDisposed())mesh.visibility=state.base;
     for(const [material,methods] of this.materials){material.needAlphaBlendingForMesh=methods.blend;material.needAlphaTestingForMesh=methods.test;material.needDepthPrePass=methods.depth;}
     this.faded.clear();this.materials.clear();this.groupFade.clear();
+  }
+  dispose():void{
+    this.detachShadowPass?.();this.reset();
   }
 }

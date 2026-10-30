@@ -64,6 +64,8 @@ export class SurvivorCamera {
 
   /** Actual eased distance, so atmosphere compensation follows the visible zoom. */
   get distance(): number { return this.dist; }
+  /** Scripted framing temporarily takes priority over the player's perspective. */
+  get scripted(): boolean { return !!this.held || !!this.override; }
 
   setAngle(angle: CameraAngle): void {
     this.pitchNear = CAMERA_ANGLES[angle].near * DEG;
@@ -106,7 +108,7 @@ export class SurvivorCamera {
     if (at) this.distTarget = distance;
   }
 
-  update(dt: number, follow: Vector3): void {
+  update(dt: number, follow: Vector3, placeCamera = true): void {
     const k = dt > 0 ? 1 - Math.exp(-FOLLOW * dt) : 1;
     let goalX = follow.x, goalZ = follow.z;
     if (this.held) {
@@ -135,6 +137,8 @@ export class SurvivorCamera {
       this.target.z += (Math.random() - .5) * s;
       if (this.shakeTime <= 0) this.shakeStrength = 0;
     }
+    // First-person maintains focus/zoom state without temporarily writing an overhead pose.
+    if (!placeCamera && !this.scripted) return;
     this.camera.position.set(this.target.x, this.target.y + Math.sin(pitch) * this.dist, this.target.z - Math.cos(pitch) * this.dist);
     this.camera.setTarget(this.target);
     this.override?.(this.camera, dt);

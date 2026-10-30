@@ -209,6 +209,7 @@
 #hud #run-overlay, #hud #run-reticle { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #hud #run-reticle { z-index: 6; }
 #game.survivor { cursor: none; }
+#game.survivor.first-person-cursor { cursor: default; }
 
 /* Compact desktop and landscape: keep readable text and fit the dock on its own row. */
 @container game (max-width: 1000px) {

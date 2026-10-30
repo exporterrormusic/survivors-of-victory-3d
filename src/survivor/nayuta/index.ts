@@ -191,7 +191,7 @@ export function createNayuta(ctx: KitContext, variant = 'c223_00'): CharacterKit
         model.root.setEnabled(false);
         for (const mesh of model.meshes) mesh.visibility = .65;
         cloneGold.set(model,new GoldForm(model,true));
-        const rig = new TwinStickRig(model, undefined, 'head');
+        const rig = new TwinStickRig(model, undefined, 'head', true);
         rig.prepare();
         rigs.set(model, rig);
         // The translucent, skinned material variant must be ready before the model is enabled.

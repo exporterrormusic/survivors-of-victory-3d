@@ -64,6 +64,7 @@ const REJECTS: Readonly<Record<RejectReason | "no-host" | "host-left", string>> 
   version: "THE HOST IS ON A DIFFERENT GAME VERSION",
   "no-host": "NO LOBBY FOUND WITH THAT CODE",
   "host-left": "THE HOST CLOSED THE LOBBY",
+  kicked: "THE HOST REMOVED YOU FROM THE LOBBY",
 };
 
 const text = (size: number, color = "#f2f5f7", spacing = 1.5): Phaser.Types.GameObjects.Text.TextStyle => ({
@@ -92,6 +93,8 @@ export class MultiplayerScene extends Phaser.Scene {
   private notice = "";
   private copied = 0;
   private host: LobbyHost | null = null;
+  /** the guest the host asked to kick, awaiting KICK / CANCEL (drawn by render, which rebuilds often) */
+  private kickPrompt: { slot: number; name: string } | null = null;
   private guest: LobbyGuest | null = null;
   private code = "";
   private character: CharacterDefinition = PLAYABLE[0]!;
@@ -358,6 +361,37 @@ export class MultiplayerScene extends Phaser.Scene {
     this.button(1700, 98, 168, 58, "BACK", () => this.back(), "dark", 24);
     if (this.phase === "lobby") this.renderLobby(state, zone);
     else this.renderMenu();
+    this.renderKickPrompt();
+  }
+
+  /** The host's kick confirmation, in the menu's own panel and button style. */
+  private renderKickPrompt(): void {
+    const prompt = this.kickPrompt, host = this.host;
+    // The guest may have left (or the lobby closed) while the question was open.
+    if (!prompt || !host || this.phase !== "lobby" || !host.session.roster.some((r) => r.slot === prompt.slot)) {
+      this.kickPrompt = null;
+      return;
+    }
+    const w = 640, h = 280, x = (WIDTH - w) / 2, y = (HEIGHT - h) / 2;
+    const modal = this.add.container(0, 0);
+    // Swallow clicks on the lobby behind it.
+    const blocker = this.add.rectangle(bleed.left, 0, bleed.width, HEIGHT, 0x05080c, 0.72).setOrigin(0).setInteractive();
+    const g = this.add.graphics();
+    g.fillStyle(0x0d151d, 0.98).fillPoints(panel(x, y, w, h, 18), true);
+    g.lineStyle(2, 0x55636f, 1).strokePoints(panel(x, y, w, h, 18), true, true);
+    g.fillStyle(YELLOW, 1).fillRect(x, y, 4, h);
+    modal.add([blocker, g,
+      this.add.text(x + 40, y + 34, "REMOVE PLAYER", text(15, "#aeb7c1", 2.2)),
+      this.add.text(x + 40, y + 62, prompt.name.toUpperCase(), text(40, "#ffd23f", 2)),
+      this.add.text(x + 40, y + 120, "They leave the lobby and can't rejoin this room.", { ...text(19, "#c6ced5", 0.3), fontStyle: "normal" })]);
+    this.layer!.add(modal);
+    const close = (): void => { this.kickPrompt = null; this.render(); };
+    this.button(x + w - 40 - 2 * 200 - 20, y + h - 96, 200, 60, "CANCEL", () => { gameAudio.playUi(this, "back"); close(); }, "dark", 24, modal);
+    this.button(x + w - 40 - 200, y + h - 96, 200, 60, "KICK", () => {
+      host.session.kick(prompt.slot);
+      gameAudio.playUi(this, "select");
+      close();
+    }, "cyan", 24, modal);
   }
 
   private createChrome(): void {
@@ -599,6 +633,14 @@ export class MultiplayerScene extends Phaser.Scene {
     const rg = this.add.graphics();
     rg.fillStyle(ready ? GREEN : 0x8a949f, 1).fillRect(14, h - 56, w - 42, 42);
     c.add([rg, this.add.text((w - 28) / 2 + 7, h - 35, slot === 0 ? "HOST // READY" : ready ? "READY" : "NOT READY", text(22, "#ffffff", 3)).setOrigin(0.5)]);
+
+    // The host can remove a guest (who is then kept out of this room).
+    const host = this.host;
+    if (host && slot !== 0) this.button(x + w - 112, y + 50, 96, 42, "KICK", () => {
+      gameAudio.playUi(this, "select");
+      this.kickPrompt = { slot, name: player.name };
+      this.render();
+    }, "dark", 18);
   }
 
   /** An angled menu button; `parent` keeps it inside a container (coordinates are then local). */

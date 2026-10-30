@@ -22,6 +22,9 @@ export interface WeatherLabOptions {
   setEnemyMovement: (mode: EnemyMovement) => void;
   character?: string;
   switchCharacter?: (id: string) => void;
+  skins?: readonly { id: string; name: string }[];
+  skin?: string;
+  switchSkin?: (id: string) => void;
   burstAlwaysMax?: boolean;
   setBurstAlwaysMax?: (enabled: boolean) => void;
   /** testing: gain one level immediately */
@@ -52,6 +55,7 @@ export class WeatherLab {
         </div>
         <div class="lab-page" data-label="Player">
           <label id="lab-character-row">Character<select id="lab-character"></select></label>
+          <label id="lab-skin-row">Skin (restarts run)<select id="lab-skin"></select></label>
           <button type="button" id="lab-grant-level">Grant level</button>
           <label id="lab-burst-row">Burst always max<input id="lab-burst" type="checkbox"></label>
         </div>
@@ -91,6 +95,12 @@ export class WeatherLab {
     character.value = options.character ?? 'snow-white';
     this.panel.querySelector<HTMLElement>('#lab-character-row')!.hidden = !options.switchCharacter;
     character.addEventListener('change', () => options.switchCharacter?.(character.value));
+    const skin = this.panel.querySelector<HTMLSelectElement>('#lab-skin')!;
+    for (const outfit of options.skins ?? []) skin.add(new Option(outfit.name, outfit.id));
+    skin.value = options.skin ?? skin.options[0]?.value ?? '';
+    skin.disabled = skin.options.length < 2;
+    this.panel.querySelector<HTMLElement>('#lab-skin-row')!.hidden = !options.switchSkin;
+    skin.addEventListener('change', () => options.switchSkin?.(skin.value));
     this.time = this.panel.querySelector('#lab-time')!;
     this.wet = this.panel.querySelector('#lab-wet')!;
     this.enemies = this.panel.querySelector('#lab-enemy-movement')!;

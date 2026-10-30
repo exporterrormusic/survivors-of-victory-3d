@@ -13,6 +13,7 @@ import {
   AbstractMesh,
   AnimationGroup,
   ImportMeshAsync,
+  Mesh,
   Node,
   Scene,
   TransformNode,
@@ -162,7 +163,8 @@ export class Chibi {
     // Dorothy's lobby idles include unarmed gestures, a microphone and a
     // parasol. The rifle remains equipped in gameplay, including lift rides.
     // Use each outfit's authored rifle hold and retain the lobby animation.
-    if (['c233_00', 'c233_01', 'c233_02', 'c234_00'].includes(meta.variant) && groups.has('aim_idle')) {
+    // Lacrimosa's lobby performance also turns away from her combat stance.
+    if (['c233_00', 'c233_01', 'c233_02', 'c234_00', 'c471_01', 'c405_00'].includes(meta.variant) && groups.has('aim_idle')) {
       if (groups.has('idle')) {
         groups.set('lobby_idle', groups.get('idle')!);
         meta.clips.lobby_idle = meta.clips.idle;
@@ -172,7 +174,9 @@ export class Chibi {
       // `idle` normally normalizes by head yaw. This is a rifle stance, so
       // normalize its barrel just as the aimed clip does, without changing
       // the original aimed metadata or adding the gun offset twice.
-      meta.clips.idle = { ...armedIdle, yaw: { ...armedIdle.yaw, head: armedIdle.yaw.gun ?? armedIdle.yaw.head } };
+      // Lacrimosa's generated gun yaw measures an ornament, so use her head.
+      meta.clips.idle = { ...armedIdle, yaw: { ...armedIdle.yaw, head: meta.variant === 'c471_01'
+        ? armedIdle.yaw.head : armedIdle.yaw.gun ?? armedIdle.yaw.head } };
     }
     const meshes = result.meshes.filter((m) => m.getTotalVertices() > 0);
     attachWellsClockEyes(meta.variant, meshes);
@@ -182,10 +186,68 @@ export class Chibi {
       // NKAS includes disabled helper geometry (e.g. Scarlet's white weapon blocks).
       // Hide its geometry while keeping the transform hierarchy available to animation.
       if (m.metadata?.gltf?.extras?.disabled === true) m.isVisible = false;
+      // Glorious King's wrist streamers intersect the dress when made to hang.
+      // Remove those strips only; retain the waist ribbons and the whole lance.
+      if (meta.variant === 'c330_02' && m instanceof Mesh && m.name === 'c330_02_skin') {
+        const cloth = new Set(m.skeleton?.bones.filter(bone => /^(B_clothes_line_0[1-8]|D_clothes_line_0[1245])$/.test(bone.name)).map(bone => bone.getIndex()));
+        const joints = m.getVerticesData('matricesIndices'), weights = m.getVerticesData('matricesWeights'), indices = m.getIndices();
+        if (joints && weights && indices) {
+          const streamer = (vertex: number) => [0, 1, 2, 3].some(k => cloth.has(joints[vertex * 4 + k]) && weights[vertex * 4 + k] > .01);
+          const visible: number[] = [];
+          for (let i = 0; i < indices.length; i += 3) {
+            if (![indices[i], indices[i + 1], indices[i + 2]].some(streamer)) visible.push(indices[i], indices[i + 1], indices[i + 2]);
+          }
+          m.setIndices(visible);
+        }
+      }
+      // Wu Wei's opaque background orb shares a mesh with the luminous rings.
+      // Remove only triangles skinned to the orb bone, retaining both rings
+      // and the original skeleton used for animation and muzzle references.
+      if (meta.variant === 'c223_01' && m instanceof Mesh && m.name === 'c223_01_weapon_skin') {
+        const orb = m.skeleton?.bones.find(bone => bone.name === 'B_acc_prop_12')?.getIndex() ?? -1;
+        const joints = m.getVerticesData('matricesIndices'), weights = m.getVerticesData('matricesWeights'), indices = m.getIndices();
+        if (orb >= 0 && joints && weights && indices) {
+          const isOrb = (vertex: number) => [0, 1, 2, 3].some(k => joints[vertex * 4 + k] === orb && weights[vertex * 4 + k] > .5);
+          const visible: number[] = [];
+          for (let i = 0; i < indices.length; i += 3) {
+            if (![indices[i], indices[i + 1], indices[i + 2]].some(isOrb)) visible.push(indices[i], indices[i + 1], indices[i + 2]);
+          }
+          m.setIndices(visible);
+        }
+      }
     }
     // joints only: a weapon bone can share its name with the weapon mesh
     const nodes = new Map<string, TransformNode>();
     for (const n of result.transformNodes) if (!nodes.has(n.name)) nodes.set(n.name, n);
+    // Sanctuary's cinematic tracks shrink her floating ornaments during idle
+    // and collapse the whole assembly in combat. Keep a visible display pose.
+    if (meta.variant === 'c473_00') {
+      const assembly = nodes.get('P_base_acc_01'), idle = groups.get('idle');
+      if (assembly && idle) {
+        const parts = [assembly, ...assembly.getDescendants().filter((node): node is TransformNode => node instanceof TransformNode)];
+        idle.weight = -1;
+        idle.start(false); idle.pause(); idle.goToFrame(idle.from + 6.3 * 30);
+        const pose = parts.map(node => ({ node, position: node.position.clone(), rotation: node.rotationQuaternion?.clone(), scale: node.scaling.clone() }));
+        idle.stop(true); idle.weight = 0;
+        const targets = new Set(parts);
+        for (const group of groups.values()) {
+          for (const track of [...group.targetedAnimations]) if (targets.has(track.target)) group.removeTargetedAnimation(track.animation);
+        }
+        for (const { node, position, rotation, scale } of pose) {
+          node.position.copyFrom(position);
+          if (rotation) node.rotationQuaternion = rotation;
+          node.scaling.copyFrom(scale);
+          if (/^P_light_acc_0[124]$/.test(node.name)) node.scaling.setAll(1);
+        }
+        // The cinematic pose brings the lower wings toward her shoulders.
+        // Keep their spread, but place both pivots in the halo's rear plane.
+        const halo = nodes.get('P_light_acc_03');
+        for (const name of ['B_acc_mc_01', 'B_acc_mc_07']) {
+          const wing = nodes.get(name);
+          if (wing && halo && wing.parent === halo.parent) wing.position.z = halo.position.z;
+        }
+      }
+    }
     attachWellsCoatPhysics(meta.variant, scene, nodes, root);
 
     return new Chibi(meta, root, facing, meshes, groups, nodes, aimFacing, muzzleMode);
@@ -369,6 +431,9 @@ export function staticClipYaw(meta: VariantMeta, name: string, gunOffset: number
 
 /** Gun tip used while clip `name` plays: its own if aimed and measured, else an aimed fallback. */
 export function clipMuzzle(meta: VariantMeta, name: string): MuzzleRef | null {
+  // Lacrimosa's auto-sampled muzzle belongs to a back ornament. The coffin
+  // cannon is in the accessory mesh, extending along its own bone's +X axis.
+  if (meta.variant === 'c471_01') return { joint: 'Bone_weapon01_01', offset: [1.8925, 0, 0] };
   const ref = (AIMED.test(name) && meta.clips[name]?.muzzle) || MUZZLE_FALLBACK.map((n) => meta.clips[n]?.muzzle).find(Boolean) || null;
   // The derivative retains Product 08's measurements, but Blender rebases
   // Prop1's bind axes: original (x,y,z) becomes (-z,-x,y).

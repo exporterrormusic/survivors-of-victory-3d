@@ -54,12 +54,14 @@ export interface RosterEntry { slot: number; peerId: string; name: string; chara
 /** One-off gameplay events (kills, downs, revives, lift state, banners, round end). */
 export interface GameEvent { name: string; data?: unknown }
 
-export type RejectReason = 'full' | 'version' | 'started';
+export type RejectReason = 'full' | 'version' | 'started' | 'kicked';
 
 export type ControlMessage =
   | { t: 'hello'; v: number; name: string; character: string }
   | { t: 'welcome'; slot: number; maxPlayers: number; roster: RosterEntry[] }
   | { t: 'reject'; reason: RejectReason }
+  /** the host removed this guest from the room */
+  | { t: 'kicked' }
   | { t: 'roster'; roster: RosterEntry[] };
 
 /** Logical channels; Trystero gives each its own action, so names stay short. */

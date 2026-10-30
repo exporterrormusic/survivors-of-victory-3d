@@ -78,12 +78,14 @@ export function createRapunzel(ctx: KitContext): CharacterKit {
     rockets.push({ at: at.clone(), goal: goal.clone(), target, generation: target?.generation ?? -1, age: 0, burst, trail: rocketTrail(ctx.vfx, at) });
     ctx.sound(WEAPON_FIRE.rocket, at, burst ? .35 : 1);
   }
-  function explode(r: Rocket): void {
+  function explode(r: Rocket, directHit?: Target): void {
     r.trail.stop(); holyGraceImpact(ctx.vfx, r.at); ctx.sound(SFX.explosion, r.at, .85);
     if (!r.burst) ctx.run.beginShot();
     let refunded = false;
     ctx.targets.areaHit((x, z, pad) => Math.hypot(x - r.at.x, z - r.at.z) <= RAPUNZEL_BLAST_RADIUS + pad);
-    for (const t of ctx.targets.targets) if (t.alive && Vector3.Distance(r.at, t.position.add(new Vector3(0, .7, 0))) <= RAPUNZEL_BLAST_RADIUS + t.radius && clear(r.at, t.position)) {
+    // A torso impact must damage even a tall boss whose feet are outside the blast.
+    for (const t of ctx.targets.targets) if (t.alive && (t === directHit ||
+      (Vector3.Distance(r.at, t.position.add(new Vector3(0, .7, 0))) <= RAPUNZEL_BLAST_RADIUS + t.radius && clear(r.at, t.position)))) {
       const armored = !r.burst && has('anti_armor') && t.combatTier !== 'horde';
       ctx.run.damage(t, 15 * (r.burst && has('holy_ordnance') ? ORDNANCE : 1) * (armored ? 1 + ARMOR_BONUS : 1), r.burst ? 'burst' : 'attack');
       if (!r.burst && t.alive) {
@@ -219,12 +221,13 @@ export function createRapunzel(ctx: KitContext): CharacterKit {
         const shield = ctx.targets.shieldContact(r.at, end);
         if (shield && shield.t < contact) contact = shield.t;
         let hit = contact < 1;
-        for (const t of ctx.targets.targets) if (t.alive) { const c = targetContact(r.at, end, t); if (c !== null && c <= contact) { contact = c; hit = true; } }
+        let directHit: Target | undefined;
+        for (const t of ctx.targets.targets) if (t.alive) { const c = targetContact(r.at, end, t); if (c !== null && (c < contact || (!hit && c === contact))) { contact = c; hit = true; directHit = t; } }
         Vector3.LerpToRef(r.at, end, contact, r.at);
         // Report shield hits (the rocket's blast does the damage; scripted props listen for the touch).
         if (shield && contact === shield.t) shield.shield.block(r.at.clone(), 0);
         r.trail.move(r.at);
-        if (hit || distance <= step || r.age >= 6) { explode(r); rockets.splice(i, 1); }
+        if (hit || distance <= step || r.age >= 6) { explode(r, directHit); rockets.splice(i, 1); }
       }
     },
   };

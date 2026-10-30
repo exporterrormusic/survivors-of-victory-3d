@@ -74,12 +74,15 @@ export class CoopSquad {
   }
 
   private async add(slot: number, hero: HeroId, controller: BotInput | RemoteInput, skin?: string): Promise<Teammate> {
-    const at = this.local.position.add(new Vector3(Math.cos(slot * 2.4) * 2.5, 0, Math.sin(slot * 2.4) * 2.5));
-    at.y = 0;
+    // On a lift ride, start beside the player on the deck (ride() seats them), not on the ground nearby.
+    const at = this.local.transported ? this.local.position.clone()
+      : this.local.position.add(new Vector3(Math.cos(slot * 2.4) * 2.5, 0, Math.sin(slot * 2.4) * 2.5));
+    if (!this.local.transported) at.y = 0;
     const mate = await Teammate.create(this.world, slot, hero, at, skin);
     this.teammates.push(mate);
     this.controllers.set(mate, controller);
     this.world.targets.squad.push(mate);
+    this.ride();
     this.onChange?.();
     return mate;
   }

@@ -93,7 +93,7 @@ export class Teammate implements SquadMember {
     player.position.copyFrom(at);
     player.unstick();
     await kit.prepare?.();
-    const mate = new Teammate(slot, hero, variant.name, player, run, ctx, world.run);
+    const mate = new Teammate(slot, hero, character.name, player, run, ctx, world.run);
     mate.skin = variant.variant;
     return mate;
   }

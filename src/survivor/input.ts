@@ -1,6 +1,6 @@
 ﻿import { loadControlSettings, type ControlAction, type ControlBinding } from '../frontend/settings/GameSettings';
 
-export type Action = 'fire' | 'special' | 'burst' | 'reload' | 'dash' | 'talents' | 'pause' | 'menu';
+export type Action = 'fire' | 'special' | 'burst' | 'reload' | 'dash' | 'talents' | 'pause' | 'menu' | 'openMenu';
 const movement: Partial<Record<ControlAction, readonly [number, number]>> = {
   moveUp: [0, 1], moveDown: [0, -1], moveLeft: [-1, 0], moveRight: [1, 0],
 };
@@ -19,12 +19,17 @@ export class SurvivorInput implements InputSource {
   private readonly pressed = new Set<Action>();
   private readonly released = new Set<Action>();
   enabled = true;
+  /** First-person Alt cursor mode must not fire while interacting with the HUD. */
+  mouseSuppressed = false;
+  /** Null uses the overhead view's world axes. */
+  viewYaw: number | null = null;
   constructor(canvas: HTMLCanvasElement) {
     window.addEventListener('sov:controls-changed', () => { this.clear(); this.settings = loadControlSettings(); });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
     canvas.addEventListener('pointermove', e => { this.pointer.x = e.offsetX; this.pointer.y = e.offsetY; this.pointer.inside = true; });
     canvas.addEventListener('pointerleave', () => { this.pointer.inside = false; });
     canvas.addEventListener('pointerdown', e => {
+      if (this.mouseSuppressed) return;
       this.pointer.x = e.offsetX; this.pointer.y = e.offsetY; canvas.focus({ preventScroll: true });
       this.dispatch(binding => binding.device === 'mouse' && binding.button === mouseButtons[e.button], true);
     });
@@ -70,7 +75,11 @@ export class SurvivorInput implements InputSource {
     if (!this.enabled) return [0, 0];
     let x = 0, z = 0;
     for (const action of this.moving) { const direction = movement[action]!; x += direction[0]; z += direction[1]; }
-    const length = Math.hypot(x, z); return length > 0 ? [x / length, z / length] : [0, 0];
+    const length = Math.hypot(x, z);
+    if (!length) return [0, 0];
+    x /= length; z /= length;
+    const yaw = this.viewYaw ?? 0, c = Math.cos(yaw), s = Math.sin(yaw);
+    return [x * c + z * s, z * c - x * s];
   }
   isHeld(action: Action): boolean { return this.enabled && this.held.has(action); }
   trigger(action: Action): void { if (this.enabled) this.pressed.add(action); }

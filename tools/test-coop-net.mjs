@@ -111,6 +111,24 @@ const me = (name) => ({ name, character: 'snow-white' });
   assert.deepEqual(spends, [[guest.slot, 'skill1']]);
 }
 
+// --- the host kicks a guest: they're told, dropped, and turned away if they come back ---------------
+{
+  const hub = new LoopbackHub();
+  const host = new CoopHost(hub.join('h'), me('Host'), 3);
+  const guest = new CoopGuest(hub.join('k'), me('K'));
+  await flush();
+  let lost = null;
+  guest.onLost = reason => { lost = reason; };
+  host.kick(guest.slot); await flush();
+  assert.equal(lost, 'kicked');
+  assert.equal(host.roster.length, 1, 'kicked guest leaves the roster');
+  const again = new CoopGuest(hub.join('k'), me('K'));
+  let rejected = null;
+  again.onRejected = reason => { rejected = reason; };
+  await flush();
+  assert.equal(rejected, 'kicked', 'kicked peer is kept out');
+}
+
 // --- silent guests are dropped (a closed tab WebRTC hasn't noticed yet) ----------------------------
 {
   const hub = new LoopbackHub();
@@ -121,6 +139,9 @@ const me = (name) => ({ name, character: 'snow-white' });
   await flush();
   const left = [];
   host.onPlayerLeft = entry => left.push(entry.slot);
+  // A guest still loading the match (no input yet) is never dropped for silence.
+  clock = 20000; host.dropSilent(8000); assert.deepEqual(left, [], 'loading guests are kept');
+  clock = 0; quiet.sendInput({ moveX: 0, moveZ: 0, aimX: 0, aimZ: 0, buttons: 0 }); await flush();
   clock = 5000; chatty.sendInput({ moveX: 0, moveZ: 0, aimX: 0, aimZ: 0, buttons: 0 }); await flush();
   host.dropSilent(8000); assert.deepEqual(left, []);
   clock = 9000; host.dropSilent(8000);

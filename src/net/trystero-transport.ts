@@ -5,6 +5,7 @@ import { joinRoom, selfId } from '@trystero-p2p/nostr';
 import type { DataPayload, MessageAction } from '@trystero-p2p/nostr';
 import { APP_ID, CHANNELS, PROTOCOL_VERSION, type Channel } from './protocol';
 import type { Transport, TransportHandlers } from './transport';
+import { joinBroadcastRoom } from './broadcast-transport';
 
 export interface TrysteroOptions {
   /** e.g. [{ urls: 'turn:example.com:3478', username, credential }] once we run a relay */
@@ -13,6 +14,8 @@ export interface TrysteroOptions {
 }
 
 export function joinTrysteroRoom(code: string, options: TrysteroOptions = {}): Transport {
+  // Dev builds: ?net=local plays between tabs of this browser instead (broadcast-transport.ts).
+  if (import.meta.env?.DEV && new URLSearchParams(location.search).get('net') === 'local') return joinBroadcastRoom(code);
   // The version is in the room id so mismatched builds never meet; the code doubles as the password,
   // which encrypts signaling on the public relays.
   const room = joinRoom({

@@ -85,6 +85,7 @@ export function createScarlet(ctx: KitContext): CharacterKit {
     waves.splice(waves.indexOf(wave), 1); return true;
   }
   return {
+    aimFacing: 'head',
     weapon: { damage: 10, magazine: 0, reload: 0, cooldown: .3, automatic: false, moveSpeed: 800 * PX, maxHp: 50, melee: true },
     dash: { speed: 26, duration: .22, afterimageInterval: .025, cooldown: .5 },
     talentTiers: true,

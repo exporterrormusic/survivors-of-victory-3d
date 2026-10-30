@@ -25,6 +25,8 @@ export class CoopHost {
   private readonly now: () => number;
   private tick = 0;
   private lobbyReturn: Promise<void> | null = null;
+  /** peers the host kicked: turned away if they say hello again */
+  private readonly kicked = new Set<string>();
   private acknowledgeLobbyReturn: ((slot: number) => void) | null = null;
 
   private readonly transport: Transport;
@@ -36,7 +38,8 @@ export class CoopHost {
     transport.listen({
       message: (channel, data, from) => {
         const known = this.slotOf(from);
-        if (known !== undefined) this.heard.set(known, this.now());
+        // Silence counts only once a guest plays: loading a match can block a tab for many seconds.
+        if (known !== undefined && (this.heard.has(known) || channel === 'input')) this.heard.set(known, this.now());
         if (channel === 'ctrl') this.control(data as ControlMessage, from);
         else if (channel === 'input') this.input(data as PlayerInput, from);
         else if (channel === 'event') {
@@ -51,6 +54,9 @@ export class CoopHost {
       peerLeave: peerId => this.drop(peerId),
     });
   }
+
+  /** whether a guest's match is running (they've sent controls), not still loading */
+  playing(slot: number): boolean { return this.heard.has(slot); }
 
   get roster(): RosterEntry[] { return [...this.entries.values()].sort((a, b) => a.slot - b.slot); }
 
@@ -92,11 +98,21 @@ export class CoopHost {
 
   /**
    * Drop guests silent for `silenceMs`. A closed tab can take WebRTC 30 s or more to notice, while a
-   * live guest sends inputs many times a second. Call every frame or so.
+   * live guest sends inputs many times a second. Guests still loading (no input yet) are left to the
+   * transport's own leave. Call every frame or so.
    */
   dropSilent(silenceMs = 8000): void {
     const now = this.now();
     for (const [slot, at] of this.heard) if (now - at > silenceMs) this.drop(this.entries.get(slot)!.peerId);
+  }
+
+  /** Remove a guest from the room; they're told, and kept out if they try this room again. */
+  kick(slot: number): void {
+    const entry = this.entries.get(slot);
+    if (!entry || slot === HOST_SLOT) return;
+    this.kicked.add(entry.peerId);
+    this.transport.send('ctrl', { t: 'kicked' } satisfies ControlMessage, entry.peerId);
+    this.drop(entry.peerId);
   }
 
   async close(): Promise<void> { await this.transport.leave(); }
@@ -104,6 +120,7 @@ export class CoopHost {
   private control(message: ControlMessage, from: string): void {
     if (message.t !== 'hello' || this.slotOf(from) !== undefined) return;
     const reject = (reason: RejectReason) => this.transport.send('ctrl', { t: 'reject', reason } satisfies ControlMessage, from);
+    if (this.kicked.has(from)) return reject('kicked');
     if (message.v !== PROTOCOL_VERSION) return reject('version');
     if (this.started) return reject('started');
     let slot = 1;
@@ -111,7 +128,6 @@ export class CoopHost {
     if (slot >= this.maxPlayers) return reject('full');
     const entry: RosterEntry = { slot, peerId: from, name: message.name, character: message.character };
     this.entries.set(slot, entry);
-    this.heard.set(slot, this.now());
     this.transport.send('ctrl', { t: 'welcome', slot, maxPlayers: this.maxPlayers, roster: this.roster } satisfies ControlMessage, from);
     this.sendRoster();
     this.onPlayerJoined?.(entry);
@@ -143,7 +159,7 @@ export class CoopHost {
 }
 
 export type GuestState = 'joining' | 'joined' | 'rejected' | 'lost';
-export type LostReason = 'no-host' | 'host-left';
+export type LostReason = 'no-host' | 'host-left' | 'kicked';
 
 export class CoopGuest {
   state: GuestState = 'joining';
@@ -219,6 +235,9 @@ export class CoopGuest {
       this.onJoined?.(this.slot);
     } else if (message.t === 'reject' && this.state === 'joining') {
       clearTimeout(this.timer); this.state = 'rejected'; this.onRejected?.(message.reason);
+    } else if (message.t === 'kicked' && from === this.hostId) {
+      this.lose('kicked');
+      void this.transport.leave();
     } else if (message.t === 'roster' && from === this.hostId) {
       this.roster = message.roster; this.onRoster?.(this.roster);
     }

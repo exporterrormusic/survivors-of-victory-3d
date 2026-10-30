@@ -32,6 +32,12 @@ import type { RoundInfo } from './net-host';
 import { GuestRoundHud } from './guest-hud';
 
 const INPUT_HZ = 30;
+/** past this (seconds) from the host's, our arrival lift jumps to it; closer, it eases in (LIFT_CATCH_UP) */
+const LIFT_SNAP = 1;
+/** how much faster or slower than real time our lift clock may run while it closes the gap */
+const LIFT_CATCH_UP = .25;
+/** never lead the host's clocks by more than half of this (seconds) */
+const MAX_RTT = .5;
 const HEROES: readonly HeroId[] = ['snow-white', 'scarlet', 'rapunzel', 'nayuta', 'dorothy'];
 const SPECS = Object.values(ROSTER) as RaptureSpec[];
 
@@ -61,6 +67,17 @@ export class CoopNetGuest {
   /** the Survival arrival lift: the whole squad rides it up here too, until the host's round starts */
   private lift: ArrivalElevator | null = null;
   private openedGates = false;
+  /** seconds since our lift began to rise (0 while still waiting on the host's) */
+  private liftClock = 0;
+  /** smoothed round trip to the host (seconds), from 'ping'/'pong', to lead the host's clocks by half */
+  private rtt = 0;
+  /** recent round trips; the quickest is the truest (slow ones waited on a busy frame) */
+  private readonly rtts: number[] = [];
+  /** set once our game loop runs: pings sent while loading wait on stalls and are not measured */
+  private ticking = false;
+  /** a ping a second from the moment we join, so the host (which drops guests silent for 8 s) keeps
+   * us while this machine is still loading the match; the pongs measure `rtt` */
+  private readonly keepAlive = setInterval(() => this.session.send({ name: 'ping', data: this.ticking ? performance.now() : -1 }), 1000);
 
   constructor(private readonly world: TeammateWorld, private readonly local: Player, private readonly input: InputSource,
     private readonly aim: () => Vector3, readonly code: string, hero: HeroId, name: string, lobby: LobbyGuest | null = null) {
@@ -78,9 +95,19 @@ export class CoopNetGuest {
       if (event.name === 'round') { this.round = event.data as RoundInfo; this.roundAt = performance.now(); }
       else if (event.name === 'banner') { const b = event.data as { text: string; seconds?: number }; this.hud.banner(String(b.text), b.seconds); }
       else if (event.name === 'attack') this.replay(event.data as AttackEcho);
+      else if (event.name === 'pong') {
+        const pong = event.data as { slot: number; sent: number };
+        if (pong.slot !== this.session.slot) return;
+        if (!this.ticking || pong.sent < 0) return;
+        this.rtts.push((performance.now() - pong.sent) / 1000);
+        if (this.rtts.length > 8) this.rtts.shift();
+        this.rtt = Math.min(MAX_RTT, ...this.rtts);
+      }
     };
     this.session.onRoster = roster => {
       const present = new Set(roster.map(r => r.slot));
+      // The host dropped us (it stopped hearing from us): say so, rather than play on alone.
+      if (this.session.slot >= 0 && !present.has(this.session.slot)) { void this.session.close(); this.hud.lost('host-left'); }
       for (const slot of [...this.heroes.keys()]) if (!present.has(slot)) this.dropHero(slot);
     };
     this.session.onLost = reason => { for (const slot of [...this.heroes.keys()]) this.dropHero(slot); this.hud.lost(reason); };
@@ -101,19 +128,56 @@ export class CoopNetGuest {
   arriveBy(elevator: ArrivalElevator): void {
     this.lift = elevator;
     this.local.transported = true;
-    elevator.motion.height = -ELEVATOR_DEPTH; elevator.motion.gateOpen = 0; elevator.motion.seal = 1;
-    elevator.command('rise'); elevator.update(0);
-    this.ride();
+    // Sealed at the bottom until the host's lift clock arrives (followHostLift).
+    this.seatLift(0);
+    this.ride(0);
+  }
+
+  /** Put the lift where it is `seconds` after the host's began to rise (rise 6 s, then the gates open). */
+  private seatLift(seconds: number): void {
+    const lift = this.lift!, motion = lift.motion;
+    motion.height = -ELEVATOR_DEPTH; motion.gateOpen = 0; motion.seal = 1; motion.phase = 'sealed';
+    this.openedGates = false;
+    this.liftClock = seconds;
+    if (seconds <= 0) { lift.update(0); return; }
+    motion.command('rise');
+    // The whole arrival is about 8 s; nothing moves after it.
+    for (let t = 0, end = Math.min(seconds, 12); t < end; t += 1 / 60) {
+      motion.update(Math.min(1 / 60, end - t));
+      if (motion.height >= -.001 && lift.state.action === 'idle' && !this.openedGates) { motion.command('open'); this.openedGates = true; }
+    }
+    lift.update(0);
+  }
+
+  /**
+   * Keep our lift on the host's clock. Our clock runs a little fast or slow until it matches, and the
+   * lift is posed from it every frame (seatLift is deterministic), so it never visibly jumps.
+   */
+  private followHostLift(dt: number): void {
+    const round = this.round;
+    if (!round || round.phase !== 'arrival' || round.lift === undefined) { if (this.liftClock > 0) this.liftClock += dt; return; }
+    // The update is half a round trip old when it lands.
+    // Run on between updates, but not past a missing one: a stalled host has a stalled lift.
+    const host = round.lift + Math.min(.5, (performance.now() - this.roundAt) / 1000) + this.rtt / 2;
+    const gap = host - (this.liftClock + dt);
+    const clock = this.liftClock <= 0 || Math.abs(gap) > LIFT_SNAP ? host
+      : this.liftClock + dt + Math.max(-LIFT_CATCH_UP * dt, Math.min(LIFT_CATCH_UP * dt, gap));
+    // Up with the gates open: nothing left to pose.
+    if (this.openedGates && this.lift!.state.action === 'idle') { this.liftClock = clock; return; }
+    this.seatLift(clock);
   }
 
   get arriving(): boolean { return !!this.lift; }
+  /** our NIKKE and her Burst art, for the round results */
+  set nikke(nikke: { name: string; art: string | null }) { this.hud.nikke = nikke; }
 
   get teammates(): readonly Teammate[] { return Array.from(this.heroes.values(), puppet => puppet.mate); }
 
   /** After the local player's update; before targets. */
   update(dt: number, worldDt: number): void {
     const s = this.session;
-    this.ride();
+    this.ticking = true;
+    this.ride(dt);
     if (s.state !== 'joined') return;
     this.bolts.update(worldDt);
     this.missiles.update(worldDt);
@@ -145,9 +209,10 @@ export class CoopNetGuest {
   }
 
   /** Hold everyone on the arrival lift's deck (deckSpot); step off when the host's round begins. */
-  private ride(): void {
+  private ride(dt: number): void {
     const lift = this.lift;
     if (!lift) return;
+    this.followHostLift(dt);
     const started = !!this.round && this.round.phase !== 'arrival';
     const state = lift.state;
     if (state.height >= -.001 && state.action === 'idle' && !this.openedGates) { lift.command('open'); this.openedGates = true; }
@@ -188,6 +253,7 @@ export class CoopNetGuest {
   afterAnimation(): void { for (const { mate } of this.heroes.values()) mate.player.afterAnimation(); }
 
   async close(): Promise<void> {
+    clearInterval(this.keepAlive);
     for (const slot of [...this.heroes.keys()]) this.dropHero(slot);
     this.bolts.dispose(); this.missiles.dispose(); this.tells.dispose(); this.hud.dispose();
     await this.session.close();
@@ -226,13 +292,16 @@ export class CoopNetGuest {
     if (this.loadingHeroes.has(state.slot)) return;
     this.loadingHeroes.add(state.slot);
     const hero = HEROES.includes(state.hero as HeroId) ? state.hero as HeroId : 'snow-white';
-    const mate = await Teammate.create(this.world, state.slot, hero, new Vector3(state.x, 0, state.z), state.skin);
+    // Riding the arrival lift: start on the deck (ride() seats them), never beside it on the ground.
+    const at = this.lift ? this.local.position.clone() : new Vector3(state.x, 0, state.z);
+    const mate = await Teammate.create(this.world, state.slot, hero, at, state.skin);
     disableLocalDamage(mate.run);
     this.loadingHeroes.delete(state.slot);
     if (this.session.state !== 'joined' || this.heroes.has(state.slot)) { mate.dispose(); return; }
     this.heroes.set(state.slot, { mate, input: new RemoteInput() });
     // In the squad list for overhead names and bars (no Rapture AI runs on a guest).
     this.world.targets.squad.push(mate);
+    this.ride(0);
     this.onHeroesChanged?.();
   }
 

@@ -156,7 +156,7 @@ export class TalentPicker {
           // Icon and name on one line; the explanation gets the row's full width below it.
           const title = el('span', 'tp-title', button);
           el('span', 'tp-icon', title).innerHTML = this.icons[talent.ability];
-          el('b', '', title, talent.name);
+          el('b', '', title, `${index + 1}. ${talent.name}`);
           el('small', '', title, tiers.abilities[talent.ability]);
           el('span', 'tp-text', button, talent.description);
           if (talent.quest) el('span', 'tp-quest-text', button, `Quest: ${talent.quest.goal} ${talent.quest.label.toLowerCase()} → ${talent.quest.rewardName}. ${talent.quest.rewardText}`);
@@ -219,6 +219,14 @@ export class TalentBoard {
     this.dialog.addEventListener('cancel', (event) => { event.preventDefault(); onClose(); });
     this.dialog.addEventListener('keydown', (event) => {
       event.stopPropagation();
+      if (!this.preview && !event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        const choice = /^(?:Digit|Numpad)([123])$/.exec(event.code);
+        if (choice) {
+          const button = this.dialog.querySelectorAll<HTMLButtonElement>('.tt-talent[data-state="available"]')[Number(choice[1]) - 1];
+          if (button) { event.preventDefault(); button.click(); }
+          return;
+        }
+      }
       if (event.code !== 'Tab' && event.code !== 'Escape') return;
       event.preventDefault();
       if (!event.repeat) onClose();
@@ -292,7 +300,7 @@ export class TalentBoard {
         tile(talent, button);
         const copy = el('span', 'tt-copy', button);
         el('small', '', copy, tiers.abilities[talent.ability]);
-        el('b', '', copy, talent.name);
+        el('b', '', copy, state === 'available' ? `${option + 1}. ${talent.name}` : talent.name);
         el('span', 'tt-text', copy, talent.description);
         const quest = quests.get(talent.id);
         if (talent.quest) {

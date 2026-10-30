@@ -105,7 +105,7 @@ export class Player {
     chibi.root.parent = this.stand;
     chibi.root.position.setAll(0);
     this.lean = DEFAULT_LEAN;
-    this.rig = new TwinStickRig(chibi, undefined, kit.aimFacing);
+    this.rig = new TwinStickRig(chibi, undefined, kit.aimFacing, kit.weapon.automatic && kit.weapon.cooldown < .2);
   }
 
   /** Lean toward the camera, radians (the camera looks along +Z, so the top tips toward −Z). */

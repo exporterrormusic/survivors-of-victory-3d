@@ -25,6 +25,8 @@ export interface RoundInfo {
   /** the Survival objective box (mode/survival-mode.ts objectiveText) and the Obelisk's health, if any */
   objective?: { mode: string; status: string; detail: string };
   boss?: [number, number] | null;
+  /** during the arrival: seconds since the lift began to rise (SurvivalMode.liftClock) */
+  lift?: number;
 }
 /** round updates per second (the clock, objective and boss bar on guests) */
 const ROUND_HZ = 4;
@@ -63,6 +65,10 @@ export class CoopNetHost {
   }
 
   get players(): number { return this.host.roster.length; }
+  /** some guest is still loading: their hero here, or their match (no controls from them yet) */
+  get squadLoading(): boolean {
+    return this.joining.size > 0 || this.host.roster.some(r => r.slot !== this.host.slot && (!this.remotes.has(r.slot) || !this.host.playing(r.slot)));
+  }
 
   async returnToLobby(): Promise<void> { await this.host.returnToLobby(); }
 

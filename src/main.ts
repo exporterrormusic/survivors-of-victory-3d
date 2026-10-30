@@ -364,7 +364,7 @@ async function main(): Promise<void> {
     if (heroicsOpen()) hero.chooseHeroic(index);
   });
   const iconUrl = (id: string) => (index.variants[id].icon ? `${BASE}${index.variants[id].icon}` : null);
-  hud.setHero(current.name, iconUrl(current.variant), current.character.profile.accent);
+  hud.setHero(current.character.name, iconUrl(current.variant), current.character.profile.accent);
   minimap.setIcon(iconUrl(current.variant));
 
   let menuReturnFocus: HTMLElement | null = null;
@@ -429,7 +429,7 @@ async function main(): Promise<void> {
       hero.setChibi(await loadChibi(scene, world, index, next), nextKit, next.variant);
       visuals.refreshUnits();
       current = next;
-      hud.setHero(next.name, iconUrl(next.variant), next.character.profile.accent);
+      hud.setHero(next.character.name, iconUrl(next.variant), next.character.profile.accent);
       minimap.setIcon(iconUrl(next.variant));
       buildClipButtons();
       history.replaceState(null, '', `?hero=${next.character.id}&v=${next.variant}`);

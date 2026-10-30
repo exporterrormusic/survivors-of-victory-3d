@@ -10,9 +10,70 @@ body.survival-round #weather-lab { display:none; }
 .survival-notice.show { opacity:1; transform:none; transition:none; animation:survival-notice-in .28s cubic-bezier(.2,.9,.3,1.1); }
 @keyframes survival-notice-in { from { opacity:0; transform:translateY(10px) scale(.97); letter-spacing:.06em; } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .survival-notice, .survival-notice.show { animation:none; transition:opacity .2s; transform:none; } }
-.survival-results { position:absolute; inset:0; display:grid; place-items:center; background:#07131cd4; z-index:100; pointer-events:auto; }
-.survival-results section { padding:30px 38px; width:min(500px,80%); background:#162631; border-top:3px solid #88e3e7; color:#f2f8f8; font:20px Rajdhani,sans-serif; }
-.survival-results h1 { margin:0 0 14px; font-size:36px; }
-.survival-results .core-reward { color:#9eecea; font-size:28px; margin:12px 0; }
-.survival-results button { padding:12px 18px; margin:16px 8px 0 0; cursor:pointer; color:#10202b; background:#b5ece9; border:0; font:700 18px Rajdhani,sans-serif; }
-.survival-results small { display:block; color:#c2d6db; }
+/* Round results: an after-action report in the HUD's language (thin lines, white corner brackets,
+   gold accents, letter-spaced caps). The outcome sets --accent. */
+.survival-results { --accent:#f4b331; position:absolute; inset:0; display:grid; place-items:center; padding:24px; box-sizing:border-box; overflow:auto; scrollbar-width:none; z-index:100; pointer-events:auto;
+  background:radial-gradient(ellipse at 50% 40%,#0c1620c4,#04080cf2 75%); backdrop-filter:blur(6px) saturate(.7); animation:result-fade .35s ease-out; }
+.survival-results .result-defeat, .survival-results .result-endless { --accent:#e2564f; }
+.survival-results .result-endless { --accent:#5fd3e8; }
+.survival-results section { position:relative; box-sizing:border-box; width:min(820px,100%); overflow:hidden; color:#f2f5f7; font:500 17px/1.4 Rajdhani,sans-serif;
+  background:linear-gradient(180deg,#0d161ee8,#0a1118f2); border:1px solid #f2f5f733; animation:result-in .45s cubic-bezier(.2,.9,.3,1); }
+/* white corner brackets, as on the HUD panels */
+.survival-results section::before, .survival-results section::after { content:''; position:absolute; width:18px; height:18px; pointer-events:none; z-index:2; }
+.survival-results section::before { left:-1px; top:-1px; border-left:2px solid #fff; border-top:2px solid #fff; }
+.survival-results section::after { right:-1px; bottom:-1px; border-right:2px solid #fff; border-bottom:2px solid #fff; }
+.survival-results .result-art { position:relative; margin:0; height:clamp(150px,24vh,230px); overflow:hidden; }
+.survival-results .result-art img { width:100%; height:100%; object-fit:cover; object-position:50% 40%; display:block; }
+.survival-results .result-defeat .result-art img, .survival-results .result-endless .result-art img { filter:saturate(.45) brightness(.8); }
+.survival-results .result-art::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 35%,#0d161ef2); }
+.survival-results .result-art figcaption { position:absolute; right:28px; top:18px; z-index:1; color:#fff; font-size:13px; font-weight:700; letter-spacing:4px; text-transform:uppercase; text-shadow:0 1px 6px #000c; }
+.survival-results .result-body { position:relative; padding:28px 40px 32px; }
+.survival-results .has-art .result-body { margin-top:-64px; }
+.survival-results header { border-left:3px solid var(--accent); padding-left:18px; margin-bottom:26px; }
+.survival-results .result-eyebrow, .survival-results .result-where { display:block; color:#aeb7c1; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+.survival-results i { font-style:normal; color:#f2f5f755; margin:0 2px; }
+.survival-results h1 { margin:2px 0 4px; color:var(--accent); font-size:clamp(40px,6vw,64px); line-height:1; font-weight:700; letter-spacing:3px; text-transform:uppercase; text-shadow:0 2px 18px #000a; }
+.survival-results .result-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:0; }
+.survival-results .result-stats div { padding:14px 18px 12px; background:#f2f5f70a; border:1px solid #f2f5f71f; border-top:2px solid #f2f5f7aa; }
+.survival-results dt { color:#aeb7c1; font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; white-space:nowrap; }
+.survival-results dd { margin:2px 0 0; font-size:42px; font-weight:700; line-height:1.05; font-variant-numeric:tabular-nums; }
+.survival-results .result-record { margin:14px 0 0; color:var(--accent); font-size:14px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+.survival-results .result-record::before { content:'\25B2  '; font-size:10px; }
+.survival-results .core-reward { display:flex; align-items:center; gap:18px; margin:18px 0 0; padding:12px 18px; background:linear-gradient(90deg,#f4b33124,#f4b33106); border:1px solid #f4b33166; border-left:3px solid #f4b331; }
+.survival-results .core-reward:empty { display:none; }
+.survival-results .core-reward span, .survival-results .result-talents span { color:#aeb7c1; font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; }
+.survival-results .core-reward strong { color:#ffd27a; font-size:24px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.survival-results .result-talents { display:flex; align-items:baseline; gap:18px; margin:18px 0 0; }
+.survival-results .result-talents ul { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
+.survival-results .result-talents li { padding:3px 10px; border:1px solid #f2f5f733; background:#f2f5f70d; font-size:14px; font-weight:600; letter-spacing:1px; }
+.survival-results .result-note { margin:14px 0 0; font-size:14px; color:#8a949f; }
+.survival-results [data-actions] { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; padding-top:22px; border-top:1px solid #f2f5f71f; }
+.survival-results button { min-height:52px; padding:10px 26px; margin:0; cursor:pointer; color:#f2f5f7; background:#0d151de6; border:1px solid #55636f;
+  font:700 18px Rajdhani,sans-serif; letter-spacing:3px; text-transform:uppercase; transition:background .15s,border-color .15s,color .15s; }
+.survival-results [data-actions] button { flex:1 1 0; }
+.survival-results [data-actions] button:first-child { color:#10161c; background:var(--accent); border-color:var(--accent);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%); }
+.survival-results button:hover { background:#1b2834; border-color:#35c5f2; }
+.survival-results [data-actions] button:first-child:hover { filter:brightness(1.12); background:var(--accent); }
+.survival-results button:focus-visible { outline:2px solid #fff; outline-offset:3px; }
+.survival-results small { display:block; color:#aeb7c1; font-size:14px; letter-spacing:normal; text-transform:none; }
+.survival-results::-webkit-scrollbar { display:none; }
+/* Short windows: tighten everything rather than scroll. */
+@media (max-height:760px) {
+  .survival-results { padding:12px; }
+  .survival-results .result-art { height:clamp(90px,17vh,150px); }
+  .survival-results .result-body { padding:20px 32px 22px; }
+  .survival-results .has-art .result-body { margin-top:-48px; }
+  .survival-results header { margin-bottom:16px; }
+  .survival-results h1 { font-size:clamp(32px,7vh,52px); }
+  .survival-results dd { font-size:clamp(26px,5vh,36px); }
+  .survival-results .result-stats div { padding:10px 14px 8px; }
+  .survival-results .core-reward, .survival-results .result-talents, .survival-results .result-record { margin-top:12px; }
+  .survival-results [data-actions] { margin-top:16px; padding-top:14px; }
+  .survival-results button { min-height:44px; }
+}
+@media (max-height:520px) { .survival-results .result-art { display:none; } .survival-results .has-art .result-body { margin-top:0; } }
+@keyframes result-fade { from { opacity:0; } }
+@keyframes result-in { from { opacity:0; transform:translateY(18px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .survival-results, .survival-results section { animation:none; } }
+@media(max-width:600px) { .survival-results { padding:12px; } .survival-results .result-body { padding:22px 20px 24px; } .survival-results .result-stats { gap:8px; } .survival-results .result-stats div { padding:10px; } .survival-results dt { font-size:10px; letter-spacing:1.5px; white-space:normal; } .survival-results dd { font-size:30px; } .survival-results [data-actions] { flex-direction:column; } .survival-results .result-talents { flex-direction:column; gap:6px; } }

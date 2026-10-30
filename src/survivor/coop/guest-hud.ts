@@ -1,4 +1,6 @@
+import { roundResultMarkup } from '../mode/round-results';
 import { returnToMainMenu } from '../../frontend/return-to-menu';
+import { operationZone } from '../../frontend/profile/StageData';
 ﻿// A co-op guest's round HUD: the host's Survival objective box, Obelisk bar and banners, in the same
 // boxes Survival mode draws (mode/survival-mode.css). Text only (never the host's HTML). The talent
 // line is this player's own.
@@ -11,15 +13,17 @@ import '../mode/survival-mode.css';
  * A co-op round's end-screen buttons, for host and guests alike: back to the same room's lobby
  * (the Multiplayer screen reopens it by code: the host hosts it again, guests rejoin), or the menu.
  */
-export function coopEndActions(role: 'host' | 'join', code: string): HTMLButtonElement[] {
+export function coopEndActions(role: 'host' | 'join', code: string, toLobby?: () => void): HTMLButtonElement[] {
   const lobby = document.createElement('button'), quit = document.createElement('button');
   lobby.textContent = 'Return to lobby'; quit.textContent = 'Quit to main menu';
-  lobby.addEventListener('click', () => location.assign(`${location.pathname}?preview=multiplayer&lobby=${role}&room=${encodeURIComponent(code)}`));
+  lobby.addEventListener('click', () => toLobby ? toLobby() : location.assign(`${location.pathname}?preview=multiplayer&lobby=${role}&room=${encodeURIComponent(code)}`));
   quit.addEventListener('click', () => returnToMainMenu());
   return [lobby, quit];
 }
 
 export class GuestRoundHud {
+  /** our NIKKE and her Burst art, for the results (main.ts) */
+  nikke: { name: string; art: string | null } | undefined;
 
   private readonly boss = document.createElement('div');
   private readonly notice = document.createElement('div');
@@ -66,7 +70,8 @@ export class GuestRoundHud {
   }
 
   /** The host closed the room or vanished: the match can't go on here. */
-  lost(reason: 'no-host' | 'host-left'): void {
+  lost(reason: 'no-host' | 'host-left' | 'kicked'): void {
+    if (reason === 'kicked') { this.panel('REMOVED FROM ROOM', ['The host removed you from the room.']); return; }
     this.panel(reason === 'no-host' ? 'COULD NOT CONNECT' : 'HOST LEFT',
       [reason === 'no-host' ? 'No host answered with that room code.' : 'The host closed the room, so the round has ended.']);
   }
@@ -76,10 +81,21 @@ export class GuestRoundHud {
     if (this.result) return;
     const endless = round.objective?.mode === 'ENDLESS';
     const minutes = Math.floor(round.elapsed / 60), seconds = Math.floor(round.elapsed % 60);
-    const talents = run.tiers ? run.tiers.tiers.map((_, i) => run.tiers!.choice(i)?.name).filter(Boolean).join(' · ') || 'No talents chosen' : '';
-    this.panel(endless ? 'RUN ENDED' : round.phase === 'victory' ? 'ROUND COMPLETE' : 'ROUND ENDED',
-      [`${minutes}:${String(seconds).padStart(2, '0')} · ${round.kills} Raptures defeated · Level ${round.level}`, talents],
-      "Co-op rounds as a guest don't award cores or records yet.");
+    const result = this.result = document.createElement('div');
+    result.className = 'survival-results';
+    result.setAttribute('role', 'dialog'); result.setAttribute('aria-label', 'Round results');
+    result.innerHTML = roundResultMarkup({
+      outcome: endless ? 'endless' : round.phase === 'victory' ? 'victory' : 'defeat',
+      mode: endless ? 'Endless' : 'Wave', coop: true, nikke: this.nikke,
+      zone: operationZone(new URLSearchParams(location.search).get('zone') ?? '').name,
+      time: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`, kills: round.kills, level: round.level,
+      talents: run.tiers ? run.tiers.tiers.flatMap((_, i) => { const choice = run.tiers!.choice(i); return choice ? [choice.name] : []; }) : [],
+      note: 'Cores and personal bests are only saved for the host for now.',
+    });
+    result.querySelector('[data-actions]')!.replaceChildren(...coopEndActions('join', this.code));
+    document.getElementById('hud')!.append(result);
+    document.exitPointerLock?.();
+    result.querySelector('button')!.focus();
   }
 
   private panel(title: string, lines: string[], note?: string): void {

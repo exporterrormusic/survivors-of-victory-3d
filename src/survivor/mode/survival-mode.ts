@@ -1,4 +1,5 @@
-﻿import { coopEndActions } from '../coop/guest-hud';
+import { roundResultMarkup } from './round-results';
+import { coopEndActions } from '../coop/guest-hud';
 import { awardRoundCore } from '../../frontend/profile/RoundRewards';
 import { recordSurvivalRound } from '../../frontend/profile/SurvivalStats';
 import { applyAchievementProgress } from '../../frontend/profile/AchievementProgress';
@@ -65,7 +66,8 @@ export class SurvivalMode {
     field.setMovement('pursue');
     player.position.copyFrom(elevator.root.position);player.transported=true;player.setTransportPose(elevator.isVault?0:-ELEVATOR_DEPTH,true);
     elevator.motion.height=-ELEVATOR_DEPTH;elevator.motion.gateOpen=0;elevator.motion.seal=1;
-    elevator.command('rise');elevator.update(0);camera.snap(player.position);
+    // Sealed at the bottom; update() starts the rise once the squad is ready (holdArrival).
+    elevator.motion.phase='sealed';elevator.update(0);camera.snap(player.position);
     this.supply=new SupplyLift(init,elevator,tells,text=>this.banner(text),this.random);
     this.bossHud.className='survival-boss';this.notice.className='survival-notice';
     this.notice.setAttribute('role','status');this.notice.setAttribute('aria-live','polite');
@@ -96,12 +98,20 @@ export class SurvivalMode {
   get ended():boolean{return this.round.ended;}
   get alive():number{return this.horde.counts().total;}
   get arriving():boolean{return this.round.phase==='arrival';}
+  /** Co-op: seconds since the arrival lift began to rise, so guests ride the same lift (coop/net-guest.ts). */
+  liftClock=0;
+  /** Co-op host: true while guests are still loading, so the whole squad's ride starts together (main.ts) */
+  holdArrival:(()=>boolean)|null=null;
+  private rising=false;
+  get waitingForSquad():boolean{return !this.rising&&this.arriving;}
   abandon():void{if(!this.ended){this.round.abandon();this.finish();}}
   /** A short status line under the clock: slides in, holds `seconds`, fades out (survival-mode.css). */
   /** Co-op: every banner, so a host can pass it to guests (coop/net-host.ts). */
   onBanner:((text:string,seconds:number)=>void)|null=null;
   /** Co-op host: the room code, so the results offer the lobby and main menu instead (coop/guest-hud.ts). */
   coopRoom:string|null=null;
+  /** Co-op host: takes every guest back to the lobby too (main.ts) */
+  coopReturnToLobby:(()=>void)|null=null;
   private banner(text:string,seconds=3):void{
     this.onBanner?.(text,seconds);
     this.notice.textContent=text;this.noticeFor=seconds;
@@ -112,6 +122,8 @@ export class SurvivalMode {
     if(this.ended||dt<=0)return;
     const {player,run}=this.init;
     if(this.arriving){
+      if(!this.rising&&!this.holdArrival?.()){this.rising=true;this.elevator.command('rise');}
+      if(this.rising)this.liftClock+=dt;
       const lift=this.elevator.state;
       // Co-op: each hero has a spot on the deck (coop/coop-squad.ts deckSpot).
       const spot=this.init.coop?.deckSpotOf(0)??{x:0,z:0};
@@ -233,7 +245,7 @@ export class SurvivalMode {
     const squad=this.supply.count,lift=Math.ceil(this.supply.nextIn);
     const supplies=` · Lift ${lift>0?`${Math.floor(lift/60)}:${String(lift%60).padStart(2,'0')}`:'opening'}${squad?` · Squad ${squad}`:''}${this.supply.crateWaiting?' · Crate on lift':''}`;
     const mode=this.round.endless?'ENDLESS':'WAVE';
-    const status=phase==='arrival'?(this.elevator.isVault?'Opening mountain vault':'Deploying by elevator'):phase==='boss'?'Defeat Obelisk':this.round.endless?`Survived ${clock(this.round.elapsed)}`:`Survive · ${clock(this.round.remaining)} remaining`;
+    const status=phase==='arrival'?(!this.rising?'Waiting for squad':this.elevator.isVault?'Opening mountain vault':'Deploying by elevator'):phase==='boss'?'Defeat Obelisk':this.round.endless?`Survived ${clock(this.round.elapsed)}`:`Survive · ${clock(this.round.remaining)} remaining`;
     return {mode,status,detail:phase==='arrival'?'Basic abilities ready · talents reset each round':`${this.round.wave.name}${supplies}`};
   }
   /** the final boss's health, while it stands */
@@ -255,27 +267,34 @@ export class SurvivalMode {
     this.flushAchievements();
     if(record.counted)this.saveAchievements({operatorWin:won&&!endless,
       additions:{roundsPlayed:1,characterWins:won&&!endless?1:0,steadyWins:won&&!endless&&this.lowestHealth>=.5?1:0}});
-    const best=record.stats,bests=new Set(record.newBests);
-    const personal=!record.saved?'Stats not saved — storage unavailable'
-      :endless?`${bests.has('endless')?'NEW BEST · ':''}Best run ${clock(best.bestEndlessSeconds)} · ${best.rounds} rounds played`
-      :`${bests.has('win')?'NEW FASTEST WIN · ':''}${best.wins} / ${best.rounds} rounds won${best.fastestWinSeconds?` · fastest ${clock(best.fastestWinSeconds)}`:''}${bests.has('kills')?' · new kill record':''}`;
+    // Only what this round set: a new best, if any.
+    const bests=new Set(record.newBests);
+    const records=[endless&&bests.has('endless')?'New best time':'',!endless&&bests.has('win')?'New fastest clear':'',bests.has('kills')?'New kill record':''].filter(Boolean);
     this.bossHud.hidden=true;this.notice.classList.remove('show');
     this.result=document.createElement('div');this.result.className='survival-results';
     this.result.setAttribute('role','dialog');this.result.setAttribute('aria-label','Round results');
-    this.result.innerHTML=`<section><h1>${endless?'RUN ENDED':won?'ROUND COMPLETE':'ROUND ENDED'}</h1><p>${clock(this.round.elapsed)} · ${run.kills} Raptures defeated · Level ${run.level}</p><p>${run.tiers?run.tiers.tiers.map((_,i)=>run.tiers!.choice(i)?.name).filter(Boolean).join(' · ')||'No talents chosen':`Weapon ${run.talents.abilityRank('attack')}/5 · Special ${run.talents.abilityRank('skill')}/5 · Burst ${run.talents.abilityRank('burst')}/5`}</p><p class="survival-personal">${personal}</p><div class="core-reward" data-reward></div><small>Level, XP and talent ranks reset next round.<br>Character unlocks, skins and banked cores stay yours.</small><div data-actions><button data-retry>New round</button><button data-shop>Core Exchange</button><button data-ark>Return to Ark</button></div></section>`;
+    this.result.innerHTML=roundResultMarkup({
+      outcome:endless?'endless':won?'victory':'defeat', mode:endless?'Endless':'Wave',
+      zone:operationZone(this.init.params.get('zone')??'').name, coop:!!this.coopRoom, nikke:this.init.nikke,
+      time:clock(this.round.elapsed), kills:run.kills, level:run.level, record:records.join(' · ')||null,
+      note:record.saved?undefined:'Stats not saved — storage unavailable',
+      talents:run.tiers?run.tiers.tiers.flatMap((_,i)=>{const choice=run.tiers!.choice(i);return choice?[choice.name]:[];}):
+        [`Weapon ${run.talents.abilityRank('attack')}/5`, `Special ${run.talents.abilityRank('skill')}/5`, `Burst ${run.talents.abilityRank('burst')}/5`],
+    });
     document.getElementById('hud')!.append(this.result);
     this.result.querySelector('[data-retry]')!.addEventListener('click',()=>location.reload());
-    this.result.querySelector('[data-shop]')!.addEventListener('click',()=>location.assign(`${location.pathname}?preview=shop`));
     this.result.querySelector('[data-ark]')!.addEventListener('click',returnToArk);
     const renderReward=()=>{
-      this.result!.querySelector('[data-reward]')!.textContent=won?(this.saved?`+${ROUND_CORE_REWARD} Rapture Core · saved`:'Core not saved — storage unavailable'):endless?'No core earned · defeat an Obelisk to earn one':'No core earned · defeat the final boss to earn one';
+      // Shown only when a core was earned.
+      const reward=this.result!.querySelector('[data-reward]')!;
+      reward.innerHTML=!won?'':this.saved?`<span>Reward</span><strong>+${ROUND_CORE_REWARD} Rapture Core</strong>`:'<span>Reward</span><strong>Core not saved — storage unavailable</strong>';
     };
     if(won&&!this.saved){
       const retry=document.createElement('button');retry.textContent='Retry reward save';
       retry.onclick=()=>{this.saved=awardRoundCore(this.roundId);renderReward();if(this.saved)retry.remove();};
-      this.result.querySelector('[data-actions]')!.prepend(retry);
+      this.result.querySelector('[data-reward]')!.after(retry);
     }
-    if(this.coopRoom)this.result.querySelector('[data-actions]')!.replaceChildren(...coopEndActions('host',this.coopRoom));
+    if(this.coopRoom)this.result.querySelector('[data-actions]')!.replaceChildren(...coopEndActions('host',this.coopRoom,this.coopReturnToLobby??undefined));
     renderReward();(this.result.querySelector('button') as HTMLButtonElement).focus();
   }
   /** Saves progress gathered since the last flush and pops up anything it unlocks. */
