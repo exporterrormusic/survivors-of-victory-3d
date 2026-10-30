@@ -1,5 +1,5 @@
 import { cores } from "../ui/cores";
-import { GAME_VERSION, VERSION_LABEL } from "../../version";
+import { GAME_VERSION, RELEASE_VERSION, VERSION_LABEL } from "../../version";
 import Phaser from "phaser";
 import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
@@ -69,8 +69,8 @@ export function preloadMainMenuAssets(scene: Phaser.Scene): void {
   preloadLobbyAudio(scene);
 }
 
-// One unread dot per release: bumping GAME_VERSION shows the dot again.
-const NOTICE_STORAGE_KEY = `nikke-moba.notice.v${GAME_VERSION}`;
+// One unread dot per release: bumping RELEASE_VERSION shows the dot again (test builds don't).
+const NOTICE_STORAGE_KEY = `nikke-moba.notice.v${RELEASE_VERSION}`;
 
 interface PatchRelease {
   readonly sections: readonly {
@@ -81,7 +81,7 @@ interface PatchRelease {
   readonly version: string;
 }
 
-// Newest first. The first entry's version must equal GAME_VERSION (src/version.ts).
+// Newest first. The first entry's version must equal RELEASE_VERSION (src/version.ts).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
     version: "0.1",
