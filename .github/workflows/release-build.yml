@@ -36,7 +36,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           base=$(node -p "require('fs').readFileSync('src/version.ts','utf8').match(/RELEASE_VERSION\s*=\s*\"([\d.]+)\"/)[1]")
-          last=$(gh release list --limit 100 --json tagName --jq '.[].tagName' | grep -E "^v${base//./\.}\.[0-9]+$" | sed 's/.*\.//' | sort -n | tail -1)
+          last=$(gh release list --limit 100 --json tagName --jq '.[].tagName' | { grep -E "^v${base//./\.}\.[0-9]+$" || true; } | sed 's/.*\.//' | sort -n | tail -1)
           node tools/sync-version.mjs --build $(( ${last:--1} + 1 ))
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
