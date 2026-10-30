@@ -1,8 +1,6 @@
 // Desktop wrapper: serves dist/ from a fixed app://game origin (so localStorage saves survive every
 // update and fetch() works for the .glb/.json assets), and checks GitHub Releases on each launch.
-// Experimental updates (Settings > Data) also accept the pre-release builds CI makes from every push.
-const { app, BrowserWindow, protocol, net, dialog, shell, ipcMain } = require('electron');
-const fs = require('node:fs');
+const { app, BrowserWindow, protocol, net, dialog, shell } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { autoUpdater } = require('electron-updater');
@@ -17,15 +15,6 @@ if (!app.requestSingleInstanceLock()) app.quit();
 
 let win = null;
 
-// Lives beside the save data in userData, outside the install folder, so it survives updates.
-const UPDATE_PREFS = () => path.join(app.getPath('userData'), 'update-prefs.json');
-function readExperimental() {
-  try { return JSON.parse(fs.readFileSync(UPDATE_PREFS(), 'utf8')).experimental === true; } catch { return false; }
-}
-function writeExperimental(enabled) {
-  try { fs.writeFileSync(UPDATE_PREFS(), JSON.stringify({ experimental: enabled })); } catch (err) { console.warn('[update]', err?.message ?? err); }
-}
-
 function createWindow() {
   win = new BrowserWindow({
     width: 1600,
@@ -33,7 +22,7 @@ function createWindow() {
     backgroundColor: '#000000',
     autoHideMenuBar: true,
     show: false,
-    webPreferences: { contextIsolation: true, sandbox: true, backgroundThrottling: false, preload: path.join(__dirname, 'preload.cjs') },
+    webPreferences: { contextIsolation: true, sandbox: true, backgroundThrottling: false },
   });
   win.once('ready-to-show', () => win.show());
   win.webContents.on('console-message', (event) => {
@@ -53,7 +42,6 @@ function checkForUpdates() {
   // game closes, and the player is offered an immediate restart only from the menu-safe dialog below.
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.allowPrerelease = readExperimental();
   autoUpdater.on('error', (err) => console.warn('[update]', err?.message ?? err));
   autoUpdater.on('update-downloaded', async (info) => {
     if (!win || win.isDestroyed()) return;
@@ -73,15 +61,6 @@ function checkForUpdates() {
 
 app.on('second-instance', () => {
   if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
-});
-
-ipcMain.handle('updates:get-experimental', () => readExperimental());
-ipcMain.handle('updates:set-experimental', (_e, enabled) => {
-  writeExperimental(enabled);
-  autoUpdater.allowPrerelease = enabled;
-  // Opting in looks for the newest test build right away; opting out waits for the next stable release.
-  if (enabled && app.isPackaged) autoUpdater.checkForUpdates().catch((err) => console.warn('[update]', err?.message ?? err));
-  return enabled;
 });
 
 app.whenReady().then(() => {

@@ -33,14 +33,6 @@ import {
   saveStorageAvailable,
 } from "../persistence/ProfileStorage";
 import { GAME_VERSION } from "../../version";
-
-/** desktop/preload.cjs exposes this in the desktop app; the browser build has none. */
-interface DesktopBridge {
-  getExperimentalUpdates(): Promise<boolean>;
-  setExperimentalUpdates(enabled: boolean): Promise<boolean>;
-}
-const desktopBridge = (): DesktopBridge | undefined =>
-  (window as unknown as { sovDesktop?: DesktopBridge }).sovDesktop;
 import {
   nextNikkeTransitionProfile,
   NIKKE_TRANSITION_PROFILES,
@@ -101,8 +93,6 @@ export class SettingsScene extends Phaser.Scene {
   /** Erasing everything takes a second press within a few seconds. */
   private eraseArmedUntil = 0;
   private dataMessage = "";
-  /** Desktop app only (null in the browser): also install the test builds made from every change. */
-  private experimentalUpdates: boolean | null = null;
   private displaySettings: DisplaySettings = loadDisplaySettings();
   private gameplaySettings: GameplaySettings = loadGameplaySettings();
   private musicVolume = 0.8;
@@ -145,10 +135,6 @@ export class SettingsScene extends Phaser.Scene {
     this.createBackButton();
     this.renderCategoryRail();
     this.renderContent();
-    void desktopBridge()?.getExperimentalUpdates().then((enabled) => {
-      this.experimentalUpdates = enabled;
-      if (this.sys.isActive() && this.currentCategory === "data") this.renderContent();
-    });
     gameAudio.stopEnvironmentAmbience();
     gameAudio.playLobby(this);
 
@@ -929,7 +915,7 @@ export class SettingsScene extends Phaser.Scene {
     );
     if (this.dataMessage !== "") {
       layer.add(
-        this.add.text(x + 52, y + 452, this.dataMessage, {
+        this.add.text(x + 52, y + 470, this.dataMessage, {
           color: "#26303a",
           fontFamily: "Rajdhani",
           fontSize: "18px",
@@ -939,35 +925,10 @@ export class SettingsScene extends Phaser.Scene {
         }),
       );
     }
-    if (this.experimentalUpdates !== null) {
-      this.createSegmentRow(
-        layer,
-        x + 52,
-        y + 530,
-        "EXPERIMENTAL UPDATES",
-        this.experimentalUpdates,
-        (enabled) => this.setExperimentalUpdates(enabled),
-      );
-      layer.add(
-        this.add.text(
-          x + 890,
-          y + 506,
-          "ALSO INSTALL TEST BUILDS OF EVERY NEW CHANGE. NEWER BUT MAY BE UNSTABLE. TURNING IT OFF WAITS FOR THE NEXT STABLE RELEASE.",
-          {
-            color: "#8a949e",
-            fontFamily: "Rajdhani",
-            fontSize: "14px",
-            fontStyle: "bold",
-            letterSpacing: 1.1,
-            wordWrap: { width: 420 },
-          },
-        ),
-      );
-    }
     layer.add(
       this.add.text(
         x + 52,
-        y + 600,
+        y + 560,
         "IMPORTING REPLACES THE CURRENT SAVE. ERASING REMOVES CORES, UNLOCKS, SKINS, RECORDS, ACHIEVEMENTS AND SETTINGS.",
         {
           color: "#8a949e",
@@ -978,17 +939,6 @@ export class SettingsScene extends Phaser.Scene {
         },
       ),
     );
-  }
-
-  private setExperimentalUpdates(enabled: boolean): void {
-    const bridge = desktopBridge();
-    if (bridge === undefined) return;
-    this.experimentalUpdates = enabled;
-    this.dataMessage = enabled
-      ? "EXPERIMENTAL UPDATES ON. CHECKING FOR THE NEWEST TEST BUILD..."
-      : "EXPERIMENTAL UPDATES OFF. YOU WILL GET THE NEXT STABLE RELEASE.";
-    this.renderContent();
-    void bridge.setExperimentalUpdates(enabled);
   }
 
   private createDataButton(
