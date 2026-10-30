@@ -31,7 +31,7 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 <td width="50%"><img src="docs/screenshots/07-broken-ice.jpg" alt="Breaking ice"><br><b>Breaking ice</b> · stress cracks spread across the frozen lake until the ice gives way.</td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/08-graveyard.jpg" alt="Haunted Pine Forest"><br><b>Haunted Pine Forest</b> · a ruined chapel and its churchyard in the fog.</td>
+<td width="50%"><img src="docs/screenshots/08-graveyard.jpg" alt="Haunted Pine Forest"><br><b>Haunted Pine Forest</b> · Scarlet fighting before the ruined chapel, between its two fenced grave plots in the fog.</td>
 <td width="50%"><img src="docs/screenshots/09-liliweiss.jpg" alt="A secret in the forest"><br><b>A secret in the forest</b> · someone is waiting in the graveyard...</td>
 </tr>
 <tr>
