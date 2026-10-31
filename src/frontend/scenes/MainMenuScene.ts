@@ -82,6 +82,18 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.9",
+    title: "V0.1.9",
+    sections: [
+      {
+        heading: "NOTICE",
+        items: [
+          "The release list's scrollbar works: drag it, or click along its track to jump. The mouse wheel scrolls the list too.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.8",
     title: "V0.1.8",
     sections: [
@@ -802,7 +814,7 @@ export class MainMenuScene extends Phaser.Scene {
     const thumbHeight =
       railMaxFirst > 0 ? (railHeight * railVisible) / PATCH_RELEASES.length : 0;
     const thumb = this.add
-      .rectangle(railX + 224, railTop, 3, thumbHeight, 0x35c5f2)
+      .rectangle(railX + 223, railTop, 5, thumbHeight, 0x35c5f2)
       .setOrigin(0)
       .setVisible(railMaxFirst > 0);
     detailLayer.add(thumb);
@@ -818,6 +830,13 @@ export class MainMenuScene extends Phaser.Scene {
       }
     };
     placeRail();
+    const scrollTo = (first: number): void => {
+      const next = Phaser.Math.Clamp(first, 0, railMaxFirst);
+      if (next !== this.noticeRailScroll) {
+        this.noticeRailScroll = next;
+        placeRail();
+      }
+    };
     if (railMaxFirst > 0) {
       const onWheel = (
         pointer: Phaser.Input.Pointer,
@@ -826,25 +845,58 @@ export class MainMenuScene extends Phaser.Scene {
         dy: number,
       ): void => {
         if (
-          pointer.x < railX ||
-          pointer.x > railX + 240 ||
-          pointer.y < railTop ||
-          pointer.y > railTop + railHeight
+          pointer.worldX < railX ||
+          pointer.worldX > railX + 250 ||
+          pointer.worldY < railTop ||
+          pointer.worldY > railTop + railHeight
         ) {
           return;
         }
-        const next = Phaser.Math.Clamp(
-          this.noticeRailScroll + Math.sign(dy),
-          0,
-          railMaxFirst,
-        );
-        if (next !== this.noticeRailScroll) {
-          this.noticeRailScroll = next;
-          placeRail();
-        }
+        scrollTo(this.noticeRailScroll + Math.sign(dy));
       };
       this.input.on("wheel", onWheel);
       detailLayer.once("destroy", () => this.input.off("wheel", onWheel));
+
+      // The bar can be dragged, or clicked anywhere along its track to jump there.
+      const track = this.add
+        .rectangle(railX + 225, railTop, 1, railHeight, 0xc7ced4)
+        .setOrigin(0);
+      const trackHit = this.add
+        .rectangle(railX + 216, railTop, 20, railHeight, 0xffffff, 0.001)
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true });
+      let dragging = false;
+      const scrollToPointer = (pointer: Phaser.Input.Pointer): void => {
+        const ratio = Phaser.Math.Clamp(
+          (pointer.worldY - railTop - thumbHeight / 2) /
+            (railHeight - thumbHeight),
+          0,
+          1,
+        );
+        scrollTo(Math.round(ratio * railMaxFirst));
+      };
+      trackHit.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+        dragging = true;
+        scrollToPointer(pointer);
+      });
+      const onMove = (pointer: Phaser.Input.Pointer): void => {
+        if (dragging && pointer.isDown) {
+          scrollToPointer(pointer);
+        } else {
+          dragging = false;
+        }
+      };
+      const onUp = (): void => {
+        dragging = false;
+      };
+      this.input.on("pointermove", onMove);
+      this.input.on("pointerup", onUp);
+      detailLayer.once("destroy", () => {
+        this.input.off("pointermove", onMove);
+        this.input.off("pointerup", onUp);
+      });
+      detailLayer.add([track, trackHit]);
+      detailLayer.bringToTop(thumb);
     }
 
     const release = PATCH_RELEASES[index]!;
