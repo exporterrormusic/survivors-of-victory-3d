@@ -7,9 +7,12 @@ import { isPlayable } from './characters';
 import { characterLockReason } from './frontend/profile/CharacterRoster';
 import { requestPersistentStorage } from './frontend/persistence/ProfileStorage';
 import { holdLevelTransition, cancelLevelTransition } from './frontend/level-transition';
+import { mountUpdateBanner } from './update-banner';
 
 // Ask the browser to keep the save through storage cleanup (matters most in the itch.io web build).
 void requestPersistentStorage();
+// Desktop app: an update in progress shows from the first screen on, over menus and runs alike.
+mountUpdateBanner();
 
 const params = new URLSearchParams(location.search);
 if (params.get('mission') === 'ark_siege' || params.get('prototype') === 'ark-siege') void import('./siege/main');

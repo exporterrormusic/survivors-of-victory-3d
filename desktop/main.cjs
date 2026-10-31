@@ -1,6 +1,6 @@
 // Desktop wrapper: serves dist/ from a fixed app://game origin (so localStorage saves survive every
 // update and fetch() works for the .glb/.json assets), and checks GitHub Releases on each launch.
-const { app, BrowserWindow, protocol, net, dialog, shell } = require('electron');
+const { app, BrowserWindow, protocol, net, shell, ipcMain } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { autoUpdater } = require('electron-updater');
@@ -23,7 +23,7 @@ function createWindow() {
     icon: path.join(DIST, 'icon-sov-v1.ico'),
     autoHideMenuBar: true,
     show: false,
-    webPreferences: { contextIsolation: true, sandbox: true, backgroundThrottling: false },
+    webPreferences: { contextIsolation: true, sandbox: true, backgroundThrottling: false, preload: path.join(__dirname, 'preload.cjs') },
   });
   win.once('ready-to-show', () => win.show());
   win.webContents.on('console-message', (event) => {
@@ -37,25 +37,29 @@ function createWindow() {
   win.loadURL('app://game/index.html');
 }
 
+// What the in-game update banner shows (src/update-banner.ts): null, or
+// { state: 'downloading', version, percent } / { state: 'ready', version } / { state: 'error', version }.
+let updateStatus = null;
+function setUpdateStatus(status) {
+  updateStatus = status;
+  if (win && !win.isDestroyed()) win.webContents.send('update:status', status);
+}
+ipcMain.handle('update:get', () => updateStatus);
+ipcMain.handle('update:restart', () => { if (updateStatus?.state === 'ready') autoUpdater.quitAndInstall(true, true); });
+
 function checkForUpdates() {
   if (!app.isPackaged) return;
-  // Download in the background while the player plays; the new build is installed silently when the
-  // game closes, and the player is offered an immediate restart only from the menu-safe dialog below.
+  // Download in the background while the player plays; the banner shows progress from the first
+  // screen, and the new build installs when the game closes or when the player picks Restart now.
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on('error', (err) => console.warn('[update]', err?.message ?? err));
-  autoUpdater.on('update-downloaded', async (info) => {
-    if (!win || win.isDestroyed()) return;
-    const { response } = await dialog.showMessageBox(win, {
-      type: 'info',
-      buttons: ['Restart now', 'Later'],
-      defaultId: 1,
-      cancelId: 1,
-      title: 'Update ready',
-      message: `Version ${info.version} is ready.`,
-      detail: 'Restart now to update, or keep playing — it installs automatically when you close the game.',
-    });
-    if (response === 0) autoUpdater.quitAndInstall(true, true);
+  let version = '';
+  autoUpdater.on('update-available', (info) => { version = info.version; setUpdateStatus({ state: 'downloading', version, percent: 0 }); });
+  autoUpdater.on('download-progress', (p) => setUpdateStatus({ state: 'downloading', version, percent: Math.floor(p.percent) }));
+  autoUpdater.on('update-downloaded', (info) => setUpdateStatus({ state: 'ready', version: info.version }));
+  autoUpdater.on('error', (err) => {
+    console.warn('[update]', err?.message ?? err);
+    if (version) setUpdateStatus({ state: 'error', version });
   });
   autoUpdater.checkForUpdates().catch((err) => console.warn('[update]', err?.message ?? err));
 }
