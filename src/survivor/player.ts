@@ -112,7 +112,9 @@ export class Player {
   get lean(): number { return -this.stand.rotation.x; }
   set lean(radians: number) { this.stand.rotation.x = -radians; }
 
-  get maxHp(): number { return Math.round(this.kit.weapon.maxHp * this.ctx.run.growth); }
+  /** extra health share on top of the kit's (AI squadmates get more) */
+  hpScale = 1;
+  get maxHp(): number { return Math.round(this.kit.weapon.maxHp * this.ctx.run.growth * this.hpScale); }
   /** Where the gun points: at the cursor, or along a Burst while it fires. */
   get aimYaw(): number {
     return this.burstHold > 0 ? this.burstYaw : Math.atan2(this.aim.x - this.position.x, this.aim.z - this.position.z);

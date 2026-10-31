@@ -246,7 +246,7 @@ export const talents = [
     cost: 1,
     tree: "burst",
     tooltip:
-      "Heal 5% maximum HP for every enemy the burst kills, up to 30% per Burst.",
+      "Heal 5% maximum HP for every enemy the burst kills.",
   },
   {
     id: "low_hp_damage",

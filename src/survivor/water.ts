@@ -1,6 +1,7 @@
 ﻿import { type AbstractMesh, type BaseTexture, type Camera, Color4, Constants, type DirectionalLight,
   MaterialPluginBase, Matrix, MirrorTexture, type Observer, Plane, type Scene, StandardMaterial,
   type UniformBuffer, Vector3 } from '@babylonjs/core';
+import { filterRenderList } from './filtered-render-list';
 
 export const WATER_PRESETS = { auto: 'Weather driven', wet: 'Wet ground preview', off: 'Off' } as const;
 export type WaterPreset = keyof typeof WATER_PRESETS;
@@ -153,12 +154,13 @@ export class WaterLayer {
   private mode: WaterPreset='auto';
   private active=false;
   private disposed=false;
+  private readonly stopReflectionList: () => void;
   constructor(private readonly scene: Scene,private readonly camera: Camera) {
     this.reflection=new MirrorTexture('wet-ground-reflections',512,scene,false,Constants.TEXTURETYPE_UNSIGNED_BYTE);
     this.reflection.mirrorPlane=new Plane(0,-1,0,0);
     this.reflection.clearColor=new Color4(0,0,0,0);
     this.reflection.activeCamera=camera;this.reflection.refreshRate=2;
-    this.reflection.renderListPredicate=(mesh:AbstractMesh)=>!!(mesh.skeleton||mesh.bakedVertexAnimationManager)&&mesh.isEnabled();
+    this.stopReflectionList=filterRenderList(scene,this.reflection,mesh=>!!(mesh.skeleton||mesh.bakedVertexAnimationManager)&&mesh.isEnabled());
     this.state={amount:0,clock:0,light:1,flash:0,viewProjection:new Matrix(),sun:new Vector3(.4,1,-.3).normalize(),reflection:this.reflection,zone:new Vector3(),oldZone:new Vector3(),zoneFade:[0,0]};
     const ground=scene.getMaterialByName('range-ground-mat');
     if(!(ground instanceof StandardMaterial))throw new Error('Wet ground requires the test-range floor material');
@@ -205,7 +207,7 @@ export class WaterLayer {
     if(this.disposed)return;this.disposed=true;this.state.amount=0;
     this.scene.onDisposeObservable.remove(this.onSceneDispose);
     const i=this.scene.customRenderTargets.indexOf(this.reflection);if(i>=0)this.scene.customRenderTargets.splice(i,1);
-    this.plugin.dispose();this.reflection.dispose();
+    this.stopReflectionList();this.plugin.dispose();this.reflection.dispose();
   }
 }
 

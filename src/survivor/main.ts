@@ -89,6 +89,7 @@ import { CoopNetGuest, disableLocalDamage } from './coop/net-guest';
 import { takeCoopHandoff } from '../net/coop-handoff';
 import { normalizeRoomCode } from '../net/room-code';
 import type { HeroId } from './coop/teammate';
+import { warmUpRendering } from './render-warmup';
 import { ARENA_EDGE_VOLCANO, RANGE_ENVIRONMENTS, RANGE_MOODS, rangeEnvironmentForZone, type RangeEnvironment } from './range-environments';
 
 /** the cursor is read on a plane at about gun height, so the aim matches what's under it */
@@ -906,6 +907,10 @@ async function main(): Promise<void> {
 
   snow.flush();
   await scene.whenReadyAsync();
+  // Path grids and first draws are one-off costs; pay them while the loading screen is still up.
+  targets.prepareNavigation([.4, .45]);
+  frozenLake.prepare();
+  await warmUpRendering(scene, atmosphere.dormantTargets);
   scene.onAfterRenderObservable.addOnce(() => {
     // Let the rendered frame reach the screen before uncovering it.
     requestAnimationFrame(() => {

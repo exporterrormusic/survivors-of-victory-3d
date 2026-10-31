@@ -51,6 +51,9 @@ class MinHeap {
   }
 }
 
+const INDEX_CELL = 4;
+const cellKey = (x: number, z: number): number => (x + 4096) * 8192 + (z + 4096);
+
 export class NavigationMap {
   readonly obstacles: readonly GroundObstacle[];
   extent: number;
@@ -59,6 +62,9 @@ export class NavigationMap {
   private readonly cellSize: number;
   private grids = new Map<number, { free: Uint8Array; edges: Uint8Array }>();
   private routeBudget = Infinity;
+  /** Obstacles bucketed by centre cell so clear/slide test only nearby ones; rebuilt when the list changes. */
+  private index: { buckets: Map<number, GroundObstacle[]>; large: GroundObstacle[]; count: number; first: GroundObstacle | undefined } | null = null;
+  private readonly nearby: GroundObstacle[] = [];
 
   /** The game budgets expensive searches; isolated navigation tests are unbudgeted. */
   beginFrame(searches = 2): void { this.routeBudget = searches; }
@@ -85,7 +91,36 @@ export class NavigationMap {
   }
 
   /** Gates change walkability for the attacking side when destroyed. */
-  invalidate(): void { this.grids.clear(); }
+  invalidate(): void { this.grids.clear(); this.index = null; }
+
+  /** Obstacles that may touch the box; reuses one array, so consume it before the next call. */
+  private obstaclesNear(minX: number, minZ: number, maxX: number, maxZ: number): readonly GroundObstacle[] {
+    const all = this.obstacles;
+    if (all.length < 24) return all;
+    let index = this.index;
+    if (!index || index.count !== all.length || index.first !== all[0]) {
+      const buckets = new Map<number, GroundObstacle[]>(), large: GroundObstacle[] = [];
+      for (const o of all) {
+        if (o.r > INDEX_CELL) { large.push(o); continue; }
+        const key = cellKey(Math.floor(o.x / INDEX_CELL), Math.floor(o.z / INDEX_CELL));
+        let bucket = buckets.get(key);
+        if (!bucket) buckets.set(key, bucket = []);
+        bucket.push(o);
+      }
+      index = this.index = { buckets, large, count: all.length, first: all[0] };
+    }
+    const out = this.nearby;
+    out.length = 0;
+    for (const o of index.large) out.push(o);
+    // Bucketed obstacles have r <= one cell, so one extra cell of margin covers their reach.
+    const x0 = Math.floor(minX / INDEX_CELL) - 1, x1 = Math.floor(maxX / INDEX_CELL) + 1;
+    const z0 = Math.floor(minZ / INDEX_CELL) - 1, z1 = Math.floor(maxZ / INDEX_CELL) + 1;
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
+      const bucket = index.buckets.get(cellKey(x, z));
+      if (bucket) for (const o of bucket) out.push(o);
+    }
+    return out;
+  }
 
   clear(from: GroundPoint, to: GroundPoint, radius: number): boolean {
     const edge = this.extent - radius - MARGIN;
@@ -104,7 +139,8 @@ export class NavigationMap {
         }
       }
     }
-    for (const o of this.obstacles) {
+    const pad = radius + MARGIN;
+    for (const o of this.obstaclesNear(Math.min(from.x, to.x) - pad, Math.min(from.z, to.z) - pad, Math.max(from.x, to.x) + pad, Math.max(from.z, to.z) + pad)) {
       if(o.active===false)continue;
       const t = lengthSq ? Math.max(0, Math.min(1, ((o.x - from.x) * dx + (o.z - from.z) * dz) / lengthSq)) : 0;
       const ox = from.x + dx * t - o.x, oz = from.z + dz * t - o.z, r = o.r + radius + MARGIN - 1e-6;
@@ -119,7 +155,9 @@ export class NavigationMap {
     const travel=Math.hypot(dx,dz);
     if(travel<1e-9)return {x:from.x,z:from.z};
     let sx=dx,sz=dz;
-    for(let pass=0;pass<3;pass++)for(const o of this.obstacles){
+    const reach=travel+.10+radius+MARGIN;
+    const near=this.obstaclesNear(from.x-reach,from.z-reach,from.x+reach,from.z+reach);
+    for(let pass=0;pass<3;pass++)for(const o of near){
       if(o.active===false)continue;
       const ox=from.x-o.x,oz=from.z-o.z,d=Math.hypot(ox,oz);
       const gap=d-o.r-radius-MARGIN;

@@ -82,6 +82,40 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.10",
+    title: "V0.1.10",
+    sections: [
+      {
+        heading: "PERFORMANCE",
+        items: [
+          "Smoother play on every map, roughly double the frame rate in the Forest with a full horde.",
+          "Far fewer stutters in the first minute of a round: models, shaders and enemy pathing are prepared on the loading screen instead.",
+          "The Outskirts crater fire and the Frozen North lake no longer cause hitches.",
+        ],
+      },
+      {
+        heading: "SQUAD",
+        items: [
+          "AI teammates have 50% more health, draw less of the horde than you do, and strafe in fights to dodge incoming attacks.",
+        ],
+      },
+      {
+        heading: "BALANCE",
+        items: [
+          "Scarlet's Drink to Victory no longer has a healing cap per Burst.",
+        ],
+      },
+      {
+        heading: "MENUS",
+        items: [
+          "The skin preview and talent tree scale with the window and never spill past the game screen.",
+          "Clicks inside the skin preview no longer select characters behind it.",
+          "The main menu shows the full version number when running locally.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.9",
     title: "V0.1.9",
     sections: [

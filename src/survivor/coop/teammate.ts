@@ -41,9 +41,13 @@ function quietCamera(camera: SurvivorCamera): SurvivorCamera {
   });
 }
 
+/** AI squadmates: half again the kit's health, and Raptures treat them as 1.5x as far away */
+const BOT_HP_SCALE = 1.5, BOT_THREAT = 1.5;
+
 export class Teammate implements SquadMember {
-  /** Raptures weigh a teammate like the player, not like a supply NIKKE */
-  readonly threat = 1;
+  /** Raptures weigh a human teammate like the player; AI bots count as farther away so the player
+   * draws the horde when both are equally close */
+  threat = 1;
   readonly aim = new Vector3();
   /** chibi model id (the skin) */
   skin = '';
@@ -56,7 +60,7 @@ export class Teammate implements SquadMember {
     this.squadRun = squadRun;
   }
 
-  static async create(world: TeammateWorld, slot: number, hero: HeroId, at: Vector3, skin?: string): Promise<Teammate> {
+  static async create(world: TeammateWorld, slot: number, hero: HeroId, at: Vector3, skin?: string, bot = false): Promise<Teammate> {
     const character = CHARACTER_MODULES[hero];
     const variant = HERO_VARIANTS.find(h => h.character === character && h.variant === skin) ?? HERO_VARIANTS.find(h => h.character === character)!;
     const index = await loadChibiIndex();
@@ -90,11 +94,14 @@ export class Teammate implements SquadMember {
     };
     const kit = hero === 'dorothy' ? createDorothy(ctx) : hero === 'nayuta' ? createNayuta(ctx, variant.variant) : hero === 'rapunzel' ? createRapunzel(ctx) : hero === 'scarlet' ? createScarlet(ctx) : createSnowWhite(ctx);
     player = new Player(chibi, kit, ctx, world.snow);
+    // The next update grows current health along with the new maximum.
+    if (bot) player.hpScale = BOT_HP_SCALE;
     player.position.copyFrom(at);
     player.unstick();
     await kit.prepare?.();
     const mate = new Teammate(slot, hero, character.name, player, run, ctx, world.run);
     mate.skin = variant.variant;
+    if (bot) mate.threat = BOT_THREAT;
     return mate;
   }
 

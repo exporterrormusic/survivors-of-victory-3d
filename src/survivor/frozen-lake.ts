@@ -95,6 +95,14 @@ export class FrozenLake {
   pending:{x:number;z:number;time:number}|null=null;
   private escalation:{cells:number[];starts:number[];origin:number;elapsed:number}|null=null;
   reset(enabled:boolean):void{this.enabled=enabled;this.stress.fill(0);this.hole.fill(0);this.dirty=true;this.breaks=0;this.pending=null;this.escalation=null;this.lastBreak=null;}
+  /** Build both whole-lake lookups now, behind the loading screen, instead of on first use mid-round. */
+  prepare():void{this.shoreMap();this.iceMap();}
+  private iceMap():Uint8Array{
+    if(this.iceMask)return this.iceMask;
+    const mask=new Uint8Array(this.stress.length);
+    for(let i=0;i<mask.length;i++)mask[i]=lakeSurface(i%LAKE_GRID-LAKE_HALF+.5,Math.floor(i/LAKE_GRID)-LAKE_HALF+.5)>0?1:0;
+    return this.iceMask=mask;
+  }
   private shoreMap():Int32Array{
     if(this.shore)return this.shore;
     const map=new Int32Array(LAKE_GRID*LAKE_GRID).fill(-1),queue:number[]=[];
@@ -201,16 +209,13 @@ export class FrozenLake {
   }
   /** Count actual ice area, excluding shore snow; open water cannot trigger another failure. */
   private escalate(p:LakePoint):void{
-    if(!this.iceMask){
-      this.iceMask=new Uint8Array(this.stress.length);
-      for(let i=0;i<this.iceMask.length;i++)this.iceMask[i]=lakeSurface(i%LAKE_GRID-LAKE_HALF+.5,Math.floor(i/LAKE_GRID)-LAKE_HALF+.5)>0?1:0;
-    }
+    const iceMask=this.iceMap();
     const cracked:number[]=[];let total=0,nearest=-1,distance=Infinity;
     const r=LAKE_ESCALATION_RADIUS;
     for(let dz=-r;dz<=r;dz++)for(let dx=-r;dx<=r;dx++){
       const x=Math.floor(p.x)+dx+.5,z=Math.floor(p.z)+dz+.5,d=Math.hypot(x-p.x,z-p.z);
       if(d>r)continue;
-      const i=this.cell(x,z);if(i<0||!this.iceMask[i])continue;
+      const i=this.cell(x,z);if(i<0||!iceMask[i])continue;
       total++;
       if(this.hole[i]>0||this.stress[i]<LAKE_MINOR_CRACK)continue;
       cracked.push(i);

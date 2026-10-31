@@ -1,6 +1,8 @@
 import { Color3, Color4, Constants, DynamicTexture, Mesh, NoiseProceduralTexture, ParticleSystem, PointLight, ShaderMaterial, Vector3, VertexData, type Scene } from '@babylonjs/core';
 import { OUTSKIRTS_CRATER as C, CRATER_CORE_RADIUS, outskirtsGroundHeight } from './outskirts-landmarks';
 
+const NOISE_REFRESH = 4;
+
 type Vent={x:number,z:number,r:number,weight:number};
 /** the floor the flames cover evenly: the core and the first stretch of the burning slope */
 const FIRE_RADIUS=CRATER_CORE_RADIUS+7;
@@ -79,7 +81,9 @@ export class CraterFire {
     g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.75)');g.addColorStop(.7,'rgba(255,255,255,.2)');g.addColorStop(1,'rgba(255,255,255,0)');
     fc.filter='blur(5px)';fc.fillStyle=g;fc.beginPath();fc.moveTo(32,2);fc.bezierCurveTo(46,40,62,74,54,104);fc.quadraticCurveTo(32,132,10,104);fc.bezierCurveTo(2,74,18,40,32,2);fc.fill();
     ft.hasAlpha=true;ft.update();
-    this.noise=new NoiseProceduralTexture('crater-flame-noise',128,scene);this.noise.animationSpeedFactor=4;this.noise.brightness=.5;this.noise.octaves=3;
+    // CPU particles read the noise back from the GPU (a pipeline stall) every time it re-renders, so
+    // refresh it every 4th frame and step it 4x as far: the same flame motion at a quarter of the stalls.
+    this.noise=new NoiseProceduralTexture('crater-flame-noise',128,scene);this.noise.refreshRate=NOISE_REFRESH;this.noise.animationSpeedFactor=4*NOISE_REFRESH;this.noise.brightness=.5;this.noise.octaves=3;
 
     const pick=()=>{let t=random()*this.vents.reduce((s,v)=>s+v.weight,0);for(const v of this.vents){t-=v.weight;if(t<=0)return v;}return this.vents[0];};
     const system=(name:string,capacity:number,sizeFor:(v:Vent)=>number)=>{
@@ -136,7 +140,7 @@ export class CraterFire {
     const flicker=.85+.1*Math.sin(this.time*7.3)+.05*Math.sin(this.time*17.1);
     this.light.intensity=1.6*flicker;
     for(const system of this.systems)system.updateSpeed=dt>0?.012:0;
-    this.noise.animationSpeedFactor=dt>0?4:0;
+    this.noise.animationSpeedFactor=dt>0?4*NOISE_REFRESH:0;
   }
   dispose(){for(const s of this.systems)s.dispose(false);this.floor.dispose();this.floorMaterial.dispose();this.flameTexture.dispose();this.noise.dispose();this.light.dispose();}
 }

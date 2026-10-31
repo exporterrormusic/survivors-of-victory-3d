@@ -1,7 +1,7 @@
 import type { FxQuad } from './vfx';
 // World-space weather for Babylon. The Phaser environment is a mood reference only:
 // precipitation, ground ripples and ambient motes share one batched procedural 3D shader.
-import { type Camera, Color3, Constants, Effect, Mesh, type Scene, ShaderMaterial, Vector3, Vector4, VertexBuffer } from '@babylonjs/core';
+import { type Camera, Color3, Constants, Effect, Mesh, type RenderTargetTexture, type Scene, ShaderMaterial, Vector3, Vector4, VertexBuffer } from '@babylonjs/core';
 import { audioEngine } from '../audio/audio-engine';
 import type { Cue } from '../audio/sound-bank';
 import type { createVisualSettings } from '../visuals';
@@ -257,6 +257,8 @@ export class Atmosphere {
 
   /** The forest lantern dimmer (see ForestMist.dim). */
   get lanternDim(): ForestMist['dim'] { return this.forestMist.dim; }
+  /** Render targets that are off until the weather turns them on, for the loading warm-up. */
+  get dormantTargets(): RenderTargetTexture[] { return [this.forestMist.depthMap]; }
   setFogLights(lights: readonly {position:Vector3;alive:boolean;radius:number}[], effects: readonly FxQuad[] = []): void {
     this.forestMist.setLights(lights,this.playerPosition ?? this.focus,effects);
   }

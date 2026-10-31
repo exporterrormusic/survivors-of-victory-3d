@@ -369,6 +369,8 @@ export class TargetField {
   readonly areaListeners = new Set<(test: (x: number, z: number, pad: number) => boolean) => void>();
   areaHit(test: (x: number, z: number, pad: number) => boolean): void { for (const listen of this.areaListeners) listen(test); }
   private readonly crowds = new Map<string, CrowdModel>();
+  /** body sizes of every loaded Rapture type, for prepareNavigation */
+  private readonly loadedRadii = new Set<number>();
   private readonly snowTracks = new Map<Target, { track: SnowTrack; generation: number }>();
   readonly navigation: SnowNavigationMap;
   private movement: EnemyMovement = 'hold';
@@ -406,9 +408,18 @@ export class TargetField {
 
   /** Load crowds for more Rapture types (game-mode spawns); models already loaded are reused. */
   async ensureTypes(types: readonly MinionType[]): Promise<void> {
+    // A roster type can reuse a training model with its own body size, so record sizes even when the crowd exists.
+    for (const type of types) this.loadedRadii.add(type.radius);
     const missing = types.filter((type) => !this.crowds.has(type.id));
     await preloadModels(this.scene, missing.map(modelUrl));
     for (const type of missing) if (!this.crowds.has(type.id)) this.crowds.set(type.id, this.createCrowd(type));
+  }
+
+  /** Build the route grids for every loaded Rapture size (plus any extra body radii) during loading:
+   * each grid is a one-off whole-map scan that otherwise lands on the frame a new size first paths. */
+  prepareNavigation(extraRadii: readonly number[] = []): void {
+    this.navigation.beginFrame(0);
+    this.navigation.prepare([...new Set([...this.loadedRadii, ...extraRadii])]);
   }
 
   /** Add a pursuing target that stays dead (game-mode spawns). Its type must be loaded. */
@@ -424,6 +435,7 @@ export class TargetField {
   }
 
   private createCrowd(type: MinionType): CrowdModel {
+    this.loadedRadii.add(type.radius);
     return new CrowdModel(this.scene, modelUrl(type), this.shadows, {
       muzzles: (_clip, nodes) => {
         // Lure fires from its central red emitter, not either side weapon.

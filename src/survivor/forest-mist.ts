@@ -1,7 +1,8 @@
 import type { FxQuad } from './vfx';
 import { forestPlacements } from './forest-layout';
+import { filterRenderList } from './filtered-render-list';
 import { ELEVATOR_YAW, SHAFT_HALF_WIDTH, ELEVATOR_ORIGIN } from './elevator-footprint';
-import { Constants, DepthRenderer, Effect, Matrix, PostProcess, Vector3, type Camera, type Scene } from '@babylonjs/core';
+import { Constants, DepthRenderer, Effect, Matrix, PostProcess, Vector3, type Camera, type RenderTargetTexture, type Scene } from '@babylonjs/core';
 
 // Integrate animated world-space fog along each visible camera ray. Depth stops
 // the volume at geometry; the clear pocket follows the player, not the camera.
@@ -203,6 +204,7 @@ export class ForestMist {
   private clock = 0;
   private strength = 0;
   private enabled = false;
+  private readonly stopDepthList: () => void;
   constructor(private readonly scene: Scene, private readonly camera: Camera, elevatorClearing = false) {
     // Separate depth target leaves the existing anime/AO pipeline's depth untouched.
     // Interpolated depth invents surfaces between silhouettes and the floor.
@@ -212,7 +214,7 @@ export class ForestMist {
     this.depth.forceDepthWriteTransparentMeshes = true;
     this.depth.getDepthMap().name = 'forest-volume-depth';
     // See-through figures (the easter-egg ghost) would cut a hard silhouette out of the mist.
-    this.depth.getDepthMap().renderListPredicate = mesh => !mesh.metadata?.skipFogDepth;
+    this.stopDepthList = filterRenderList(scene, this.depth.getDepthMap(), mesh => !mesh.metadata?.skipFogDepth);
     this.pass = new PostProcess('forest-volume', 'forestVolume',
       ['inverseViewProjection','fogLights','fogColors','lanterns','cameraPosition','focus','clock','strength','texelSize','elevatorClearing','elevatorOrigin'], ['forestDepth'], 1, null,
       Constants.TEXTURE_BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
@@ -290,5 +292,7 @@ export class ForestMist {
     const index=this.camera.customRenderTargets.indexOf(this.depth.getDepthMap());
     if(index>=0)this.camera.customRenderTargets.splice(index,1);
   }
-  dispose():void {this.removeDepthTarget();this.pass.dispose(this.camera);this.depth.dispose();}
+  /** The fog depth pass, for the loading warm-up: it only joins the camera once the fog shows. */
+  get depthMap():RenderTargetTexture {return this.depth.getDepthMap();}
+  dispose():void {this.stopDepthList();this.removeDepthTarget();this.pass.dispose(this.camera);this.depth.dispose();}
 }

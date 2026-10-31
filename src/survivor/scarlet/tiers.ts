@@ -26,7 +26,7 @@ const TIERS: readonly TalentTier[] = [
     talent({ id: 'in_one_strike', name: 'In One Strike', ability: 'special', icon: 'blast', effects: ['in_one_strike'],
       description: 'Enemies killed by the Dash Slash wave explode, hitting everything within 4 m for the wave\'s damage.' }),
     talent({ id: 'drink_to_victory', name: 'Drink to Victory', ability: 'burst', icon: 'blood', effects: ['drink_to_victory'],
-      description: 'Each enemy the Burst kills heals you for 2.5 HP, up to 15 HP per Burst.' }),
+      description: 'Each enemy the Burst kills heals you for 2.5 HP.' }),
   ] },
   { level: 7, label: 'Flourish', options: [
     talent({ id: 'roses_core', name: 'Rose\'s Core', ability: 'weapon', icon: 'petal', effects: ['roses_core'],

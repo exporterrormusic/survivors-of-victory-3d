@@ -78,7 +78,7 @@ export class CoopSquad {
     const at = this.local.transported ? this.local.position.clone()
       : this.local.position.add(new Vector3(Math.cos(slot * 2.4) * 2.5, 0, Math.sin(slot * 2.4) * 2.5));
     if (!this.local.transported) at.y = 0;
-    const mate = await Teammate.create(this.world, slot, hero, at, skin);
+    const mate = await Teammate.create(this.world, slot, hero, at, skin, controller instanceof BotInput);
     this.teammates.push(mate);
     this.controllers.set(mate, controller);
     this.world.targets.squad.push(mate);

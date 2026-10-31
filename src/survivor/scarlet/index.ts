@@ -31,7 +31,7 @@ export function createScarlet(ctx: KitContext): CharacterKit {
   const dashWave = new SwordSweep(ctx, true);
   const has = (id: string) => ctx.run.talents.has(id);
   let cooldown = 0, charge: number | null = null, parryTime = 0, parryYaw = 0, freeze = 0;
-  let burst: { target: Target; generation: number }[] = [], burstScale = 1, burstHealing = 0, cadence = .3;
+  let burst: { target: Target; generation: number }[] = [], burstScale = 1, cadence = .3;
   let burstFrom = new Vector3(), burstTo = new Vector3(), burstElapsed = 0, burstMarked = false, ghostIn = 0;
   const pending: { target: Target; generation: number }[] = [];
   let selfCost = 0;
@@ -169,7 +169,7 @@ export function createScarlet(ctx: KitContext): CharacterKit {
       cinematic.start(); pending.length = 0; ctx.run.beginBurst();
       burstElapsed = 0; burstMarked = false; ghostIn = 0;
       burstFrom.copyFrom(ctx.playerPosition);
-      ctx.setHp?.(burstHpAfterCost(ctx.hp ?? maxHp())); burstScale = hpScale(); burstHealing = 0; freeze = 0;
+      ctx.setHp?.(burstHpAfterCost(ctx.hp ?? maxHp())); burstScale = hpScale(); freeze = 0;
       burst = ctx.targets.targets.filter(t => t.alive && visible(t)).sort((a, b) => b.hp - a.hp).map(target => ({target, generation: target.generation}));
       cadence = .3 / (burst.length > 10 ? 2 : burst.length > 5 ? 1.5 : 1);
       ctx.invulnerable?.(burst.length * cadence + 1);
@@ -211,7 +211,7 @@ export function createScarlet(ctx: KitContext): CharacterKit {
               if (has('d1_crashout') && victim.alive) victim.frozen = Math.max(victim.frozen, victim.combatTier === 'boss' ? CRASHOUT_BOSS : CRASHOUT);
               if (!victim.alive) {
                 if (execute) ctx.run.gainXp(20);
-                if (has('drink_to_victory')) { const heal = Math.min(2.5, 15 - burstHealing); ctx.heal(heal); burstHealing += heal; }
+                if (has('drink_to_victory')) ctx.heal(2.5);
                 if (has('fire_in_my_veins') && Math.random() < .5) ctx.run.addBurst(5);
               }
             }
