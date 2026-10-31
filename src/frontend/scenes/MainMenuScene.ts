@@ -82,9 +82,17 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
-    version: "0.1.11",
-    title: "V0.1.11",
+    version: "0.1.10",
+    title: "V0.1.10",
     sections: [
+      {
+        heading: "PERFORMANCE",
+        items: [
+          "Smoother play on every map, roughly double the frame rate in the Forest with a full horde.",
+          "Far fewer stutters in the first minute of a round: models, shaders and enemy pathing are prepared on the loading screen instead.",
+          "The Outskirts crater fire and the Frozen North lake no longer cause hitches.",
+        ],
+      },
       {
         heading: "SKINS",
         items: [
@@ -95,20 +103,6 @@ const PATCH_RELEASES: readonly PatchRelease[] = [
         heading: "MAPS",
         items: [
           "Open maps fade softly at the edge of the playable area, so the boundary is easy to read.",
-        ],
-      },
-    ],
-  },
-  {
-    version: "0.1.10",
-    title: "V0.1.10",
-    sections: [
-      {
-        heading: "PERFORMANCE",
-        items: [
-          "Smoother play on every map, roughly double the frame rate in the Forest with a full horde.",
-          "Far fewer stutters in the first minute of a round: models, shaders and enemy pathing are prepared on the loading screen instead.",
-          "The Outskirts crater fire and the Frozen North lake no longer cause hitches.",
         ],
       },
       {
