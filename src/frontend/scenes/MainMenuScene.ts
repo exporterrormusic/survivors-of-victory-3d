@@ -82,6 +82,24 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.8",
+    title: "V0.1.8",
+    sections: [
+      {
+        heading: "UPDATES",
+        items: [
+          "The update download can be minimized to a small chip in the top-right corner so you can keep playing. Click the chip to open it again.",
+        ],
+      },
+      {
+        heading: "NOTICE",
+        items: [
+          "The release list really stays inside the box now: it shows five releases at a time and the mouse wheel scrolls through the rest.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.7",
     title: "V0.1.7",
     sections: [
@@ -757,73 +775,73 @@ export class MainMenuScene extends Phaser.Scene {
     this.noticeDetailLayer = detailLayer;
     this.noticeLayer?.add(detailLayer);
 
-    // The release index grows every push, so it scrolls inside the rail.
+    // The release index grows every push. Phaser ignores masks on nested containers, so the
+    // rail shows only the entries that fit and the wheel steps through them one at a time.
     const railX = panelX + 40;
-    const railTop = panelY + 196;
-    const railHeight = 541;
+    const railTop = panelY + 205;
     const railStep = 100;
-    const railMaxScroll = Math.max(
-      0,
-      PATCH_RELEASES.length * railStep - 12 - (railHeight - 9),
-    );
+    const railVisible = 5;
+    const railMaxFirst = Math.max(0, PATCH_RELEASES.length - railVisible);
     this.noticeRailScroll = Phaser.Math.Clamp(
       this.noticeRailScroll,
       0,
-      railMaxScroll,
+      railMaxFirst,
     );
-    const rail = this.add.container(railX, railTop + 9 - this.noticeRailScroll);
-    const railMaskShape = this.make.graphics({}, false);
-    railMaskShape.fillRect(railX - 2, railTop, 220, railHeight);
-    rail.setMask(railMaskShape.createGeometryMask());
-    detailLayer.add(rail);
-    detailLayer.once("destroy", () => railMaskShape.destroy());
-    const inRail = (pointer: Phaser.Input.Pointer): boolean =>
-      pointer.y >= railTop && pointer.y <= railTop + railHeight;
-
-    PATCH_RELEASES.forEach((release, releaseIndex) => {
-      rail.add(
-        this.createNoticeReleaseButton(
-          0,
-          releaseIndex * railStep,
-          release,
-          releaseIndex === index,
-          () => this.renderNoticeRelease(releaseIndex, panelX, panelY),
-          inRail,
-        ),
+    const railButtons = PATCH_RELEASES.map((release, releaseIndex) => {
+      const button = this.createNoticeReleaseButton(
+        railX,
+        railTop,
+        release,
+        releaseIndex === index,
+        () => this.renderNoticeRelease(releaseIndex, panelX, panelY),
       );
+      detailLayer.add(button);
+      return button;
     });
-
-    if (railMaxScroll > 0) {
-      const thumbHeight = Math.max(
-        40,
-        (railHeight * railHeight) / (railHeight + railMaxScroll),
-      );
-      const thumb = this.add
-        .rectangle(railX + 222, railTop, 3, thumbHeight, 0x35c5f2)
-        .setOrigin(0);
-      const placeThumb = (): void => {
-        thumb.y =
-          railTop +
-          (railHeight - thumbHeight) * (this.noticeRailScroll / railMaxScroll);
-      };
-      placeThumb();
-      detailLayer.add(thumb);
+    const railHeight = railVisible * railStep - 12;
+    const thumbHeight =
+      railMaxFirst > 0 ? (railHeight * railVisible) / PATCH_RELEASES.length : 0;
+    const thumb = this.add
+      .rectangle(railX + 224, railTop, 3, thumbHeight, 0x35c5f2)
+      .setOrigin(0)
+      .setVisible(railMaxFirst > 0);
+    detailLayer.add(thumb);
+    const placeRail = (): void => {
+      const first = this.noticeRailScroll;
+      railButtons.forEach((button, buttonIndex) => {
+        const slot = buttonIndex - first;
+        button.setVisible(slot >= 0 && slot < railVisible);
+        button.y = railTop + slot * railStep;
+      });
+      if (railMaxFirst > 0) {
+        thumb.y = railTop + (railHeight - thumbHeight) * (first / railMaxFirst);
+      }
+    };
+    placeRail();
+    if (railMaxFirst > 0) {
       const onWheel = (
         pointer: Phaser.Input.Pointer,
         _over: unknown,
         _dx: number,
         dy: number,
       ): void => {
-        if (!inRail(pointer) || pointer.x < railX || pointer.x > railX + 230) {
+        if (
+          pointer.x < railX ||
+          pointer.x > railX + 240 ||
+          pointer.y < railTop ||
+          pointer.y > railTop + railHeight
+        ) {
           return;
         }
-        this.noticeRailScroll = Phaser.Math.Clamp(
-          this.noticeRailScroll + dy * 0.6,
+        const next = Phaser.Math.Clamp(
+          this.noticeRailScroll + Math.sign(dy),
           0,
-          railMaxScroll,
+          railMaxFirst,
         );
-        rail.y = railTop + 9 - this.noticeRailScroll;
-        placeThumb();
+        if (next !== this.noticeRailScroll) {
+          this.noticeRailScroll = next;
+          placeRail();
+        }
       };
       this.input.on("wheel", onWheel);
       detailLayer.once("destroy", () => this.input.off("wheel", onWheel));
@@ -888,7 +906,6 @@ export class MainMenuScene extends Phaser.Scene {
     release: PatchRelease,
     selected: boolean,
     onClick: () => void,
-    isVisible: (pointer: Phaser.Input.Pointer) => boolean,
   ): Phaser.GameObjects.Container {
     const width = 214;
     const height = 88;
@@ -929,8 +946,8 @@ export class MainMenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     hit.on("pointerover", () => draw(true));
     hit.on("pointerout", () => draw(false));
-    hit.on("pointerup", (pointer: Phaser.Input.Pointer) => {
-      if (!selected && isVisible(pointer)) {
+    hit.on("pointerup", () => {
+      if (!selected) {
         this.sound.play(ASSETS.select, {
           volume: scaledSfxVolume(0.14, this.audioSettings),
         });

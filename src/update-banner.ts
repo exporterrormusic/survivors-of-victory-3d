@@ -27,6 +27,10 @@ const CSS = `
 #sov-update .go{background:#35c5f2;color:#0b1118}
 #sov-update .later{background:rgba(255,255,255,.1);color:#c9d3db}
 #sov-update .x{position:absolute;top:6px;right:8px;background:none;border:0;color:#8a949e;font-size:16px;cursor:pointer;padding:2px 4px}
+#sov-update.mini{top:12px;right:12px;width:auto;padding:5px 10px 5px 12px;cursor:pointer;font-size:13px}
+#sov-update.mini::before{width:3px}
+#sov-update.mini .bar{margin-top:4px;height:2px;width:90px}
+#sov-update .min{position:absolute;top:6px;right:8px;background:none;border:0;color:#8a949e;font-size:16px;cursor:pointer;padding:2px 6px;flex:none}
 #sov-update .n{margin-top:6px;font-size:11px;color:#8a949e;letter-spacing:1px}
 `;
 
@@ -42,10 +46,14 @@ export function mountUpdateBanner(): void {
   document.body.append(box);
   // Later hides the prompt for this session; the next launch asks again.
   let dismissed = false;
+  // The download can shrink to a small chip in the top-right corner; clicking the chip opens it again.
+  let minimized = false;
+  box.onclick = () => { if (minimized) { minimized = false; render(); } };
+  let last: UpdateStatus | null = null;
+  const render = (): void => { if (last) show(last); };
 
-  bridge.watch((status) => {
-    if (!status || dismissed) { box.hidden = true; return; }
-    box.hidden = false;
+  const show = (status: UpdateStatus): void => {
+    box.classList.toggle('mini', minimized && status.state === 'downloading');
     if (status.state === 'available' || status.state === 'error') {
       const failed = status.state === 'error';
       box.innerHTML = `<div class="t">${failed ? 'Update failed' : 'Update available'}</div>
@@ -54,14 +62,28 @@ export function mountUpdateBanner(): void {
         <div class="n">${failed ? 'Check your connection and try again.' : 'Later asks again next time you start the game.'}</div>`;
       box.querySelector<HTMLButtonElement>('.go')!.onclick = () => { void bridge.start(); };
       box.querySelector<HTMLButtonElement>('.later')!.onclick = () => { dismissed = true; box.hidden = true; };
+    } else if (status.state === 'downloading' && minimized) {
+      box.innerHTML = `<div>Update ${status.percent}%</div><div class="bar"><i style="width:${status.percent}%"></i></div>`;
     } else if (status.state === 'downloading') {
-      box.innerHTML = `<div class="t">Updating</div>
+      box.innerHTML = `<button class="min" title="Minimize">&#8212;</button><div class="t">Updating</div>
         <div class="m">Version ${status.version} · downloading ${status.percent}%</div>
         <div class="bar"><i style="width:${status.percent}%"></i></div>
         <div class="n">Keep playing. The game restarts to install when the download finishes.</div>`;
+      box.querySelector<HTMLButtonElement>('.min')!.onclick = (event) => {
+        event.stopPropagation();
+        minimized = true;
+        render();
+      };
     } else {
       box.innerHTML = `<div class="t">Installing update</div><div class="m">Version ${status.version}</div>
         <div class="n">The game closes, the installer shows its progress, then the game reopens.</div>`;
     }
+  };
+
+  bridge.watch((status) => {
+    last = status;
+    if (!status || dismissed) { box.hidden = true; return; }
+    box.hidden = false;
+    show(status);
   });
 }
