@@ -82,6 +82,18 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.7",
+    title: "V0.1.7",
+    sections: [
+      {
+        heading: "NOTICE",
+        items: [
+          "The release list in this NOTICE no longer spills out of the box: scroll it with the mouse wheel.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.6",
     title: "V0.1.6",
     sections: [
