@@ -8,8 +8,8 @@ export function characterSkins(characterId: CharacterId): SkinDefinition[] {
   if (!model) return [];
   return [{ variant: model.variant, name: 'Default' }, ...(model.skins ?? [])].map((skin, index) => ({
     id: skin.variant, characterId, name: skin.name.replace(/^.*?: /, ''), cost: index === 0 ? 0 : 1,
-    icon: characterId === 'wells' && index === 0
-      ? CHARACTER_MODULES.wells.profile.portraitPath
+    icon: skin.variant === 'aya' ? 'chibi/aya_portrait.png' : characterId === 'wells' && index === 0
+      ? 'chibi/wells_research_portrait.png'
       : `chibi/${skin.variant}_icon.png`,
   }));
 }

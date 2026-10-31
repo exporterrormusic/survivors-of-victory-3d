@@ -82,6 +82,24 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.11",
+    title: "V0.1.11",
+    sections: [
+      {
+        heading: "SKINS",
+        items: [
+          "New Wells skin: Ayamari Yushutsu.",
+        ],
+      },
+      {
+        heading: "MAPS",
+        items: [
+          "Open maps fade softly at the edge of the playable area, so the boundary is easy to read.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.10",
     title: "V0.1.10",
     sections: [

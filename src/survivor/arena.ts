@@ -48,6 +48,12 @@ class RangeGround extends MaterialPluginBase {
   readonly calderaTiles:Texture[];
   theme: RangeEnvironment = 'plain';
 
+  /** World-space movement limit, also used to place the visible boundary fade. */
+  get radius(): number {
+    return this.theme==='frozen'?FROZEN_RADIUS:this.theme==='storm'?STORM_RADIUS:this.theme==='forest'?FOREST_RADIUS:
+      ARENA_RADIUS*(this.theme==='sakura'?SAKURA_SCALE:this.theme==='outskirts'||this.theme==='volcano'?OUTSKIRTS_SCALE:1);
+  }
+
   constructor(material: StandardMaterial, scene: Scene) {
     super(material, 'RangeGround', 200, {}, true, true);
     this.calderaTiles=['basalt.webp','ash.webp'].map(n=>calderaTexture(scene,n));
@@ -68,7 +74,7 @@ class RangeGround extends MaterialPluginBase {
   override isReadyForSubMesh(): boolean { return this.craterSoil.isReady() && this.scorched.isReady() && this.paving.isReady() && this.moss.isReady() && this.cityAsphalt.isReady() && this.citySidewalk.isReady()&&this.stormGround.isReady()&&this.stormTiles.every(t=>t.isReady())&&this.calderaTiles.every(t=>t.isReady()); }
   override getSamplers(samplers: string[]): void { samplers.push('rangeCraterSoil','rangeScorched','rangePaving', 'rangeMoss','cityAsphalt','citySidewalk','stormGround','stormNeedles','stormShingle','stormSlate','stormBank'); }
   override getUniforms() {
-    return {ubo:[{name:'rangeTheme',size:1,type:'float'}],fragment:'uniform float rangeTheme;'};
+    return {ubo:[{name:'rangeTheme',size:1,type:'float'},{name:'rangePlayableRadius',size:1,type:'float'}],fragment:'uniform float rangeTheme; uniform float rangePlayableRadius;'};
   }
   override bindForSubMesh(buffer: UniformBuffer): void {
     buffer.setTexture('rangeCraterSoil',this.theme==='volcano'?this.calderaTiles[1]:this.craterSoil);
@@ -79,6 +85,7 @@ class RangeGround extends MaterialPluginBase {
     buffer.setTexture('stormGround',this.stormGround);
     ['stormNeedles','stormShingle','stormSlate','stormBank'].forEach((n,i)=>buffer.setTexture(n,this.stormTiles[i]));
     buffer.updateFloat('rangeTheme', {plain:0,outskirts:1,sakura:5,frozen:2,city:3,storm:4,forest:6,volcano:7}[this.theme]);
+    buffer.updateFloat('rangePlayableRadius', this.radius);
   }
   override getActiveTextures(textures: BaseTexture[]): void { textures.push(this.craterSoil,this.scorched,this.paving, this.moss,this.cityAsphalt,this.citySidewalk,this.stormGround,...this.stormTiles,...this.calderaTiles); }
   override hasTexture(texture: BaseTexture): boolean { return [this.craterSoil,this.scorched,this.paving,this.moss,this.cityAsphalt,this.citySidewalk,this.stormGround,...this.stormTiles,...this.calderaTiles].includes(texture as Texture); }
@@ -207,10 +214,17 @@ class RangeGround extends MaterialPluginBase {
         // the play area's edge darkens into the fog instead of ending at a wall
         float arenaEdge=rangeTheme>1.5&&rangeTheme<2.5?${FROZEN_RADIUS.toFixed(1)}:rangeTheme>3.5&&rangeTheme<4.5?${(STORM_RADIUS+6).toFixed(1)}:rangeTheme>5.5&&rangeTheme<6.5?${FOREST_RADIUS.toFixed(1)}:34.;
         float outside = smoothstep(arenaEdge-2., arenaEdge+10., r + edge * 1.5);
-        // Sakura's distant orchard hides the horizon; avoid a dark circular band
-        // across the shrine court and let the ground recede gradually behind it.
-        if(rangeTheme>4.5&&rangeTheme<5.5)
-          outside=smoothstep(58.,110.,r+edge*3.);
+        // Open maps need a readable movement boundary. Use world coordinates:
+        // Sakura's texture coordinates above are scaled, but its movement limit isn't.
+        // Begin gently inside the edge and deepen outside; low-frequency variation
+        // softens the contour without moving the perceived boundary far from collision.
+        float boundaryShade=.55;
+        if(rangeTheme<.5 || (rangeTheme>2.5 && rangeTheme<5.5)) {
+          vec2 boundaryPosition=vPositionW.xz;
+          float boundaryVariation=(rangeNoise(boundaryPosition*.12)-.5)*1.2;
+          outside=smoothstep(-4.,7.,length(boundaryPosition)-rangePlayableRadius+boundaryVariation);
+          boundaryShade=.78;
+        }
         // Outskirts stays lit all the way to its movement boundary. A short,
         // outward-only fade makes the dark scenery read as out of bounds.
         if(rangeTheme > 6.5){
@@ -235,7 +249,7 @@ class RangeGround extends MaterialPluginBase {
           vec3 bowlSoil=rangePaint(rangeCraterSoil,g/6.)*.12;
           floorColor=mix(floorColor,bowlSoil,bowlBlend);
         }
-        baseColor.rgb = floorColor * tone * (1.0 - outside * .55);
+        baseColor.rgb = floorColor * tone * (1.0 - outside * boundaryShade);
       `,
     };
   }
@@ -321,7 +335,7 @@ export function createArena(scene: Scene, camera: Camera, elevatorShaft = false)
   return {
     shadows,
     glow,
-    get radius() { return rangeGround.theme==='frozen'?FROZEN_RADIUS:rangeGround.theme==='storm'?STORM_RADIUS:rangeGround.theme==='forest'?FOREST_RADIUS:ARENA_RADIUS*(rangeGround.theme==='sakura'?SAKURA_SCALE:rangeGround.theme==='outskirts'||rangeGround.theme==='volcano'?OUTSKIRTS_SCALE:1); },
+    get radius() { return rangeGround.radius; },
     setEnvironment(theme) {
       rangeGround.theme = theme;
       material.metadata={...material.metadata,softEnvironment:theme==='volcano'};

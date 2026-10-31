@@ -255,8 +255,9 @@ export class TwinStickRig {
     // Queen's floating dress weapons have no forward barrel: the sampled
     // accessory tip points behind her. Steer her beam by her face instead.
     if (/^c019_0[01]$/.test(chibi.meta.variant)) this.aimFacing = 'head';
-    this.localHeadUp = chibi.meta.variant === 'wells_research' ? Vector3.Up() : HEAD_UP;
-    this.localForward = chibi.meta.variant === 'wells_research' ? new Vector3(0, 0, 1) : UP;
+    const blenderBindAxes = chibi.meta.variant === 'wells_research' || chibi.meta.variant === 'aya';
+    this.localHeadUp = blenderBindAxes ? Vector3.Up() : HEAD_UP;
+    this.localForward = blenderBindAxes ? new Vector3(0, 0, 1) : UP;
     const spine = chibi.joint(SPINE);
     // Crown's Glorious King aim sample picks a moving side barrel. Use the
     // central lance tip measured in her firing clip for every combat posture.
