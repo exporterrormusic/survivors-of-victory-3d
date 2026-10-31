@@ -34,10 +34,10 @@ Level up, choose talents, build Burst gauge, and survive long enough to face the
 </tr>
 <tr>
 <td width="50%"><img src="docs/screenshots/08-graveyard.jpg" alt="Haunted Pine Forest"><br><b>Haunted Pine Forest</b> · Scarlet fighting before the ruined chapel, between its two fenced grave plots in the fog.</td>
-<td width="50%"><img src="docs/screenshots/09-liliweiss.jpg" alt="A secret in the forest"><br><b>A secret in the forest</b> · someone is waiting in the graveyard...</td>
+<td width="50%"><img src="docs/screenshots/09-liliweiss.jpg" alt="A secret in the forest"></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/screenshots/10-sakura-shrine.jpg" alt="A secret in the Sakura Grove"><br><b>A secret in the Sakura Grove</b> · leave the right offering at the shrine.</td>
+<td width="50%"><img src="docs/screenshots/10-sakura-shrine.jpg" alt="A secret in the Sakura Grove"></td>
 </tr>
 </table>
 
