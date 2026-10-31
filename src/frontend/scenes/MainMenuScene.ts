@@ -82,6 +82,19 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.5",
+    title: "V0.1.5",
+    sections: [
+      {
+        heading: "TALENTS",
+        items: [
+          "The talent tree in Character Select and the Shop now fits on screen: all seven tiers show without being cut off.",
+          "The in-run talent board (Tab) fits the same way.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.4",
     title: "V0.1.4",
     sections: [
