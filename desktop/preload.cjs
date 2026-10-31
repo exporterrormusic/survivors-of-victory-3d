@@ -9,5 +9,5 @@ contextBridge.exposeInMainWorld('sovUpdates', {
     void ipcRenderer.invoke('update:get').then(callback);
     return () => ipcRenderer.removeListener('update:status', listener);
   },
-  restart: () => ipcRenderer.invoke('update:restart'),
+  start: () => ipcRenderer.invoke('update:start'),
 });

@@ -82,6 +82,19 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.6",
+    title: "V0.1.6",
+    sections: [
+      {
+        heading: "UPDATES",
+        items: [
+          "Updates now ask first: UPDATE NOW downloads and installs it, LATER hides the message until you next start the game.",
+          "Nothing downloads unless you choose UPDATE NOW. Once downloaded, the game restarts to install it.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.5",
     title: "V0.1.5",
     sections: [

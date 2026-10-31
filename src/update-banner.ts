@@ -2,14 +2,14 @@
 // status through desktop/preload.cjs; the browser build has no bridge and shows nothing.
 
 type UpdateStatus =
+  | { state: 'available'; version: string }
   | { state: 'downloading'; version: string; percent: number }
-  | { state: 'ready'; version: string }
   | { state: 'installing'; version: string }
   | { state: 'error'; version: string };
 
 interface UpdateBridge {
   watch(callback: (status: UpdateStatus | null) => void): () => void;
-  restart(): Promise<void>;
+  start(): Promise<void>;
 }
 
 const CSS = `
@@ -40,34 +40,28 @@ export function mountUpdateBanner(): void {
   box.id = 'sov-update';
   box.hidden = true;
   document.body.append(box);
-  // "Later" / close hide it until the next change of state (e.g. downloading -> ready).
-  let dismissed = '';
+  // Later hides the prompt for this session; the next launch asks again.
+  let dismissed = false;
 
   bridge.watch((status) => {
-    if (!status) { box.hidden = true; return; }
-    if (dismissed === status.state) return;
+    if (!status || dismissed) { box.hidden = true; return; }
     box.hidden = false;
-    const dismiss = () => { dismissed = status.state; box.hidden = true; };
-    if (status.state === 'downloading') {
-      box.innerHTML = `<button class="x" aria-label="Hide">×</button><div class="t">Update available</div>
+    if (status.state === 'available' || status.state === 'error') {
+      const failed = status.state === 'error';
+      box.innerHTML = `<div class="t">${failed ? 'Update failed' : 'Update available'}</div>
+        <div class="m">Version ${status.version}</div>
+        <div class="row"><button class="go">${failed ? 'Try again' : 'Update now'}</button><button class="later">Later</button></div>
+        <div class="n">${failed ? 'Check your connection and try again.' : 'Later asks again next time you start the game.'}</div>`;
+      box.querySelector<HTMLButtonElement>('.go')!.onclick = () => { void bridge.start(); };
+      box.querySelector<HTMLButtonElement>('.later')!.onclick = () => { dismissed = true; box.hidden = true; };
+    } else if (status.state === 'downloading') {
+      box.innerHTML = `<div class="t">Updating</div>
         <div class="m">Version ${status.version} · downloading ${status.percent}%</div>
         <div class="bar"><i style="width:${status.percent}%"></i></div>
-        <div class="n">Keep playing. It downloads in the background.</div>`;
-    } else if (status.state === 'ready') {
-      box.innerHTML = `<div class="t">Update ready</div><div class="m">Version ${status.version}</div>
-        <div class="row"><button class="go">Restart now</button><button class="later">Later</button></div>
-        <div class="n">Later installs it when you close the game.</div>`;
-      box.querySelector<HTMLButtonElement>('.go')!.onclick = () => { void bridge.restart(); };
-      box.querySelector<HTMLButtonElement>('.later')!.onclick = dismiss;
-    } else if (status.state === 'installing') {
+        <div class="n">Keep playing. The game restarts to install when the download finishes.</div>`;
+    } else {
       box.innerHTML = `<div class="t">Installing update</div><div class="m">Version ${status.version}</div>
         <div class="n">The game closes, the installer shows its progress, then the game reopens.</div>`;
-    } else {
-      box.innerHTML = `<button class="x" aria-label="Hide">×</button><div class="t">Update</div>
-        <div class="m">Version ${status.version} could not download</div>
-        <div class="n">It will try again next time you start the game.</div>`;
     }
-    const close = box.querySelector<HTMLButtonElement>('.x');
-    if (close) close.onclick = dismiss;
   });
 }

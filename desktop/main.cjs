@@ -38,31 +38,35 @@ function createWindow() {
 }
 
 // What the in-game update banner shows (src/update-banner.ts): null, or
-// { state: 'downloading', version, percent } / { state: 'ready' | 'installing' | 'error', version }.
+// { state: 'available' | 'installing' | 'error', version } / { state: 'downloading', version, percent }.
 let updateStatus = null;
 function setUpdateStatus(status) {
   updateStatus = status;
   if (win && !win.isDestroyed()) win.webContents.send('update:status', status);
 }
 ipcMain.handle('update:get', () => updateStatus);
-ipcMain.handle('update:restart', () => {
-  if (updateStatus?.state !== 'ready') return;
-  // Not silent: the themed installer shows its progress bar (build/installer.nsh skips its questions
-  // on updates and reopens the game). The banner says "installing" first, so the close isn't a mystery.
-  setUpdateStatus({ state: 'installing', version: updateStatus.version });
-  setTimeout(() => autoUpdater.quitAndInstall(false, true), 1200);
+// Update now: download (the banner shows progress), then install straight away.
+ipcMain.handle('update:start', () => {
+  if (updateStatus?.state !== 'available' && updateStatus?.state !== 'error') return;
+  setUpdateStatus({ state: 'downloading', version: updateStatus.version, percent: 0 });
+  autoUpdater.downloadUpdate().catch((err) => console.warn('[update]', err?.message ?? err));
 });
 
 function checkForUpdates() {
   if (!app.isPackaged) return;
-  // Download in the background while the player plays; the banner shows progress from the first
-  // screen, and the new build installs when the game closes or when the player picks Restart now.
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  // Nothing downloads until the player picks Update now; Later just hides the banner, and the next
+  // launch asks again.
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
   let version = '';
-  autoUpdater.on('update-available', (info) => { version = info.version; setUpdateStatus({ state: 'downloading', version, percent: 0 }); });
+  autoUpdater.on('update-available', (info) => { version = info.version; setUpdateStatus({ state: 'available', version }); });
   autoUpdater.on('download-progress', (p) => setUpdateStatus({ state: 'downloading', version, percent: Math.floor(p.percent) }));
-  autoUpdater.on('update-downloaded', (info) => setUpdateStatus({ state: 'ready', version: info.version }));
+  autoUpdater.on('update-downloaded', (info) => {
+    // Not silent: the themed installer shows its progress bar (build/installer.nsh skips its questions
+    // on updates and reopens the game). The banner says "installing" first, so the close isn't a mystery.
+    setUpdateStatus({ state: 'installing', version: info.version });
+    setTimeout(() => autoUpdater.quitAndInstall(false, true), 1500);
+  });
   autoUpdater.on('error', (err) => {
     console.warn('[update]', err?.message ?? err);
     if (version) setUpdateStatus({ state: 'error', version });
