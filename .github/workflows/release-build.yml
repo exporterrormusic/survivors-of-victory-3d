@@ -62,12 +62,12 @@ jobs:
             --title "Survivors of Victory 3D v$VERSION" \
             --notes "Build of ${GITHUB_SHA::7}: $(git log -1 --format=%s)"
 
-      # Each installer is ~750 MB; keep only the five newest numbered builds.
+      # Each installer is ~750 MB; keep only the newest build and the one before it.
       - name: Prune old releases
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release list --limit 100 --json tagName,createdAt \
-            --jq '[.[] | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+            --jq '[.[] | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | sort_by(.createdAt) | reverse | .[2:] | .[].tagName' |
           while read -r tag; do gh release delete "$tag" --yes --cleanup-tag; done

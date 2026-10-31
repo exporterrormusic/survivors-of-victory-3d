@@ -83,13 +83,14 @@
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": "always",
+      "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
       "shortcutName": "Survivors of Victory 3D",
       "uninstallDisplayName": "Survivors of Victory 3D",
       "installerSidebar": "build/installerSidebar.bmp",
       "uninstallerSidebar": "build/uninstallerSidebar.bmp",
-      "installerHeader": "build/installerHeader.bmp"
+      "installerHeader": "build/installerHeader.bmp",
+      "include": "build/installer.nsh"
     },
     "publish": [
       {
