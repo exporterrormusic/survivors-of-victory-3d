@@ -38,14 +38,20 @@ function createWindow() {
 }
 
 // What the in-game update banner shows (src/update-banner.ts): null, or
-// { state: 'downloading', version, percent } / { state: 'ready', version } / { state: 'error', version }.
+// { state: 'downloading', version, percent } / { state: 'ready' | 'installing' | 'error', version }.
 let updateStatus = null;
 function setUpdateStatus(status) {
   updateStatus = status;
   if (win && !win.isDestroyed()) win.webContents.send('update:status', status);
 }
 ipcMain.handle('update:get', () => updateStatus);
-ipcMain.handle('update:restart', () => { if (updateStatus?.state === 'ready') autoUpdater.quitAndInstall(true, true); });
+ipcMain.handle('update:restart', () => {
+  if (updateStatus?.state !== 'ready') return;
+  // Not silent: the themed installer shows its progress bar (build/installer.nsh skips its questions
+  // on updates and reopens the game). The banner says "installing" first, so the close isn't a mystery.
+  setUpdateStatus({ state: 'installing', version: updateStatus.version });
+  setTimeout(() => autoUpdater.quitAndInstall(false, true), 1200);
+});
 
 function checkForUpdates() {
   if (!app.isPackaged) return;

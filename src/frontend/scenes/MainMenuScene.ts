@@ -89,6 +89,7 @@ const PATCH_RELEASES: readonly PatchRelease[] = [
         heading: "UPDATES",
         items: [
           "New updates now show from the very first screen, with download progress, then RESTART NOW or LATER when ready.",
+          "RESTART NOW closes the game, shows the installer's progress bar, then reopens the game by itself.",
           "Later installs the update when you close the game.",
         ],
       },

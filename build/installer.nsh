@@ -1,7 +1,18 @@
 ; Extra NSIS for the electron-builder installer (package.json build.nsis.include).
 ; Replaces the stock finish page with one that keeps "Run" and adds a "Create a desktop shortcut"
-; checkbox (MUI's spare README checkbox). Silent auto-updates skip the finish page, so they leave
-; the shortcut as it is.
+; checkbox (MUI's spare README checkbox). Auto-updates run this installer visibly so players see
+; the progress bar, but skip every question and the finish page, then reopen the game.
+
+!macro customInstallMode
+  ; An update keeps the existing install's mode instead of asking "only for me / all users" again.
+  ${if} ${isUpdated}
+    ${if} $hasPerMachineInstallation == "1"
+      StrCpy $isForceMachineInstall "1"
+    ${else}
+      StrCpy $isForceCurrentInstall "1"
+    ${endif}
+  ${endif}
+!macroend
 
 !macro customFinishPage
   Function StartApp
@@ -17,6 +28,15 @@
     CreateShortCut "$DESKTOP\${SHORTCUT_NAME}.lnk" "$INSTDIR\${APP_FILENAME}.exe" "" "$INSTDIR\${APP_FILENAME}.exe" 0
   FunctionEnd
 
+  ; An update goes straight back into the game instead of stopping on the finish page.
+  Function SovFinishPre
+    ${if} ${isUpdated}
+      Call StartApp
+      Abort
+    ${endif}
+  FunctionEnd
+
+  !define MUI_PAGE_CUSTOMFUNCTION_PRE SovFinishPre
   !define MUI_FINISHPAGE_RUN
   !define MUI_FINISHPAGE_RUN_FUNCTION "StartApp"
   !define MUI_FINISHPAGE_SHOWREADME ""

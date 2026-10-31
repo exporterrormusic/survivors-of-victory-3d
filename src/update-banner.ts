@@ -4,6 +4,7 @@
 type UpdateStatus =
   | { state: 'downloading'; version: string; percent: number }
   | { state: 'ready'; version: string }
+  | { state: 'installing'; version: string }
   | { state: 'error'; version: string };
 
 interface UpdateBridge {
@@ -58,6 +59,9 @@ export function mountUpdateBanner(): void {
         <div class="n">Later installs it when you close the game.</div>`;
       box.querySelector<HTMLButtonElement>('.go')!.onclick = () => { void bridge.restart(); };
       box.querySelector<HTMLButtonElement>('.later')!.onclick = dismiss;
+    } else if (status.state === 'installing') {
+      box.innerHTML = `<div class="t">Installing update</div><div class="m">Version ${status.version}</div>
+        <div class="n">The game closes, the installer shows its progress, then the game reopens.</div>`;
     } else {
       box.innerHTML = `<button class="x" aria-label="Hide">×</button><div class="t">Update</div>
         <div class="m">Version ${status.version} could not download</div>
