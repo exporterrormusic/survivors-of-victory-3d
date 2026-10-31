@@ -251,6 +251,7 @@ export class MainMenuScene extends Phaser.Scene {
   private devMenuStatusText?: Phaser.GameObjects.Text;
   private noticeDetailLayer?: Phaser.GameObjects.Container;
   private noticeLayer?: Phaser.GameObjects.Container;
+  private noticeRailScroll = 0;
   private noticeUnreadDot?: Phaser.GameObjects.Arc;
   private previousScene?: string;
   private revealTransition = false;
@@ -609,6 +610,7 @@ export class MainMenuScene extends Phaser.Scene {
       return;
     }
     this.markNoticeRead();
+    this.noticeRailScroll = 0;
 
     const panelX = 380;
     const panelY = 120;
@@ -743,17 +745,77 @@ export class MainMenuScene extends Phaser.Scene {
     this.noticeDetailLayer = detailLayer;
     this.noticeLayer?.add(detailLayer);
 
+    // The release index grows every push, so it scrolls inside the rail.
+    const railX = panelX + 40;
+    const railTop = panelY + 196;
+    const railHeight = 541;
+    const railStep = 100;
+    const railMaxScroll = Math.max(
+      0,
+      PATCH_RELEASES.length * railStep - 12 - (railHeight - 9),
+    );
+    this.noticeRailScroll = Phaser.Math.Clamp(
+      this.noticeRailScroll,
+      0,
+      railMaxScroll,
+    );
+    const rail = this.add.container(railX, railTop + 9 - this.noticeRailScroll);
+    const railMaskShape = this.make.graphics({}, false);
+    railMaskShape.fillRect(railX - 2, railTop, 220, railHeight);
+    rail.setMask(railMaskShape.createGeometryMask());
+    detailLayer.add(rail);
+    detailLayer.once("destroy", () => railMaskShape.destroy());
+    const inRail = (pointer: Phaser.Input.Pointer): boolean =>
+      pointer.y >= railTop && pointer.y <= railTop + railHeight;
+
     PATCH_RELEASES.forEach((release, releaseIndex) => {
-      detailLayer.add(
+      rail.add(
         this.createNoticeReleaseButton(
-          panelX + 40,
-          panelY + 205 + releaseIndex * 108,
+          0,
+          releaseIndex * railStep,
           release,
           releaseIndex === index,
           () => this.renderNoticeRelease(releaseIndex, panelX, panelY),
+          inRail,
         ),
       );
     });
+
+    if (railMaxScroll > 0) {
+      const thumbHeight = Math.max(
+        40,
+        (railHeight * railHeight) / (railHeight + railMaxScroll),
+      );
+      const thumb = this.add
+        .rectangle(railX + 222, railTop, 3, thumbHeight, 0x35c5f2)
+        .setOrigin(0);
+      const placeThumb = (): void => {
+        thumb.y =
+          railTop +
+          (railHeight - thumbHeight) * (this.noticeRailScroll / railMaxScroll);
+      };
+      placeThumb();
+      detailLayer.add(thumb);
+      const onWheel = (
+        pointer: Phaser.Input.Pointer,
+        _over: unknown,
+        _dx: number,
+        dy: number,
+      ): void => {
+        if (!inRail(pointer) || pointer.x < railX || pointer.x > railX + 230) {
+          return;
+        }
+        this.noticeRailScroll = Phaser.Math.Clamp(
+          this.noticeRailScroll + dy * 0.6,
+          0,
+          railMaxScroll,
+        );
+        rail.y = railTop + 9 - this.noticeRailScroll;
+        placeThumb();
+      };
+      this.input.on("wheel", onWheel);
+      detailLayer.once("destroy", () => this.input.off("wheel", onWheel));
+    }
 
     const release = PATCH_RELEASES[index]!;
     const contentX = panelX + 320;
@@ -814,6 +876,7 @@ export class MainMenuScene extends Phaser.Scene {
     release: PatchRelease,
     selected: boolean,
     onClick: () => void,
+    isVisible: (pointer: Phaser.Input.Pointer) => boolean,
   ): Phaser.GameObjects.Container {
     const width = 214;
     const height = 88;
@@ -854,8 +917,8 @@ export class MainMenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     hit.on("pointerover", () => draw(true));
     hit.on("pointerout", () => draw(false));
-    hit.on("pointerup", () => {
-      if (!selected) {
+    hit.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+      if (!selected && isVisible(pointer)) {
         this.sound.play(ASSETS.select, {
           volume: scaledSfxVolume(0.14, this.audioSettings),
         });
