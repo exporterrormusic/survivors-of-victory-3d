@@ -82,6 +82,19 @@ interface PatchRelease {
 // last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
+    version: "0.1.4",
+    title: "V0.1.4",
+    sections: [
+      {
+        heading: "UPDATES",
+        items: [
+          "Each release page on GitHub now lists the same notes as this NOTICE.",
+          "First update to use the new update banner and installer progress screen from 0.1.3.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.3",
     title: "V0.1.3",
     sections: [
@@ -90,14 +103,39 @@ const PATCH_RELEASES: readonly PatchRelease[] = [
         items: [
           "New updates now show from the very first screen, with download progress, then RESTART NOW or LATER when ready.",
           "RESTART NOW closes the game, shows the installer's progress bar, then reopens the game by itself.",
-          "Later installs the update when you close the game.",
+          "LATER installs the update when you close the game.",
         ],
       },
+    ],
+  },
+  {
+    version: "0.1.2",
+    title: "V0.1.2",
+    sections: [
       {
         heading: "INSTALLER",
         items: [
-          "New Survivors of Victory installer: choose where to install, and whether to add a desktop shortcut or launch when done.",
-          "The game, installer and taskbar now use the Survivors of Victory icon.",
+          "The installer's last page asks whether to create a desktop shortcut, beside the option to launch the game.",
+          "Uninstalling also removes the desktop shortcut. Updates leave it in place.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "0.1.1",
+    title: "V0.1.1",
+    sections: [
+      {
+        heading: "INSTALLER",
+        items: [
+          "New Survivors of Victory installer: choose where to install, with Start Menu and desktop shortcuts.",
+          "The game no longer launches by itself after installing; the last page offers it instead.",
+        ],
+      },
+      {
+        heading: "LOOK",
+        items: [
+          "The game window, taskbar and installer now use the Survivors of Victory icon.",
         ],
       },
     ],
