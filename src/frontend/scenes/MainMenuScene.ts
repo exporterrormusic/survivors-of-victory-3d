@@ -1,5 +1,5 @@
 import { cores } from "../ui/cores";
-import { GAME_VERSION, RELEASE_VERSION, VERSION_LABEL } from "../../version";
+import { GAME_VERSION, VERSION_LABEL } from "../../version";
 import Phaser from "phaser";
 import { bleed, pinToEdge, view } from "../rendering/DisplayQualityPlugin";
 
@@ -69,9 +69,6 @@ export function preloadMainMenuAssets(scene: Phaser.Scene): void {
   preloadLobbyAudio(scene);
 }
 
-// One unread dot per release: bumping RELEASE_VERSION shows the dot again (test builds don't).
-const NOTICE_STORAGE_KEY = `nikke-moba.notice.v${RELEASE_VERSION}`;
-
 interface PatchRelease {
   readonly sections: readonly {
     readonly heading: string;
@@ -81,11 +78,32 @@ interface PatchRelease {
   readonly version: string;
 }
 
-// Newest first. The first entry's version must equal RELEASE_VERSION (src/version.ts).
+// Newest first. Add an entry with every push: its version is the build that push publishes (the
+// last v0.x.N release + 1; see .github/workflows/release-build.yml).
 const PATCH_RELEASES: readonly PatchRelease[] = [
   {
-    version: "0.1",
-    title: "V0.1",
+    version: "0.1.3",
+    title: "V0.1.3",
+    sections: [
+      {
+        heading: "UPDATES",
+        items: [
+          "New updates now show from the very first screen, with download progress, then RESTART NOW or LATER when ready.",
+          "Later installs the update when you close the game.",
+        ],
+      },
+      {
+        heading: "INSTALLER",
+        items: [
+          "New Survivors of Victory installer: choose where to install, and whether to add a desktop shortcut or launch when done.",
+          "The game, installer and taskbar now use the Survivors of Victory icon.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "0.1.0",
+    title: "V0.1.0",
     sections: [
       {
         heading: "WELCOME",
@@ -117,6 +135,9 @@ const PATCH_RELEASES: readonly PatchRelease[] = [
     ],
   },
 ] as const;
+
+// One unread dot per entry: a new top entry shows the dot again.
+const NOTICE_STORAGE_KEY = `nikke-moba.notice.v${PATCH_RELEASES[0]!.version}`;
 
 /** extra room between a 150 px card's slanted left edge and its icon, like the smaller buttons have */
 const LARGE_INSET = 26;
